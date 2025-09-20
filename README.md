@@ -1,6 +1,6 @@
 # FamilyTracker - Family Management App
 
-A comprehensive family tracking and management Progressive Web App (PWA) built with React, TypeScript, and Firebase. This app provides real-time location tracking, task management, family messaging, and a secure digital vault.
+A comprehensive family tracking and management Progressive Web App (PWA) built with React, TypeScript, Vite, and Firebase. This app provides real-time location tracking, task management, family messaging, and a secure digital vault with a modern Life360-style design.
 
 ## 🚀 Features
 
@@ -24,22 +24,25 @@ A comprehensive family tracking and management Progressive Web App (PWA) built w
 - **Offline Support** - Service worker for offline functionality
 - **Responsive Design** - Works on mobile, tablet, and desktop
 - **Secure Authentication** - Firebase Auth integration
+- **Modern UI/UX** - Life360-style design with smooth animations
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Styling**: Custom CSS with Tailwind-inspired utility classes
+- **Frontend**: React 19 with TypeScript
+- **Build Tool**: Vite (fast development and building)
+- **Styling**: Tailwind CSS v4 with custom animations
 - **Backend**: Firebase (Auth, Firestore, Storage, Functions)
 - **Maps**: Google Maps API
-- **Animations**: GSAP and Framer Motion
+- **Animations**: GSAP for smooth transitions
+- **State Management**: React Query + Zustand
 - **PWA**: Service Worker with offline support
-- **Icons**: React Icons (Feather Icons)
-- **Notifications**: React Hot Toast
+- **Testing**: Vitest + React Testing Library + Playwright
+- **Code Quality**: ESLint + Prettier + Husky
 
 ## 📋 Prerequisites
 
 Before you begin, ensure you have the following installed:
-- Node.js (v16 or higher)
+- Node.js (v18 or higher)
 - npm or yarn
 - Firebase account
 - Google Maps API key
@@ -48,7 +51,7 @@ Before you begin, ensure you have the following installed:
 
 ### 1. Clone the Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/kingct19/Family-Tracking-and-Management-App.git
 cd Family-Tracking-and-Management-App
 ```
 
@@ -67,19 +70,19 @@ cp env.example .env
 Edit `.env` with your credentials:
 ```env
 # Firebase Configuration
-REACT_APP_FIREBASE_API_KEY=your-api-key
-REACT_APP_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-REACT_APP_FIREBASE_PROJECT_ID=your-project-id
-REACT_APP_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID=123456789
-REACT_APP_FIREBASE_APP_ID=your-app-id
+VITE_FIREBASE_API_KEY=your-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
+VITE_FIREBASE_APP_ID=your-app-id
 
 # Google Maps API Key
-REACT_APP_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
+VITE_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
 
 # App Configuration
-REACT_APP_APP_NAME=FamilyTracker
-REACT_APP_VERSION=1.0.0
+VITE_APP_NAME=FamilyTracker
+VITE_APP_VERSION=1.0.0
 ```
 
 ### 4. Firebase Setup
@@ -114,7 +117,7 @@ service cloud.firestore {
 
 ### 5. Start Development Server
 ```bash
-npm start
+npm run dev
 ```
 
 The app will open at [http://localhost:3000](http://localhost:3000).
@@ -133,45 +136,52 @@ The app is designed as a Progressive Web App and can be installed on mobile devi
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── Auth/           # Authentication components
-│   ├── Layout/         # Layout components (Header, Sidebar)
-│   └── UI/             # Generic UI components
-├── contexts/           # React Context providers
-│   ├── AuthContext.tsx     # Authentication state
-│   ├── FamilyContext.tsx   # Family/hub management
-│   └── LocationContext.tsx # Location tracking
-├── pages/              # Page components
-│   ├── Auth/           # Login/Register pages
-│   ├── Dashboard/      # Main dashboard
-│   ├── Location/       # Location tracking
-│   ├── Tasks/          # Task management
-│   ├── Messages/       # Family messaging
-│   ├── Vault/          # Digital vault
-│   └── Settings/       # User settings
+├── features/            # Feature-based architecture
+│   ├── auth/           # Authentication features
+│   ├── dashboard/      # Dashboard features
+│   ├── location/       # Location tracking features
+│   ├── tasks/          # Task management features
+│   ├── messages/       # Messaging features
+│   ├── vault/          # Digital vault features
+│   └── settings/       # Settings features
+├── hooks/              # Custom React hooks
+├── lib/                # Utility libraries
+│   ├── animations.ts   # GSAP animation utilities
+│   ├── performance.ts  # Performance monitoring
+│   ├── security.ts     # Security utilities
+│   ├── validation.ts   # Zod validation schemas
+│   └── sanitization.ts # Input sanitization
 ├── config/             # Configuration files
-│   └── firebase.ts     # Firebase configuration
-├── services/           # Service files
-│   └── serviceWorker.ts # PWA service worker
-└── App.tsx            # Main app component
+├── styles/             # Global styles
+├── types/              # TypeScript type definitions
+└── test/               # Test setup files
 ```
 
 ## 🔧 Available Scripts
 
-### `npm start`
-Runs the app in development mode. Open [http://localhost:3000](http://localhost:3000) to view it.
-
-### `npm test`
-Launches the test runner in interactive watch mode.
+### `npm run dev`
+Runs the app in development mode with Vite. Open [http://localhost:3000](http://localhost:3000) to view it.
 
 ### `npm run build`
-Builds the app for production to the `build` folder. Optimized for best performance.
+Builds the app for production to the `dist` folder. Optimized for best performance.
 
-### `npm run build-pwa`
-Builds the app and generates service worker for PWA functionality.
+### `npm run preview`
+Preview the production build locally.
 
-### `npm run eject`
-**Note: This is a one-way operation. Once you eject, you can't go back!**
-Removes the single build dependency and copies all configuration files into your project.
+### `npm test`
+Runs unit tests with Vitest.
+
+### `npm run test:coverage`
+Runs tests with coverage reporting.
+
+### `npm run test:e2e`
+Runs end-to-end tests with Playwright.
+
+### `npm run lint`
+Runs ESLint to check code quality.
+
+### `npm run format`
+Formats code with Prettier.
 
 ## 🌟 Key Features Implementation
 
@@ -203,9 +213,12 @@ Removes the single build dependency and copies all configuration files into your
 
 - Firebase Authentication with email/password
 - Firestore security rules for data protection
+- Input validation with Zod schemas
+- XSS protection with DOMPurify sanitization
+- Content Security Policy (CSP)
+- Rate limiting middleware
 - Encrypted storage for sensitive information
 - Role-based access control
-- Secure API key management
 
 ## 📱 Mobile Optimization
 
@@ -214,6 +227,7 @@ Removes the single build dependency and copies all configuration files into your
 - Offline functionality with service worker
 - Native app-like experience when installed
 - Push notification support
+- Core Web Vitals optimization
 
 ## 🚀 Deployment
 
@@ -224,11 +238,28 @@ firebase deploy
 ```
 
 ### Other Platforms
-The built files in the `build` folder can be deployed to any static hosting service:
+The built files in the `dist` folder can be deployed to any static hosting service:
 - Netlify
 - Vercel
 - AWS S3 + CloudFront
 - GitHub Pages
+
+## 🧪 Testing
+
+The project includes comprehensive testing:
+
+- **Unit Tests**: Vitest + React Testing Library
+- **Integration Tests**: Feature-based testing
+- **E2E Tests**: Playwright for full user flows
+- **Performance Tests**: Lighthouse CI integration
+- **Accessibility Tests**: axe-core integration
+
+Run tests:
+```bash
+npm test                 # Unit tests
+npm run test:e2e        # E2E tests
+npm run test:lighthouse # Performance tests
+```
 
 ## 🤝 Contributing
 
@@ -247,6 +278,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Firebase for backend services
 - React team for the amazing framework
 - Google Maps for location services
+- Tailwind CSS for beautiful styling
+- GSAP for smooth animations
 - All open-source contributors
 
 ## 📞 Support
