@@ -1,25 +1,95 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Suspense, lazy } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { HelmetProvider } from 'react-helmet-async';
+import { Toaster } from 'react-hot-toast';
+
+// Core providers and utilities
+import { queryClient } from '@/lib/query-client';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+
+// Lazy load pages for code splitting
+const HomePage = lazy(() => import('@/features/auth/pages/HomePage'));
+const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'));
+const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'));
+const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
+const LocationPage = lazy(() => import('@/features/location/pages/LocationPage'));
+const TasksPage = lazy(() => import('@/features/tasks/pages/TasksPage'));
+const MessagesPage = lazy(() => import('@/features/messages/pages/MessagesPage'));
+const VaultPage = lazy(() => import('@/features/vault/pages/VaultPage'));
+const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage'));
+const NotFoundPage = lazy(() => import('@/features/auth/pages/NotFoundPage'));
+
+// Layout components
+const AppLayout = lazy(() => import('@/components/AppLayout'));
+const ProtectedRoute = lazy(() => import('@/components/ProtectedRoute'));
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <HelmetProvider>
+          <div className="App">
+            <Suspense fallback={<LoadingSpinner size="large" />}>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<HomePage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+
+                {/* Protected Routes */}
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }>
+                  <Route path="dashboard" element={<DashboardPage />} />
+                  <Route path="location" element={<LocationPage />} />
+                  <Route path="tasks" element={<TasksPage />} />
+                  <Route path="messages" element={<MessagesPage />} />
+                  <Route path="vault" element={<VaultPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
+                </Route>
+
+                {/* 404 Route */}
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </Suspense>
+
+            {/* Toast notifications */}
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#363636',
+                  color: '#fff',
+                },
+                success: {
+                  duration: 3000,
+                  iconTheme: {
+                    primary: '#4ade80',
+                    secondary: '#fff',
+                  },
+                },
+                error: {
+                  duration: 5000,
+                  iconTheme: {
+                    primary: '#ef4444',
+                    secondary: '#fff',
+                  },
+                },
+              }}
+            />
+          </div>
+        </HelmetProvider>
+
+        {/* React Query DevTools */}
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

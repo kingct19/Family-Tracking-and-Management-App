@@ -1,0 +1,389 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# DESIGN_RULES_MDC.md — UI Guidelines (Group 1)
+
+## 0) Foundations
+- **Colors:** Material Design 3 roles (primary, surface, on-surface, outline, error).
+- **Typography:** Roboto Flex (preferred) or Inter fallback.
+  - Display-lg 57/64, Headline-md 28/36, Title-md 16/24 (600), Body-md 14/20, Label-md 12/16 (600).
+- **Shape:** 8–20px radii, full pill for chips/FAB.
+- **Spacing:** 4pt scale (4,8,12,16…).
+- **Motion:** 120–200ms core, 300ms transitions; ease-standard, ease-emphasized.
+- **Density:** 44px min touch target.
+
+---
+
+## 1) Layout & Responsiveness
+- **Breakpoints:** xs ≤360, sm 361–599, md 600–1023, lg 1024–1439, xl ≥1440.
+- **Grid:** xs/sm 4-col, md 8-col, lg/xl 12-col.
+- **Nav:** xs/sm bottom app bar, md top app bar, lg/xl nav rail + top bar.
+- **Dialogs:** xs/sm full sheet; md+ centered 560–720px.
+
+---
+
+## 2) Components
+- **Buttons:** Filled (primary), Tonal (secondary), Outlined (tertiary), Error. Sentence case. Min H 44px. Icon buttons need aria-label.
+- **Text fields:** Filled (dense), Outlined (general). Inline error with `aria-describedby`.
+- **Cards:** Elev-1, interactive whole card, hover elev-2, focus ring.
+- **Navigation:** Bottom bar (3–5 items, labels), Nav rail ≥ lg.
+- **Chips:** Filter chips for hub selection, badges only for counts.
+
+---
+
+## 3) States & Elevation
+- Hover: elev+1, pressed: elev-1, focus: outline 2px.
+- Contrast: text vs surface ≥ 4.5:1.
+- Provide light/dark themes.
+
+---
+
+## 4) Motion
+- GSAP or CSS transitions.
+- Animate only opacity/transform.
+- Respect prefers-reduced-motion.
+
+---
+
+## 5) Accessibility
+- WCAG 2.2 AA compliance.
+- Keyboard reachable, visible focus, skip link.
+- All form elements labeled, errors described.
+- Images with alt text.
+- Targets ≥ 44x44px, ≥8px spacing.
+- Map view must have list alternative.
+
+---
+
+## 6) Content Rules
+- Clear, concise, supportive tone.
+- Sentence case (no ALL CAPS).
+- Use action verbs (“Add chore”, “Verify with photo”).
+- Headers may ellipsize; body text wraps.
+
+---
+
+## 7) App-Specific Patterns
+- **Hub switcher:** md+ segmented in top app bar, sm bottom sheet. Persist last hub.
+- **Chore verification:** Photo proof required; parent approval card; gamified points/leaderboard.
+- **Location:** Status chip (online/offline, last seen); geofence alerts = snackbar + sheet, not blocking modal.
+- **Vault:** Two-step (auth + passcode/biometric). Copy reveal hides after timeout.
+
+---
+
+## 8) Design Review Checklist
+- [ ] Material color roles used; AA contrast
+- [ ] Typography scale consistent
+- [ ] Touch targets ≥44px
+- [ ] Layout adapts at breakpoints
+- [ ] Motion respects reduced-motion
+- [ ] Focus rings visible; skip link present
+- [ ] Map has list alt view
+- [ ] Vault has 2-step access
+- [ ] CLS ≤0.1; skeletons for async
+- [ ] Material Symbols with aria-labels
+- [ ] Empty, error, loading states designed
+
+# TEAM_RULES_MDC.md — Engineering Playbook (Group 1)
+
+## 0) Tech Baseline
+- **Frontend:** React + TypeScript, Vite, React Router, React Query, Zustand (or Redux Toolkit), GSAP.
+- **PWA:** Workbox service worker, offline shell, install prompt.
+- **Backend:** Firebase (Auth, Firestore, Storage, Cloud Functions), Remote Config (feature flags).
+- **Maps & Geo:** Google Maps JS API; geofencing via Functions/Firestore.
+- **Tests:** Jest + React Testing Library (unit/integration), Playwright (e2e).
+- **Quality:** ESLint (strict), Prettier, tsc, Commitlint (Conventional Commits).
+- **CI/CD:** GitHub Actions (build, lint, type, unit, e2e:smoke, a11y, Lighthouse, CodeQL, audit).
+- **Security:** OWASP-ASVS mindset; Firestore Rules; SAST (CodeQL); dep audit; secret scanning.
+- **Docs:** `/docs` with ADRs, API contracts, privacy, threat model.
+
+---
+
+## 1) Branching, PRs, Code Review
+- `main` protected, always releasable.
+- Branches: `feat/<scope>-<desc>`, `fix/…`, `chore/…`.
+- Rebase or squash merges; no merge commits.
+- PRs < 300 LOC, include problem, approach, screenshots/GIF, test plan, perf/a11y notes.
+- Required checks: lint, typecheck, unit, build, smoke e2e, lighthouse-ci, axe-ci, codeql, npm-audit.
+- 2 approvals for sensitive paths (`/security`, `/functions`, `/src/location`).
+
+**Commit examples (Conventional Commits):**
+```
+feat(hubs): switch between family/school groups
+fix(chore-verify): require photo proof before completion
+docs: add privacy policy draft
+refactor(auth): extract session refresh logic
+```
+
+---
+
+## 2) Code Style & Structure
+- ESLint (`typescript-eslint`, `import`, `jsx-a11y`, `react`, `security`, `sonarjs`)
+- Prettier (max line 100, singleQuote, trailingComma all)
+- Directory layout:
+```
+/src
+  /app
+  /components
+  /features
+  /lib
+  /security
+  /styles
+  /test
+  /types
+/functions
+/.github/workflows
+/docs
+```
+
+---
+
+## 3) Testing & QA
+- **Unit:** Jest + RTL, coverage ≥ 85%.
+- **Integration:** feature slices with mocks.
+- **E2E:** Playwright (auth, hub switch, geofence, chore verify, vault).
+- Smoke on PRs; full nightly.
+- Accessibility: axe-core in tests + CI.
+- Performance: LCP ≤ 2.5s, CLS ≤ 0.1, TBT ≤ 200ms.
+- Visual QA: Playwright screenshots.
+
+---
+
+## 4) Security & Privacy
+- Least privilege; no secrets in repo; data minimization.
+- Sanitize all inputs; strict CSP.
+- Auth roles: owner, admin, parent, child, viewer.
+- Firestore Rules enforce hub membership + role.
+- Cloud Functions: require auth, validate with Zod, structured logs (no PII).
+- Privacy defaults: location ≤ 30d, chore photos ≤ 90d, vault until owner delete.
+- Implement export/delete endpoints.
+
+---
+
+## 5) Performance, Accessibility & UX
+- Core Web Vitals budgets enforced in CI.
+- Responsive images; code splitting.
+- WCAG AA: keyboard focus, skip links, semantic landmarks, reduced motion.
+
+---
+
+## 6) CI/CD
+- GitHub Actions: lint → type → unit → build → emulators → smoke e2e → lighthouse → axe → codeql → audit.
+- Deploy: Firebase Hosting preview on merge; promote on release tag.
+
+---
+
+## 7) Releases & Flags
+- Semantic versioning.
+- Feature flags via Remote Config (0% → 5% → 25% → 100% rollout).
+- Monitoring: Firebase Perf, Sentry.
+- Rollback to last good deploy.
+
+---
+
+## 8) Docs & Decisions
+- ADRs in `/docs/adrs/`.
+- C4 diagrams in `/docs/arch/`.
+- API contracts in `/docs/api/`.
+
+---
+
+## 9) Local Dev
+- `npm run dev` = Vite + emulators.
+- `.env.example` checked in; never commit real env.
+- Husky + lint-staged for pre-commit.
+- VSCode: format on save, Tailwind IntelliSense.
+
+---
+
+## 10) Definition of Ready / Done
+- **DoR:** acceptance criteria, testability, security/privacy, telemetry.
+- **DoD:** tests updated, coverage stable, a11y/perf budgets green, docs updated, no TODOs/logs, flags wired.
+
+---
+
+## Cursor “Rules Prompt”
+```
+You are coding inside a React + TypeScript + Firebase PWA (Vite).
+
+1) TDD-first with Jest + RTL; Playwright for e2e.
+2) Structure: /features/<name> with colocated Component, hooks, api, types, tests.
+3) React Query for server cache; Zustand for local state; API wrappers in /lib.
+4) Accessibility: labels, keyboard UX, focus, aria-*; tests assert roles/names.
+5) Security: no PII/tokens in logs; sanitize HTML; validate inputs; Firestore Rules least privilege.
+6) Performance: code-split, memoize, lazy maps; respect CWV budgets.
+7) Style: ESLint strict + Prettier; no ts-ignore; small components; prefer composition.
+8) PRs: Conventional Commits; include screenshots/test plan; update ADRs.
+
+Generate code and tests following these rules.
+```
+
+# CURSOR_RULES_MDC.md — Cursor Guardrails & Prompts (Group 1)
+
+> Pin this in Cursor's **Rules** so AI outputs comply with our engineering standards.
+
+## 1) Global Project Context
+- Stack: **React + TypeScript + Vite + Firebase (Auth/Firestore/Storage/Functions)**, React Query, Zustand, GSAP, PWA (Workbox), Google Maps JS API.
+- Non-negotiables: **TDD-first**, **WCAG 2.2 AA**, **OWASP-ASVS mindset**, **Core Web Vitals budgets**.
+
+## 2) Cursor System Prompt (copy-paste)
+```
+You are coding inside a React + TypeScript + Firebase PWA (Vite). Follow these house rules:
+
+A) Structure & Style
+- Use /features/<name>/ with colocated files: Component.tsx, hooks.ts, api.ts, types.ts, Component.test.tsx.
+- Export typed API wrappers from /lib; no ad-hoc fetch in components.
+- Use React Query for server state; Zustand for local UI state.
+- ESLint strict + Prettier; avoid ts-ignore; prefer composition over inheritance.
+
+B) TDD & Unit Testing
+- For every component/hook/util, generate Jest + React Testing Library tests.
+- Tests assert roles/names/labels (a11y); mock time/geolocation; no real network.
+- Use Firebase emulators for integration tests; mock Google Maps API.
+- Coverage target: >= 85% lines/branches; deterministic tests only.
+
+C) Accessibility & UX
+- All interactives have labels, keyboard support, and visible focus.
+- Prefer semantic HTML; manage focus on dialogs, toasts, routes.
+- Respect prefers-reduced-motion; animate opacity/transform only.
+
+D) Security & Privacy
+- Never log tokens, PII, vault contents, or raw geolocation.
+- Validate all inputs with Zod; sanitize HTML (DOMPurify) before rendering.
+- Assume least-privilege Firestore Rules; pass hubId and enforce claims server-side in Functions.
+- Use Remote Config feature flags; guard sensitive features by role and hub membership.
+
+E) Performance
+- Route/feature code-splitting; lazy-load Maps; memoize heavy lists.
+- Keep LCP <= 2.5s, CLS <= 0.1, TBT <= 200ms; avoid long tasks on main thread.
+
+F) Deliverables in PRs
+- Include: problem statement, approach, screenshots/GIF, test plan (unit/integration/e2e), perf/a11y notes.
+- Update ADRs if architecture changes.
+
+Generate code and tests that satisfy these rules by default.
+```
+
+## 3) Snippets the AI Should Prefer
+- **Zod schema + sanitizer** for inputs
+- **React Query** mutation/query templates
+- **Firebase Functions** with auth/claims checks
+- **RTL** test helpers for a11y assertions
+- **Playwright** smoke tests scaffold
+
+# QUALITY_QA_RULES_MDC.md — Security, Unit Testing & QA (Group 1)
+
+## 1) Security Rules (Frontend & Backend)
+
+### 1.1 Frontend (React/PWA)
+- **No secrets in repo**: Use environment injection; never hardcode API keys or project IDs.
+- **CSP**: nonce-based scripts; restrict to self + required Google domains; no `unsafe-inline`.
+- **Sanitization**: sanitize any user-rendered HTML with **DOMPurify**; never `dangerouslySetInnerHTML` unguarded.
+- **PII**: never log tokens, emails, addresses, precise geolocation, or vault data.
+- **Auth checks**: client-side guards for route access; server is source of truth.
+- **Service Worker**: don't cache auth pages/responses; version and purge on deploy.
+- **Permissions UX**: granular toggles for location; clear purpose and retention in settings.
+- **Clipboard/Secrets UX**: one-time reveal; auto re-mask; copy buttons with timeout.
+
+### 1.2 Firebase & Cloud Functions
+- **Auth required** for every Function; verify ID token and **custom claims**.
+- **Authorization**: check user role and hub membership (`hubId in claims.hubs`) per request.
+- **Rate limiting**: per-IP and per-user quotas; exponential backoff for retries.
+- **Validation**: Zod schemas for all payloads; reject unknown keys; normalize server-side.
+- **Logging**: structured logs (severity, traceId, hubId), redact PII by default.
+- **Secrets**: Google Secret Manager; never environment variables in code for secrets.
+- **Storage uploads**: restrict MIME types; generate signed URLs server-side; scan images if feasible.
+- **Geo features**: snap-to-road optional; quantize coordinates before storing; default retention 30 days.
+
+### 1.3 Firestore Security Rules (requirements)
+- Read/write only if `request.auth != null` AND user **in hub** AND role allows action.
+- Parents can create/update/delete chores; assignees can toggle status with photo proof.
+- Vault readable/writable only by parent role; enforce document-level ownership.
+- Locations write: only self; read: parent or self in same hub.
+- Deny by default; log denies in analytics (without PII).
+
+---
+
+## 2) Unit & Integration Testing Rules
+
+### 2.1 Unit Tests (Jest + RTL)
+- **Naming**: `*.test.ts[x]` colocated with source.
+- **Contents**: one behavior per `it()`, AAA pattern (Arrange-Act-Assert).
+- **A11y assertions**: use `getByRole`, `getByLabelText`, `toHaveAccessibleName`.
+- **Mocks**: mock time (`vi.useFakeTimers()`), geolocation, network; no real fetch.
+- **Firebase/Maps**: use jest mocks or test doubles; never hit real services.
+- **Coverage**: lines/branches/functions >= **85%**; fail CI below threshold.
+- **Determinism**: avoid timers without control; flush promises with utilities.
+
+**Example (component):**
+```ts
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { ChoreCard } from "./ChoreCard";
+
+it("requires photo before completing", async () => {
+  render(<ChoreCard title="Dishes" requiresPhoto />);
+  await userEvent.click(screen.getByRole("button", { name: /complete/i }));
+  expect(screen.getByText(/photo required/i)).toBeInTheDocument();
+});
+```
+
+### 2.2 Integration Tests
+- Run against **Firebase emulators** (Auth, Firestore, Functions, Storage).
+- Seed data via emulator scripts; clear between tests.
+- Test critical flows: auth login, hub switch, chore verify (with photo), geofence alert enqueue, vault entry.
+
+### 2.3 E2E (Playwright)
+- Smoke on PRs: login, navigate hubs, create chore, verify with photo (mock), open vault (mock biometric).
+- Full nightly suite for regression with visual snapshots.
+
+---
+
+## 3) Code Quality Rules
+
+### 3.1 Linting & Formatting
+- ESLint strict (`typescript-eslint`, `react`, `jsx-a11y`, `import`, `security`, `sonarjs`).
+- Prettier enforced; Husky + lint-staged on pre-commit.
+- No `any` unless justified; no `ts-ignore` unless commented with reason and ticket.
+
+### 3.2 Architecture & Structure
+- Features are isolated; components <= 200 LOC; hooks extract logic.
+- API calls only in `/lib` or `/features/*/api.ts` with typed clients.
+- React Query keys co-located; include invalidation in mutations.
+
+### 3.3 Performance
+- Code-split routes/features; lazy-load Maps; memoize heavy lists (windowing when needed).
+- Images: `width/height` set; lazy & responsive sources.
+- Avoid long tasks; move heavy work to Web Workers or Functions.
+
+### 3.4 Accessibility
+- Keyboard-first, visible focus, skip to content.
+- Semantic landmarks (`header/main/nav/footer`).
+- Forms: labels, `aria-describedby` for errors, helpful hints.
+
+---
+
+## 4) QA Process
+
+### 4.1 PR Template (checks to include)
+- [ ] Problem & approach
+- [ ] Screenshots/GIFs
+- [ ] Tests added/updated (unit/integration/e2e)
+- [ ] a11y notes (roles/labels/focus)
+- [ ] Perf notes (CWV budget impact)
+- [ ] Security/privacy impact (data, roles, retention)
+- [ ] Docs updated (ADR/API)
+
+### 4.2 CI Gates
+- Lint, typecheck, unit (coverage >= 85%), build
+- Emulators up → e2e smoke
+- Lighthouse CI budgets
+- `@axe-core/cli` accessibility scan
+- CodeQL + `npm audit --audit-level=high`
+
+### 4.3 Release Readiness
+- Monitoring dashboards (Sentry, Firebase Performance) show healthy
+- Feature-flag rollout plan defined
+- Rollback path documented

@@ -1,0 +1,62 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - img [ref=e9]
+          - heading "FamilyTracker" [level=1] [ref=e14]
+        - generic [ref=e15]:
+          - link "Sign in to your account" [ref=e16]:
+            - /url: /login
+            - text: Sign In
+          - link "Create a new account" [ref=e17]:
+            - /url: /register
+            - text: Get Started
+    - main [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "Keep Your Family Connected" [level=2] [ref=e21]:
+            - text: Keep Your Family
+            - generic [ref=e22]: Connected
+          - paragraph [ref=e23]: A comprehensive family management platform that helps you stay connected, organized, and secure with your loved ones.
+          - generic [ref=e24]:
+            - link "Start Free Trial" [ref=e25]:
+              - /url: /register
+            - link "Sign in to your existing account" [ref=e26]:
+              - /url: /login
+              - text: Sign In
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - img [ref=e30]
+            - heading "Real-time Location Tracking" [level=3] [ref=e33]
+            - paragraph [ref=e34]: Track family members' locations in real-time with geofencing alerts and safety features.
+          - generic [ref=e35]:
+            - img [ref=e37]
+            - heading "Smart Task Management" [level=3] [ref=e40]
+            - paragraph [ref=e41]: Manage family chores with photo verification, automatic ranking, and gamification.
+          - generic [ref=e42]:
+            - img [ref=e44]
+            - heading "Digital Vault" [level=3] [ref=e46]
+            - paragraph [ref=e47]: Securely store passwords, important documents, and family information.
+          - generic [ref=e48]:
+            - img [ref=e50]
+            - heading "Family Messaging" [level=3] [ref=e52]
+            - paragraph [ref=e53]: Stay connected with secure family messaging and emergency alerts.
+          - generic [ref=e54]:
+            - img [ref=e56]
+            - heading "Multiple Hubs" [level=3] [ref=e61]
+            - paragraph [ref=e62]: Switch between family, sports teams, school groups, and work teams.
+          - generic [ref=e63]:
+            - img [ref=e65]
+            - heading "Legacy Planning" [level=3] [ref=e67]
+            - paragraph [ref=e68]: Access important information when family members are unavailable.
+    - contentinfo [ref=e69]:
+      - paragraph [ref=e72]: © 2024 FamilyTracker. Built with React and Firebase.
+  - generic [ref=e73]:
+    - img [ref=e75]
+    - button "Open Tanstack query devtools" [ref=e143] [cursor=pointer]:
+      - img [ref=e144] [cursor=pointer]
+```
