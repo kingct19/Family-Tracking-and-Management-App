@@ -41,20 +41,22 @@ const LocationPage = () => {
     } = useUserLocation();
 
     // Include current user in locations list if they're sharing
+    // Filter out current user from Firestore locations to avoid duplicates
+    const otherLocations = locations.filter(loc => loc.userId !== user?.id);
     const allLocations = user && currentLocation && isSharing
         ? [
-            ...locations,
-            {
-                userId: user.id,
-                latitude: currentLocation.latitude,
-                longitude: currentLocation.longitude,
-                accuracy: currentLocation.accuracy,
-                timestamp: currentLocation.timestamp,
-                isSharing: true,
-                lastUpdated: Date.now(), // Use timestamp instead of Date object
-            },
-        ]
-        : locations;
+              ...otherLocations,
+              {
+                  userId: user.id,
+                  latitude: currentLocation.latitude,
+                  longitude: currentLocation.longitude,
+                  accuracy: currentLocation.accuracy,
+                  timestamp: currentLocation.timestamp,
+                  isSharing: true,
+                  lastUpdated: Date.now(), // Use timestamp instead of Date object
+              },
+          ]
+        : otherLocations;
 
     const [showMemberList, setShowMemberList] = useState(true);
     const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
