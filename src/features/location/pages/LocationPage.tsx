@@ -9,7 +9,7 @@
  * - Quick access to all features
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { MapView } from '../components/MapView';
 import { MemberLocationCard } from '../components/MemberLocationCard';
@@ -41,12 +41,13 @@ const LocationPage = () => {
 
     const [showMemberList, setShowMemberList] = useState(true);
 
-    // Auto-start tracking on mount
-    useState(() => {
-        if (!isWatching && isSharing) {
+    // Auto-start tracking on mount to get user's location
+    useEffect(() => {
+        // Automatically start tracking to center map on user
+        if (!isWatching) {
             startTracking();
         }
-    });
+    }, []); // Run once on mount
 
     return (
         <>

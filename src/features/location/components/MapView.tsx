@@ -116,7 +116,7 @@ export const MapView = ({
             });
     }, []); // Run once on mount
 
-    // Center map on user's current location
+    // Center map on user's current location when it becomes available
     useEffect(() => {
         if (googleMapRef.current && currentLocation) {
             const center = new google.maps.LatLng(
@@ -124,8 +124,31 @@ export const MapView = ({
                 currentLocation.longitude
             );
             googleMapRef.current.setCenter(center);
+            googleMapRef.current.setZoom(14); // Zoom in a bit closer when user location is found
         }
     }, [currentLocation]);
+
+    // Request user location on mount to center map
+    useEffect(() => {
+        if (isMapLoaded && !currentLocation) {
+            // Try to get current position to center map
+            locationService.getCurrentPosition()
+                .then((position) => {
+                    const center = new google.maps.LatLng(
+                        position.latitude,
+                        position.longitude
+                    );
+                    if (googleMapRef.current) {
+                        googleMapRef.current.setCenter(center);
+                        googleMapRef.current.setZoom(14);
+                    }
+                })
+                .catch((error) => {
+                    console.log('Could not get initial location:', error.message);
+                    // Stay at default location (New York) if permission denied
+                });
+        }
+    }, [isMapLoaded, currentLocation]);
 
     // Update markers when locations change
     useEffect(() => {
@@ -156,7 +179,7 @@ export const MapView = ({
     // Update or create a marker for a user
     const updateMarker = (location: UserLocation) => {
         if (!googleMapRef.current) return;
-        
+
         // Safety check - ensure location has required properties
         if (!location || !location.userId || typeof location.latitude !== 'number' || typeof location.longitude !== 'number') {
             console.warn('Invalid location data:', location);
