@@ -23,6 +23,11 @@ service cloud.firestore {
       match /private/{document=**} {
         allow read, write: if isUser(userId);
       }
+      
+      // Settings subcollection (for preferences, notifications, etc.)
+      match /settings/{document=**} {
+        allow read, write: if isUser(userId);
+      }
     }
     
     // Hubs collection - simplified for development
