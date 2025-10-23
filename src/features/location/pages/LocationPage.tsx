@@ -61,7 +61,7 @@ const LocationPage = () => {
                 <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-white via-white/95 to-transparent backdrop-blur-md shadow-sm">
                     <div className="flex items-center justify-between p-4 safe-top">
                         {/* Hub Selector */}
-                        <button 
+                        <button
                             className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
                             aria-label="Select hub"
                         >
@@ -73,7 +73,7 @@ const LocationPage = () => {
                         </button>
 
                         {/* Settings Button */}
-                        <button 
+                        <button
                             className="w-11 h-11 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center"
                             aria-label="Settings"
                         >
@@ -91,11 +91,10 @@ const LocationPage = () => {
                         {/* Location Sharing Toggle */}
                         <button
                             onClick={toggleSharing}
-                            className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${
-                                isSharing
-                                    ? 'bg-green-500 hover:bg-green-600 text-white shadow-green-200'
-                                    : 'bg-white hover:bg-gray-50 text-gray-700'
-                            }`}
+                            className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${isSharing
+                                ? 'bg-green-500 hover:bg-green-600 text-white shadow-green-200'
+                                : 'bg-white hover:bg-gray-50 text-gray-700'
+                                }`}
                             title={isSharing ? 'Sharing Location' : 'Share Location'}
                             aria-label={isSharing ? 'Stop sharing location' : 'Start sharing location'}
                         >
@@ -143,9 +142,8 @@ const LocationPage = () => {
 
                 {/* Bottom Member List Panel */}
                 <div
-                    className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm shadow-2xl rounded-t-3xl transition-all duration-300 z-10 ${
-                        showMemberList ? 'translate-y-0' : 'translate-y-full'
-                    }`}
+                    className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm shadow-2xl rounded-t-3xl transition-all duration-300 z-10 ${showMemberList ? 'translate-y-0' : 'translate-y-full'
+                        }`}
                 >
                     {/* Drag Handle */}
                     <button
@@ -174,16 +172,18 @@ const LocationPage = () => {
                     <div className="px-6 pb-safe">
                         {locations.length > 0 ? (
                             <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar">
-                                {locations.map((location) => (
-                                    <div key={location.userId} className="flex-shrink-0 w-80">
-                                        <MemberLocationCard
-                                            location={location}
-                                            userName={`User ${location.userId.slice(0, 8)}`}
-                                            batteryLevel={85} // TODO: Get from device monitoring
-                                            isOnline={true}
-                                        />
-                                    </div>
-                                ))}
+                                {locations
+                                    .filter((location) => location && location.userId) // Filter out invalid entries
+                                    .map((location) => (
+                                        <div key={location.userId} className="flex-shrink-0 w-80">
+                                            <MemberLocationCard
+                                                location={location}
+                                                userName={`User ${location.userId.slice(0, 8)}`}
+                                                batteryLevel={85} // TODO: Get from device monitoring
+                                                isOnline={true}
+                                            />
+                                        </div>
+                                    ))}
                             </div>
                         ) : (
                             <div className="text-center py-12 pb-safe">
