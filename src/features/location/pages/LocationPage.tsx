@@ -51,7 +51,7 @@ const LocationPage = () => {
                   accuracy: currentLocation.accuracy,
                   timestamp: currentLocation.timestamp,
                   isSharing: true,
-                  lastUpdated: new Date(),
+                  lastUpdated: Date.now(), // Use timestamp instead of Date object
               },
           ]
         : locations;

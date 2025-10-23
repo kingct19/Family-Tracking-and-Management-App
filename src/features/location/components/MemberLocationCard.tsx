@@ -30,15 +30,29 @@ export const MemberLocationCard = ({
 }: MemberLocationCardProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    // Format timestamp
-    const formatTime = (date: Date) => {
+    // Format timestamp - handles Date objects, timestamps, and Firestore Timestamps
+    const formatTime = (date: Date | number | any) => {
         const now = new Date();
-        const diff = Math.floor((now.getTime() - date.getTime()) / 1000); // seconds
+        
+        // Convert to timestamp if it's a Date object or Firestore Timestamp
+        let timestamp: number;
+        if (typeof date === 'number') {
+            timestamp = date;
+        } else if (date && typeof date.getTime === 'function') {
+            timestamp = date.getTime();
+        } else if (date && typeof date.toMillis === 'function') {
+            // Firestore Timestamp
+            timestamp = date.toMillis();
+        } else {
+            return 'Unknown';
+        }
+        
+        const diff = Math.floor((now.getTime() - timestamp) / 1000); // seconds
 
         if (diff < 60) return 'Just now';
         if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
         if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-        return date.toLocaleDateString();
+        return new Date(timestamp).toLocaleDateString();
     };
 
     // Get battery icon color
