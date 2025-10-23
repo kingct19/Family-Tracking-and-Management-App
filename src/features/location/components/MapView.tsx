@@ -131,8 +131,13 @@ export const MapView = ({
     useEffect(() => {
         if (!googleMapRef.current || !isMapLoaded) return;
 
+        // Filter out invalid locations
+        const validLocations = locations.filter(
+            (loc) => loc && loc.userId && loc.latitude && loc.longitude
+        );
+
         const currentMarkers = markersRef.current;
-        const currentLocationIds = new Set(locations.map((loc) => loc.userId));
+        const currentLocationIds = new Set(validLocations.map((loc) => loc.userId));
 
         // Remove markers for users no longer in the list
         currentMarkers.forEach((marker, userId) => {
@@ -143,7 +148,7 @@ export const MapView = ({
         });
 
         // Add or update markers
-        locations.forEach((location) => {
+        validLocations.forEach((location) => {
             updateMarker(location);
         });
     }, [locations, isMapLoaded]);
@@ -151,6 +156,12 @@ export const MapView = ({
     // Update or create a marker for a user
     const updateMarker = (location: UserLocation) => {
         if (!googleMapRef.current) return;
+        
+        // Safety check - ensure location has required properties
+        if (!location || !location.userId || typeof location.latitude !== 'number' || typeof location.longitude !== 'number') {
+            console.warn('Invalid location data:', location);
+            return;
+        }
 
         const existingMarker = markersRef.current.get(location.userId);
         const position = new google.maps.LatLng(location.latitude, location.longitude);
