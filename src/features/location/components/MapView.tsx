@@ -12,6 +12,7 @@ import { Loader } from '@googlemaps/js-api-loader';
 import { useHubLocations, useUserLocation } from '../hooks/useLocation';
 import { useHubStore } from '@/lib/store/hub-store';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { locationService } from '../services/location-service';
 import type { UserLocation } from '../api/location-api';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
