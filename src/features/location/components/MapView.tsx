@@ -48,6 +48,7 @@ export const MapView = ({
     const mapRef = useRef<HTMLDivElement>(null);
     const googleMapRef = useRef<google.maps.Map | null>(null);
     const markersRef = useRef<Map<string, google.maps.Marker>>(new Map());
+    const currentUserMarkerRef = useRef<google.maps.Marker | null>(null);
 
     const [isMapLoaded, setIsMapLoaded] = useState(false);
     const [loadError, setLoadError] = useState<string | null>(null);
@@ -145,6 +146,49 @@ export const MapView = ({
 
     // No need for manual location request - LocationPage auto-starts tracking
     // and the currentLocation effect above will handle centering
+
+    // Update current user's marker
+    useEffect(() => {
+        if (!googleMapRef.current || !isMapLoaded || !currentLocation) return;
+
+        const position = new google.maps.LatLng(
+            currentLocation.latitude,
+            currentLocation.longitude
+        );
+
+        if (currentUserMarkerRef.current) {
+            // Update existing marker
+            currentUserMarkerRef.current.setPosition(position);
+        } else {
+            // Create new marker for current user with distinct styling
+            currentUserMarkerRef.current = new google.maps.Marker({
+                position,
+                map: googleMapRef.current,
+                title: 'Your Location',
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 10,
+                    fillColor: '#10B981', // Green color for current user
+                    fillOpacity: 1,
+                    strokeColor: '#FFFFFF',
+                    strokeWeight: 3,
+                },
+                zIndex: 1000, // Show current user marker on top
+            });
+
+            // Add pulsing ring around current user
+            new google.maps.Circle({
+                strokeColor: '#10B981',
+                strokeOpacity: 0.3,
+                strokeWeight: 2,
+                fillColor: '#10B981',
+                fillOpacity: 0.1,
+                map: googleMapRef.current,
+                center: position,
+                radius: currentLocation.accuracy || 50, // Use GPS accuracy or 50m default
+            });
+        }
+    }, [currentLocation, isMapLoaded]);
 
     // Update markers when locations change
     useEffect(() => {

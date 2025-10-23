@@ -30,11 +30,11 @@ export const useUserLocation = () => {
     const { user } = useAuth();
     const { currentHub } = useHubStore();
     const [currentLocation, setCurrentLocation] = useState<LocationCoordinates | null>(null);
-    const [isSharing, setIsSharing] = useState(false);
+    const [isSharing, setIsSharing] = useState(true); // Default to true (Life360 style)
     const [error, setError] = useState<string | null>(null);
     const [isWatching, setIsWatching] = useState(false);
 
-    // On mount, check if location service is already running and sync state
+    // On mount, load user preferences and sync with location service
     useEffect(() => {
         const isAlreadyWatching = locationService.getWatchingStatus();
         if (isAlreadyWatching) {
@@ -50,7 +50,16 @@ export const useUserLocation = () => {
                 console.log('⏳ Waiting for first location update...');
             }
         }
-    }, []);
+
+        // Load user's sharing preference from Firestore
+        if (user) {
+            getUserPreferences(user.id).then((result) => {
+                if (result.success && result.data) {
+                    setIsSharing(result.data.isSharingLocation ?? true); // Default true if not set
+                }
+            });
+        }
+    }, [user]);
 
     // Mutation for updating location in Firestore
     const updateMutation = useMutation({
