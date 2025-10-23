@@ -41,9 +41,14 @@ const LocationPage = () => {
 
     const [showMemberList, setShowMemberList] = useState(true);
 
-    // Apple-style: Don't auto-start tracking, let user initiate
-    // This prevents multiple permission prompts and errors
-    // User can click the purple tracking button when ready
+    // Auto-start location tracking when app loads (Life360 style)
+    useEffect(() => {
+        if (!isWatching && user && currentHub) {
+            // Silently start tracking - user can toggle sharing separately
+            startTracking();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user, currentHub]); // Start when user and hub are ready
 
     return (
         <>
@@ -98,26 +103,20 @@ const LocationPage = () => {
                             <FiMapPin size={24} />
                         </button>
 
-                        {/* Start/Stop Tracking */}
-                        {!isWatching ? (
-                            <button
-                                onClick={startTracking}
-                                className="w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-purple-200"
-                                title="Start Tracking"
-                                aria-label="Start location tracking"
-                            >
-                                <FiNavigation size={24} />
-                            </button>
-                        ) : (
-                            <button
-                                onClick={stopTracking}
-                                className="w-14 h-14 bg-red-500 hover:bg-red-600 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-red-200"
-                                title="Stop Tracking"
-                                aria-label="Stop location tracking"
-                            >
-                                <FiAlertCircle size={24} />
-                            </button>
-                        )}
+                        {/* Center on My Location */}
+                        <button
+                            onClick={() => {
+                                // Auto-start tracking if not already started
+                                if (!isWatching) {
+                                    startTracking();
+                                }
+                            }}
+                            className="w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-purple-200"
+                            title="Center on My Location"
+                            aria-label="Center map on my current location"
+                        >
+                            <FiNavigation size={24} />
+                        </button>
 
                         {/* Check-In Button */}
                         <button
