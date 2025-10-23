@@ -1,0 +1,218 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isUser(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isHubMember(hubId) {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/hubs/$(hubId)/memberships/$(request.auth.uid));
+    }
+    
+    function isHubAdmin(hubId) {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/hubs/$(hubId)/memberships/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isHubAdminOrMember(hubId) {
+      let membership = get(/databases/$(database)/documents/hubs/$(hubId)/memberships/$(request.auth.uid)).data;
+      return isAuthenticated() && 
+        (membership.role == 'admin' || membership.role == 'member');
+    }
+    
+    function isMembershipActive(hubId) {
+      return get(/databases/$(database)/documents/hubs/$(hubId)/memberships/$(request.auth.uid)).data.status == 'active';
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own profile
+      allow read: if isUser(userId);
+      
+      // Users can update their own profile (but not hubs array - managed by hub operations)
+      allow update: if isUser(userId) && 
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['hubs']);
+      
+      // User profiles are created during registration (system operation)
+      allow create: if isUser(userId);
+      
+      // Private subcollection
+      match /private/{document=**} {
+        allow read, write: if isUser(userId);
+      }
+    }
+    
+    // Hubs collection
+    match /hubs/{hubId} {
+      // Hub members can read hub details
+      allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+      
+      // Only admins can update hub details
+      allow update: if isHubAdmin(hubId) && isMembershipActive(hubId);
+      
+      // Hub creation is allowed for authenticated users
+      allow create: if isAuthenticated();
+      
+      // Only the hub creator (admin) can delete (if hub has no other members)
+      allow delete: if isHubAdmin(hubId);
+      
+      // Memberships subcollection
+      match /memberships/{memberUserId} {
+        // Members can read all memberships in their hub
+        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        
+        // Admins can create/update/delete memberships
+        allow create, update: if isHubAdmin(hubId);
+        allow delete: if isHubAdmin(hubId) || isUser(memberUserId);
+      }
+      
+      // Tasks subcollection
+      match /tasks/{taskId} {
+        // All hub members can read tasks
+        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        
+        // Admins and members can create tasks
+        allow create: if isHubAdminOrMember(hubId) && isMembershipActive(hubId);
+        
+        // Admins can update any task, members can only update tasks assigned to them
+        allow update: if isMembershipActive(hubId) && (
+          isHubAdmin(hubId) || 
+          (isHubMember(hubId) && resource.data.assignedTo == request.auth.uid)
+        );
+        
+        // Only admins can delete tasks
+        allow delete: if isHubAdmin(hubId) && isMembershipActive(hubId);
+      }
+      
+      // Messages subcollection
+      match /messages/{messageId} {
+        // All hub members can read messages
+        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        
+        // Members and admins can create messages
+        allow create: if isHubAdminOrMember(hubId) && 
+          isMembershipActive(hubId) &&
+          request.resource.data.senderId == request.auth.uid;
+        
+        // Users can update their own messages (for read receipts)
+        allow update: if isHubMember(hubId) && 
+          isMembershipActive(hubId) &&
+          resource.data.senderId == request.auth.uid;
+        
+        // Only admins and message owners can delete
+        allow delete: if isMembershipActive(hubId) && (
+          isHubAdmin(hubId) || 
+          resource.data.senderId == request.auth.uid
+        );
+      }
+      
+      // Broadcasts subcollection
+      match /broadcasts/{broadcastId} {
+        // All hub members can read broadcasts
+        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        
+        // Only admins can create/update/delete broadcasts
+        allow create, update, delete: if isHubAdmin(hubId) && isMembershipActive(hubId);
+      }
+      
+      // Locations subcollection
+      match /locations/{locationUserId} {
+        // All hub members can read locations
+        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        
+        // Users can only write their own location
+        allow create, update: if isUser(locationUserId) && 
+          isHubMember(hubId) && 
+          isMembershipActive(hubId);
+        
+        // Only admins can delete locations
+        allow delete: if isHubAdmin(hubId);
+      }
+      
+      // Geofences subcollection
+      match /geofences/{geofenceId} {
+        // All hub members can read geofences
+        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        
+        // Only admins can create/update/delete geofences
+        allow create, update, delete: if isHubAdmin(hubId) && isMembershipActive(hubId);
+      }
+      
+      // Policies subcollection
+      match /policies/{policyId} {
+        // All hub members can read policies
+        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        
+        // Only admins can update policies
+        allow update: if isHubAdmin(hubId) && isMembershipActive(hubId);
+      }
+    }
+    
+    // XP Records collection
+    match /xpRecords/{recordId} {
+      // Users can read their own XP records
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // XP records are created by Cloud Functions (system)
+      allow create: if false;
+      
+      // XP records cannot be modified or deleted
+      allow update, delete: if false;
+    }
+    
+    // Vault collection (user-specific, not hub-specific)
+    match /vault/{userId}/{vaultId} {
+      // Only the owner can read/write their vault items
+      allow read, write: if isUser(userId);
+    }
+    
+    // Invites collection
+    match /invites/{inviteCode} {
+      // Anyone authenticated can read invites to validate them
+      allow read: if isAuthenticated();
+      
+      // Only hub admins can create invites
+      allow create: if isAuthenticated() && 
+        isHubAdmin(request.resource.data.hubId);
+      
+      // Invites can be updated when used (to track usedBy)
+      allow update: if isAuthenticated();
+      
+      // Only the creator or hub admin can delete invites
+      allow delete: if isAuthenticated() && (
+        resource.data.createdBy == request.auth.uid ||
+        isHubAdmin(resource.data.hubId)
+      );
+    }
+    
+    // Event logs collection
+    match /eventLogs/{eventId} {
+      // Hub members can read event logs for their hub
+      allow read: if isAuthenticated() && 
+        isHubMember(resource.data.hubId) &&
+        isMembershipActive(resource.data.hubId);
+      
+      // Event logs are created by the system/Cloud Functions
+      allow create: if isAuthenticated();
+      
+      // Event logs cannot be modified or deleted (audit trail)
+      allow update, delete: if false;
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+
+

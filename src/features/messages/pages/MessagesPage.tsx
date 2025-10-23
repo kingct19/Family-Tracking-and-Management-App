@@ -1,16 +1,32 @@
-import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { Card, CardContent } from '@/components/ui/Card';
 
-export const MessagesPage: React.FC = () => {
+const MessagesPage = () => {
     return (
         <>
             <Helmet>
-                <title>Messages - FamilyTracker</title>
+                <title>Messages - Family Safety App</title>
+                <meta name="description" content="Chat with your family" />
             </Helmet>
 
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-4">Messages</h1>
-                <p className="text-gray-600">Family messaging coming soon...</p>
+            <div className="space-y-6">
+                <div>
+                    <h1 className="text-headline-md text-on-background">Messages</h1>
+                    <p className="text-body-md text-on-variant mt-1">
+                        Stay connected with real-time messaging
+                    </p>
+                </div>
+
+                <Card elevation={1}>
+                    <CardContent className="p-8 text-center">
+                        <p className="text-body-lg text-on-variant">
+                            Messaging feature coming soon
+                        </p>
+                        <p className="text-body-sm text-on-variant mt-2">
+                            Real-time chat and broadcast alerts will be available here
+                        </p>
+                    </CardContent>
+                </Card>
             </div>
         </>
     );

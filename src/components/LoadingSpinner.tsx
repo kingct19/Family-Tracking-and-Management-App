@@ -1,5 +1,5 @@
-import React from 'react';
 import { FiLoader } from 'react-icons/fi';
+import { cn } from '@/lib/utils/cn';
 
 interface LoadingSpinnerProps {
     size?: 'small' | 'medium' | 'large';
@@ -10,19 +10,19 @@ interface LoadingSpinnerProps {
 const sizeClasses = {
     small: 'w-4 h-4',
     medium: 'w-6 h-6',
-    large: 'w-8 h-8'
+    large: 'w-8 h-8',
 };
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+export const LoadingSpinner = ({
     size = 'medium',
     className = '',
-    text
-}) => {
+    text,
+}: LoadingSpinnerProps) => {
     return (
-        <div className={`flex flex-col items-center justify-center ${className}`}>
-            <FiLoader className={`animate-spin ${sizeClasses[size]} text-blue-600`} />
+        <div className={cn('flex flex-col items-center justify-center', className)}>
+            <FiLoader className={cn('animate-spin text-primary', sizeClasses[size])} />
             {text && (
-                <p className="mt-2 text-sm text-gray-600">{text}</p>
+                <p className="mt-2 text-body-sm text-on-variant">{text}</p>
             )}
         </div>
     );

@@ -1,274 +1,249 @@
-// User and Authentication Types
+// Core type definitions for the Group Safety App
+
+export type UserRole = 'admin' | 'member' | 'observer';
+export type MembershipStatus = 'pending' | 'active' | 'suspended';
+export type TaskStatus = 'pending' | 'assigned' | 'submitted' | 'approved' | 'rejected' | 'done';
+export type MessageType = 'text' | 'broadcast' | 'system' | 'media';
+export type VaultItemType = 'password' | 'note' | 'card' | 'identity' | 'document';
+
+// User types
 export interface User {
-    uid: string;
+    id: string;
     email: string;
     displayName: string;
     photoURL?: string;
-    emailVerified: boolean;
+    xpTotal: number;
+    hubs: string[]; // Array of hub IDs user belongs to
     createdAt: Date;
-    lastLoginAt: Date;
+    updatedAt: Date;
 }
 
 export interface UserProfile extends User {
-    familyId?: string;
-    role: UserRole;
+    phone?: string;
+    dateOfBirth?: Date;
     preferences: UserPreferences;
-    onboardingCompleted: boolean;
 }
-
-export type UserRole = 'owner' | 'admin' | 'parent' | 'child' | 'guardian' | 'viewer';
 
 export interface UserPreferences {
     theme: 'light' | 'dark' | 'system';
-    notifications: NotificationPreferences;
-    privacy: PrivacyPreferences;
-    location: LocationPreferences;
-}
-
-export interface NotificationPreferences {
-    locationAlerts: boolean;
-    taskReminders: boolean;
-    messageNotifications: boolean;
-    pushNotifications: boolean;
-    emailNotifications: boolean;
-}
-
-export interface PrivacyPreferences {
+    notifications: boolean;
     locationSharing: boolean;
-    onlineStatus: boolean;
-    profileVisibility: 'public' | 'family' | 'private';
-    dataBackup: boolean;
+    lowBatteryAlerts: boolean;
 }
 
-export interface LocationPreferences {
-    updateFrequency: number; // minutes
-    accuracyLevel: 'high' | 'medium' | 'low';
-    backgroundTracking: boolean;
-    retentionPeriod: number; // days
-}
-
-// Family Hub Types
-export interface FamilyHub {
+// Hub types
+export interface Hub {
     id: string;
     name: string;
-    description: string;
-    type: HubType;
-    createdBy: string;
+    description?: string;
+    createdBy: string; // User ID
     createdAt: Date;
     updatedAt: Date;
-    members: FamilyMember[];
-    settings: HubSettings;
-    geofences: Geofence[];
+    featureToggles: FeatureToggles;
+    members: string[]; // Array of user IDs
+    inviteCode?: string;
 }
 
-export type HubType = 'family' | 'sports' | 'school' | 'work' | 'other';
-
-export interface FamilyMember {
-    uid: string;
-    email: string;
-    displayName: string;
-    photoURL?: string;
-    role: UserRole;
-    joinedAt: Date;
-    isOnline: boolean;
-    lastSeen: Date;
-    location?: LocationData;
+export interface FeatureToggles {
+    location: boolean;
+    tasks: boolean;
+    chat: boolean;
+    vault: boolean;
+    xp: boolean;
+    leaderboard: boolean;
+    geofencing: boolean;
+    deviceMonitoring: boolean;
 }
 
-export interface HubSettings {
-    locationTracking: boolean;
-    taskNotifications: boolean;
-    messageNotifications: boolean;
-    allowMemberInvites: boolean;
-    requireApprovalForTasks: boolean;
-}
-
-// Location Types
-export interface LocationData {
-    latitude: number;
-    longitude: number;
-    accuracy: number;
-    altitude?: number;
-    heading?: number;
-    speed?: number;
-    timestamp: Date;
-    address?: string;
-}
-
-export interface Geofence {
-    id: string;
-    name: string;
-    description?: string;
-    center: {
-        latitude: number;
-        longitude: number;
-    };
-    radius: number; // meters
-    isActive: boolean;
-    notifications: boolean;
-    createdBy: string;
-    createdAt: Date;
+// Membership types
+export interface Membership {
+    userId: string;
     hubId: string;
+    role: UserRole;
+    status: MembershipStatus;
+    joinedAt: Date;
+    invitedBy?: string;
 }
 
-// Task Types
+// Task types
 export interface Task {
     id: string;
+    hubId: string;
     title: string;
     description?: string;
-    hubId: string;
-    assignedTo: string;
-    assignedBy: string;
-    createdAt: Date;
-    dueDate?: Date;
-    completedAt?: Date;
+    createdBy: string; // User ID
+    assignedTo?: string; // User ID
     status: TaskStatus;
-    priority: TaskPriority;
-    category: TaskCategory;
-    requiresPhoto: boolean;
-    photoUrl?: string;
-    points: number;
-    tags: string[];
+    weight: number; // XP value (1-10)
+    deadline?: Date;
+    proofURL?: string;
+    proofStatus?: 'pending' | 'approved' | 'rejected';
+    proofSubmittedAt?: Date;
+    proofReviewedBy?: string;
+    proofReviewedAt?: Date;
+    completedAt?: Date;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
-export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
-export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
-export type TaskCategory = 'chore' | 'homework' | 'exercise' | 'other';
-
-export interface TaskCompletion {
-    taskId: string;
+// XP types
+export interface XPRecord {
+    id: string;
     userId: string;
-    completedAt: Date;
-    photoUrl?: string;
-    notes?: string;
-    verifiedBy?: string;
-    verifiedAt?: Date;
+    hubId: string;
+    taskId?: string;
+    xpValue: number;
+    reason: string;
+    streakMultiplier?: number;
+    timestamp: Date;
 }
 
 export interface LeaderboardEntry {
     userId: string;
     displayName: string;
     photoURL?: string;
-    totalPoints: number;
-    completedTasks: number;
+    xpTotal: number;
     rank: number;
+    streak: number;
 }
 
-// Message Types
-export interface Conversation {
-    id: string;
-    hubId: string;
-    type: 'group' | 'direct';
-    participants: string[];
-    lastMessage?: Message;
-    unreadCount: number;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
+// Message types
 export interface Message {
     id: string;
-    conversationId: string;
+    hubId: string;
     senderId: string;
-    content: string;
-    type: 'text' | 'image' | 'location' | 'task';
+    senderName: string;
+    text: string;
+    type: MessageType;
+    mediaURL?: string;
     timestamp: Date;
-    readBy: string[];
-    replyTo?: string;
+    readBy: string[]; // Array of user IDs
 }
 
-// Vault Types
-export interface VaultItem {
+export interface Broadcast {
     id: string;
-    title: string;
-    category: VaultCategory;
     hubId: string;
     createdBy: string;
+    title: string;
+    body: string;
+    priority: 'low' | 'normal' | 'high' | 'urgent';
+    timestamp: Date;
+    sentTo: string[]; // Array of user IDs
+}
+
+// Location types
+export interface Location {
+    userId: string;
+    hubId: string;
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+    timestamp: Date;
+    batteryLevel?: number;
+    isOnline: boolean;
+}
+
+export interface Geofence {
+    id: string;
+    hubId: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+    radius: number; // meters
+    notifyOnEnter: boolean;
+    notifyOnExit: boolean;
+    activeMembers: string[]; // User IDs currently inside
+    createdBy: string;
+    createdAt: Date;
+}
+
+// Vault types
+export interface VaultItem {
+    id: string;
+    userId: string; // Vault is per-user, not per-hub
+    type: VaultItemType;
+    title: string;
+    ciphertext: string; // Encrypted data
+    metadata: VaultMetadata;
     createdAt: Date;
     updatedAt: Date;
-    isEncrypted: boolean;
-    metadata: VaultItemMetadata;
+    accessedAt?: Date;
 }
 
-export type VaultCategory = 'password' | 'document' | 'note' | 'card' | 'other';
-
-export interface VaultItemMetadata {
-    username?: string;
-    url?: string;
-    description?: string;
+export interface VaultMetadata {
+    icon?: string;
+    category?: string;
     tags: string[];
-    lastUsed?: Date;
-    expiryDate?: Date;
-    attachments?: string[];
+    favorite: boolean;
 }
 
-export interface VaultAccess {
+// Invite types
+export interface Invite {
+    code: string;
+    hubId: string;
+    createdBy: string;
+    role: UserRole;
+    expiresAt: Date;
+    maxUses?: number;
+    usedBy: string[]; // Array of user IDs
+    createdAt: Date;
+}
+
+// Event log types
+export interface EventLog {
     id: string;
-    vaultItemId: string;
-    userId: string;
-    accessLevel: 'view' | 'edit' | 'admin';
-    grantedBy: string;
-    grantedAt: Date;
-    expiresAt?: Date;
+    hubId: string;
+    actorId: string;
+    action: string;
+    target: string;
+    targetId: string;
+    metadata?: Record<string, any>;
+    timestamp: Date;
 }
 
-// API Response Types
-export interface ApiResponse<T = any> {
-    success: boolean;
+// Device status types
+export interface DeviceStatus {
+    userId: string;
+    hubId: string;
+    batteryLevel: number;
+    isCharging: boolean;
+    isOnline: boolean;
+    lastSeen: Date;
+    platform?: string;
+}
+
+// Auth types
+export interface AuthUser {
+    id: string;
+    email: string;
+    displayName: string;
+    photoURL?: string;
+    emailVerified: boolean;
+    xpTotal?: number;
+    customClaims?: CustomClaims;
+}
+
+export interface CustomClaims {
+    hubs: Record<string, UserRole>; // { hubId: role }
+    currentHub?: string;
+}
+
+// API Response types
+export interface ApiResponse<T> {
     data?: T;
     error?: string;
-    message?: string;
+    success: boolean;
 }
 
-export interface PaginatedResponse<T> extends ApiResponse<T[]> {
-    pagination: {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-    };
+// Pagination types
+export interface PaginationParams {
+    limit: number;
+    cursor?: string;
 }
 
-// Form Types
-export interface LoginForm {
-    email: string;
-    password: string;
-    rememberMe: boolean;
+export interface PaginatedResponse<T> {
+    items: T[];
+    nextCursor?: string;
+    hasMore: boolean;
+    total?: number;
 }
-
-export interface RegisterForm {
-    displayName: string;
-    email: string;
-    password: string;
-    confirmPassword: string;
-    acceptTerms: boolean;
-}
-
-export interface TaskForm {
-    title: string;
-    description?: string;
-    assignedTo: string;
-    dueDate?: Date;
-    priority: TaskPriority;
-    category: TaskCategory;
-    requiresPhoto: boolean;
-    points: number;
-    tags: string[];
-}
-
-// Error Types
-export interface AppError {
-    code: string;
-    message: string;
-    details?: any;
-}
-
-export type ErrorCode =
-    | 'AUTH_REQUIRED'
-    | 'PERMISSION_DENIED'
-    | 'HUB_NOT_FOUND'
-    | 'TASK_NOT_FOUND'
-    | 'LOCATION_DENIED'
-    | 'NETWORK_ERROR'
-    | 'VALIDATION_ERROR'
-    | 'UNKNOWN_ERROR';

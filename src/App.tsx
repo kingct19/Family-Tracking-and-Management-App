@@ -12,9 +12,13 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 // Lazy load pages for code splitting
 const HomePage = lazy(() => import('@/features/auth/pages/HomePage'));
+const TestPage = lazy(() => import('@/features/auth/pages/TestPage'));
+const TestStylingPage = lazy(() => import('@/features/auth/pages/TestStylingPage'));
+const SimpleTestPage = lazy(() => import('@/features/auth/pages/SimpleTestPage'));
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'));
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
+const DebugDashboardPage = lazy(() => import('@/features/dashboard/pages/DebugDashboardPage'));
 const LocationPage = lazy(() => import('@/features/location/pages/LocationPage'));
 const TasksPage = lazy(() => import('@/features/tasks/pages/TasksPage'));
 const MessagesPage = lazy(() => import('@/features/messages/pages/MessagesPage'));
@@ -36,6 +40,10 @@ function App() {
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
+                <Route path="/test" element={<TestPage />} />
+                <Route path="/test-styling" element={<TestStylingPage />} />
+                <Route path="/simple-test" element={<SimpleTestPage />} />
+                <Route path="/debug-dashboard" element={<DebugDashboardPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
 

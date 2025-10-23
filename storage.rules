@@ -1,0 +1,52 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Photo proof images for tasks
+    match /tasks/{hubId}/{taskId}/{fileName} {
+      // Allow authenticated users to upload photos for tasks in their hub
+      allow write: if isAuthenticated() 
+        && request.resource.size < 5 * 1024 * 1024  // Max 5MB
+        && request.resource.contentType.matches('image/.*');
+      
+      // Allow hub members to read task photos
+      allow read: if isAuthenticated();
+    }
+    
+    // Vault files (encrypted)
+    match /vault/{userId}/{vaultId} {
+      // Only owner can read/write their vault files
+      allow read, write: if isOwner(userId)
+        && request.resource.size < 10 * 1024 * 1024;  // Max 10MB
+    }
+    
+    // Profile pictures
+    match /profiles/{userId}/{fileName} {
+      // Owner can upload their profile picture
+      allow write: if isOwner(userId)
+        && request.resource.size < 2 * 1024 * 1024  // Max 2MB
+        && request.resource.contentType.matches('image/.*');
+      
+      // Anyone authenticated can read profile pictures
+      allow read: if isAuthenticated();
+    }
+    
+    // Deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+
+

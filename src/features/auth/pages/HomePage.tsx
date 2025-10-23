@@ -1,315 +1,295 @@
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { Button } from '@/components/ui/Button';
+import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import {
-    FiUsers,
     FiMapPin,
-    FiShield,
+    FiCheckSquare,
     FiMessageCircle,
     FiLock,
-    FiStar,
-    FiArrowRight,
-    FiCheckCircle,
-    FiSmartphone,
-    FiHeart,
-    FiTrendingUp
+    FiAward,
+    FiUsers
 } from 'react-icons/fi';
-import { useGSAP } from '@/hooks/useGSAP';
-import { gsap } from 'gsap';
+import { useAuth } from '../hooks/useAuth';
 
-export const HomePage: React.FC = () => {
-    const { animations, animationPresets } = useGSAP();
+const HomePage = () => {
+    const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
 
+    // Redirect if already authenticated
     useEffect(() => {
-        // Initialize animations on page load
-        const tl = gsap.timeline({ delay: 0.2 });
+        if (isAuthenticated) {
+            navigate('/dashboard');
+        }
+    }, [isAuthenticated, navigate]);
 
-        // Hero section animations
-        tl.add(animations.fadeIn('.hero-title', 0.8, 0))
-            .add(animations.fadeIn('.hero-description', 0.6, 0.2), '-=0.3')
-            .add(animations.staggerIn('.hero-buttons button', 0.5, 0.1), '-=0.2')
-            .add(animations.staggerIn('.feature-card', 0.6, 0.15), '-=0.1');
-    }, []);
+    // Show loading while redirecting
+    if (isAuthenticated) {
+        return null;
+    }
+
+    const features = [
+        {
+            icon: <FiMapPin size={32} className="text-primary" />,
+            title: 'Real-time Location',
+            description: 'Track your family members in real-time with geofencing alerts',
+        },
+        {
+            icon: <FiCheckSquare size={32} className="text-primary" />,
+            title: 'Task Management',
+            description: 'Assign and verify tasks with photo proof for accountability',
+        },
+        {
+            icon: <FiMessageCircle size={32} className="text-primary" />,
+            title: 'Group Messaging',
+            description: 'Stay connected with real-time chat and broadcast alerts',
+        },
+        {
+            icon: <FiLock size={32} className="text-primary" />,
+            title: 'Digital Vault',
+            description: 'Securely store sensitive information with client-side encryption',
+        },
+        {
+            icon: <FiAward size={32} className="text-primary" />,
+            title: 'Gamification',
+            description: 'Earn XP, track streaks, and compete on leaderboards',
+        },
+        {
+            icon: <FiUsers size={32} className="text-primary" />,
+            title: 'Multi-Hub Support',
+            description: 'Manage multiple groups - family, school, teams, and more',
+        },
+    ];
 
     return (
         <>
             <Helmet>
-                <title>FamilyTracker - Family Management App</title>
-                <meta name="description" content="Keep your family connected with real-time location tracking, smart task management, and secure digital vault features." />
+                <title>Family Safety & Coordination App</title>
+                <meta
+                    name="description"
+                    content="A comprehensive family safety app with location tracking, task management, and secure communication"
+                />
             </Helmet>
 
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-                {/* Header */}
-                <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex justify-between items-center h-16">
-                            <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-                                    <FiUsers className="w-6 h-6 text-white" />
+            <div className="min-h-screen bg-gray-50">
+                {/* Hero Section */}
+                <header className="relative overflow-hidden bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-600">
+                    {/* Background pattern */}
+                    <div className="absolute inset-0 opacity-10">
+                        <div className="w-full h-full" style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'repeat'
+                        }}></div>
+                    </div>
+
+                    <div className="relative max-w-7xl mx-auto px-4 py-24 sm:px-6 lg:px-8">
+                        <div className="text-center">
+                            {/* Animated Icon */}
+                            <div className="mb-8 animate-bounce">
+                                <div className="inline-flex items-center justify-center w-24 h-24 bg-white/10 backdrop-blur-sm rounded-full shadow-2xl">
+                                    <FiMapPin size={40} className="text-white" />
                                 </div>
-                                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                                    FamilyTracker
-                                </h1>
                             </div>
-                            <div className="flex items-center space-x-4">
-                                <Link
-                                    to="/login"
-                                    className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
-                                    aria-label="Sign in to your account"
+
+                            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-white">
+                                Family Safety & Coordination
+                            </h1>
+                            <p className="text-xl md:text-2xl mb-12 text-white/90 max-w-3xl mx-auto leading-relaxed">
+                                Keep your family safe, organized, and connected with real-time location tracking, task management, and secure communication
+                            </p>
+
+                            {/* CTA Buttons */}
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                <Button
+                                    variant="filled"
+                                    size="large"
+                                    onClick={() => navigate('/register')}
+                                    className="bg-white text-purple-600 hover:bg-gray-100 shadow-2xl transform hover:scale-105 transition-all duration-200 px-8 py-4 text-lg font-semibold rounded-full"
+                                >
+                                    Get Started Free
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    size="large"
+                                    onClick={() => navigate('/login')}
+                                    className="border-2 border-white text-white hover:bg-white hover:text-purple-600 transition-all duration-200 px-8 py-4 text-lg font-semibold rounded-full"
                                 >
                                     Sign In
-                                </Link>
-                                <Link
-                                    to="/register"
-                                    className="inline-flex items-center px-6 py-2.5 border border-transparent text-sm font-medium rounded-full shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
-                                    aria-label="Create a new account"
-                                >
-                                    Get Started
-                                </Link>
+                                </Button>
+                            </div>
+
+                            {/* Trust indicators */}
+                            <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-8 text-white/80">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                                    <span className="text-base font-medium">24/7 Monitoring</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+                                    <span className="text-base font-medium">End-to-End Encryption</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                                    <span className="text-base font-medium">Real-time Alerts</span>
+                                </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Wave separator */}
+                    <div className="absolute bottom-0 left-0 right-0">
+                        <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
+                            <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0V120Z" fill="#F9FAFB" />
+                        </svg>
                     </div>
                 </header>
 
-                {/* Hero Section */}
-                <section className="relative overflow-hidden pt-20 pb-32">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="text-center">
-                            <h1 className="hero-title text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-                                Keep Your Family{' '}
-                                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                                    Connected
-                                </span>
-                            </h1>
-                            <p className="hero-description text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-                                A comprehensive family management platform that helps you stay connected,
-                                organized, and secure with your loved ones.
-                            </p>
-                            <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center">
-                                <Link
-                                    to="/register"
-                                    className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-full shadow-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
-                                >
-                                    Start Free Trial
-                                    <FiArrowRight className="ml-2 w-5 h-5" />
-                                </Link>
-                                <Link
-                                    to="/login"
-                                    className="inline-flex items-center px-8 py-4 border-2 border-gray-300 text-lg font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
-                                    aria-label="Sign in to your existing account"
-                                >
-                                    Sign In
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Background decoration */}
-                    <div className="absolute inset-0 -z-10">
-                        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-blue-200/30 rounded-full blur-3xl"></div>
-                        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-200/30 rounded-full blur-3xl"></div>
-                    </div>
-                </section>
-
                 {/* Features Section */}
-                <section className="py-24 bg-white/50 backdrop-blur-sm">
+                <section className="py-20 bg-white">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-16">
-                            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                                Everything Your Family Needs
+                            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                                Everything you need in one app
                             </h2>
-                            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                                Powerful features designed to keep your family safe, organized, and connected
+                            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                                Our comprehensive platform combines safety, coordination, and motivation
+                                to help families and teams work together seamlessly.
                             </p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {/* Real-time Location Tracking */}
-                            <div className="feature-card bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-                                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6">
-                                    <FiMapPin className="w-8 h-8 text-white" />
+                            {features.map((feature, index) => (
+                                <div
+                                    key={index}
+                                    className="group bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-2xl hover:border-purple-200 transition-all duration-300 transform hover:-translate-y-2"
+                                >
+                                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                                        <div className="text-white">
+                                            {feature.icon}
+                                        </div>
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors duration-300">
+                                        {feature.title}
+                                    </h3>
+                                    <p className="text-gray-600 leading-relaxed">
+                                        {feature.description}
+                                    </p>
                                 </div>
-                                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                                    Real-time Location Tracking
-                                </h3>
-                                <p className="text-gray-600 mb-6 leading-relaxed">
-                                    Track family members' locations in real-time with geofencing alerts and safety features.
-                                </p>
-                                <div className="flex items-center text-blue-600 font-medium">
-                                    <FiCheckCircle className="w-5 h-5 mr-2" />
-                                    Live tracking
-                                </div>
-                            </div>
-
-                            {/* Smart Task Management */}
-                            <div className="feature-card bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-                                <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6">
-                                    <FiStar className="w-8 h-8 text-white" />
-                                </div>
-                                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                                    Smart Task Management
-                                </h3>
-                                <p className="text-gray-600 mb-6 leading-relaxed">
-                                    Manage family chores with photo verification, automatic ranking, and gamification.
-                                </p>
-                                <div className="flex items-center text-green-600 font-medium">
-                                    <FiCheckCircle className="w-5 h-5 mr-2" />
-                                    Photo verification
-                                </div>
-                            </div>
-
-                            {/* Digital Vault */}
-                            <div className="feature-card bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-                                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6">
-                                    <FiLock className="w-8 h-8 text-white" />
-                                </div>
-                                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                                    Digital Vault
-                                </h3>
-                                <p className="text-gray-600 mb-6 leading-relaxed">
-                                    Securely store passwords, important documents, and family information.
-                                </p>
-                                <div className="flex items-center text-purple-600 font-medium">
-                                    <FiCheckCircle className="w-5 h-5 mr-2" />
-                                    Bank-level security
-                                </div>
-                            </div>
-
-                            {/* Family Messaging */}
-                            <div className="feature-card bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-                                <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-pink-600 rounded-2xl flex items-center justify-center mb-6">
-                                    <FiMessageCircle className="w-8 h-8 text-white" />
-                                </div>
-                                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                                    Family Messaging
-                                </h3>
-                                <p className="text-gray-600 mb-6 leading-relaxed">
-                                    Stay connected with secure communication and emergency alerts.
-                                </p>
-                                <div className="flex items-center text-pink-600 font-medium">
-                                    <FiCheckCircle className="w-5 h-5 mr-2" />
-                                    Secure chat
-                                </div>
-                            </div>
-
-                            {/* Multiple Hubs */}
-                            <div className="feature-card bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-                                <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mb-6">
-                                    <FiUsers className="w-8 h-8 text-white" />
-                                </div>
-                                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                                    Multiple Hubs
-                                </h3>
-                                <p className="text-gray-600 mb-6 leading-relaxed">
-                                    Switch between family, sports teams, school groups, and work teams.
-                                </p>
-                                <div className="flex items-center text-orange-600 font-medium">
-                                    <FiCheckCircle className="w-5 h-5 mr-2" />
-                                    Flexible groups
-                                </div>
-                            </div>
-
-                            {/* Legacy Planning */}
-                            <div className="feature-card bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-                                <div className="w-16 h-16 bg-gradient-to-r from-teal-500 to-teal-600 rounded-2xl flex items-center justify-center mb-6">
-                                    <FiHeart className="w-8 h-8 text-white" />
-                                </div>
-                                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                                    Legacy Planning
-                                </h3>
-                                <p className="text-gray-600 mb-6 leading-relaxed">
-                                    Preserve family memories and important documents for future generations.
-                                </p>
-                                <div className="flex items-center text-teal-600 font-medium">
-                                    <FiCheckCircle className="w-5 h-5 mr-2" />
-                                    Memory preservation
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </section>
 
                 {/* Stats Section */}
-                <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-600">
+                <section className="py-20 bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-600">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                            <div className="text-white">
-                                <div className="text-4xl font-bold mb-2">10M+</div>
-                                <div className="text-blue-100">Families Connected</div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+                            <div className="transform hover:scale-110 transition-transform duration-300">
+                                <div className="text-6xl font-bold text-white mb-3">10K+</div>
+                                <div className="text-lg text-white/90">Families Connected</div>
                             </div>
-                            <div className="text-white">
-                                <div className="text-4xl font-bold mb-2">99.9%</div>
-                                <div className="text-blue-100">Uptime Guarantee</div>
+                            <div className="transform hover:scale-110 transition-transform duration-300">
+                                <div className="text-6xl font-bold text-white mb-3">99.9%</div>
+                                <div className="text-lg text-white/90">Uptime Guarantee</div>
                             </div>
-                            <div className="text-white">
-                                <div className="text-4xl font-bold mb-2">24/7</div>
-                                <div className="text-blue-100">Support Available</div>
+                            <div className="transform hover:scale-110 transition-transform duration-300">
+                                <div className="text-6xl font-bold text-white mb-3">24/7</div>
+                                <div className="text-lg text-white/90">Safety Monitoring</div>
                             </div>
                         </div>
                     </div>
                 </section>
 
                 {/* CTA Section */}
-                <section className="py-24 bg-white">
-                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                            Ready to Get Started?
-                        </h2>
-                        <p className="text-xl text-gray-600 mb-8">
-                            Join thousands of families who trust FamilyTracker to keep them connected and safe.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <Link
-                                to="/register"
-                                className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-full shadow-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
-                            >
-                                Start Your Free Trial
-                                <FiArrowRight className="ml-2 w-5 h-5" />
-                            </Link>
-                            <Link
-                                to="/login"
-                                className="inline-flex items-center px-8 py-4 border-2 border-gray-300 text-lg font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105"
-                            >
-                                Sign In
-                            </Link>
+                <section className="py-24 bg-gray-50">
+                    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-3xl p-12 md:p-16 shadow-2xl text-center">
+                            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+                                Ready to get started?
+                            </h2>
+                            <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
+                                Join thousands of families who trust our platform for their safety and coordination needs.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                <Button
+                                    variant="filled"
+                                    size="large"
+                                    onClick={() => navigate('/register')}
+                                    className="bg-white text-purple-600 hover:bg-gray-100 shadow-xl transform hover:scale-105 transition-all duration-200 px-8 py-4 text-lg font-semibold rounded-full"
+                                >
+                                    Create your free account
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    size="large"
+                                    onClick={() => navigate('/test')}
+                                    className="border-2 border-white text-white hover:bg-white hover:text-purple-600 transition-all duration-200 px-8 py-4 text-lg font-semibold rounded-full"
+                                >
+                                    Try Demo
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </section>
 
                 {/* Footer */}
-                <footer className="bg-gray-900 text-white py-12">
+                <footer className="bg-gray-900 py-16">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                            <div className="col-span-1 md:col-span-2">
-                                <div className="flex items-center space-x-3 mb-4">
-                                    <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-                                        <FiUsers className="w-6 h-6 text-white" />
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                            <div className="md:col-span-2">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                                        <FiMapPin size={24} className="text-white" />
                                     </div>
-                                    <h3 className="text-2xl font-bold">FamilyTracker</h3>
+                                    <h3 className="text-2xl font-bold text-white">Family Safety</h3>
                                 </div>
-                                <p className="text-gray-400 mb-6 max-w-md">
-                                    The most trusted family management platform, keeping families connected and safe.
+                                <p className="text-gray-400 mb-6 leading-relaxed">
+                                    The most comprehensive family safety platform that combines location tracking,
+                                    task management, and secure communication in one app.
                                 </p>
+                                <div className="flex gap-4">
+                                    <div className="w-12 h-12 bg-gray-800 hover:bg-purple-600 rounded-lg flex items-center justify-center transition-colors cursor-pointer">
+                                        <FiMapPin size={20} className="text-white" />
+                                    </div>
+                                    <div className="w-12 h-12 bg-gray-800 hover:bg-purple-600 rounded-lg flex items-center justify-center transition-colors cursor-pointer">
+                                        <FiCheckSquare size={20} className="text-white" />
+                                    </div>
+                                    <div className="w-12 h-12 bg-gray-800 hover:bg-purple-600 rounded-lg flex items-center justify-center transition-colors cursor-pointer">
+                                        <FiMessageCircle size={20} className="text-white" />
+                                    </div>
+                                </div>
                             </div>
                             <div>
-                                <h4 className="font-semibold mb-4">Product</h4>
-                                <ul className="space-y-2 text-gray-400">
-                                    <li><Link to="/features" className="hover:text-white transition-colors">Features</Link></li>
-                                    <li><Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
-                                    <li><Link to="/security" className="hover:text-white transition-colors">Security</Link></li>
+                                <h4 className="text-lg font-semibold text-white mb-4">Product</h4>
+                                <ul className="space-y-3">
+                                    <li><button className="text-gray-400 hover:text-purple-400 transition-colors">Features</button></li>
+                                    <li><button className="text-gray-400 hover:text-purple-400 transition-colors">Pricing</button></li>
+                                    <li><button className="text-gray-400 hover:text-purple-400 transition-colors">Security</button></li>
+                                    <li><button className="text-gray-400 hover:text-purple-400 transition-colors">API</button></li>
                                 </ul>
                             </div>
                             <div>
-                                <h4 className="font-semibold mb-4">Support</h4>
-                                <ul className="space-y-2 text-gray-400">
-                                    <li><Link to="/help" className="hover:text-white transition-colors">Help Center</Link></li>
-                                    <li><Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
-                                    <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                                <h4 className="text-lg font-semibold text-white mb-4">Support</h4>
+                                <ul className="space-y-3">
+                                    <li><button className="text-gray-400 hover:text-purple-400 transition-colors">Help Center</button></li>
+                                    <li><button className="text-gray-400 hover:text-purple-400 transition-colors">Contact Us</button></li>
+                                    <li><button className="text-gray-400 hover:text-purple-400 transition-colors">Status</button></li>
+                                    <li><button className="text-gray-400 hover:text-purple-400 transition-colors">Community</button></li>
                                 </ul>
                             </div>
                         </div>
-                        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                            <p>&copy; 2024 FamilyTracker. All rights reserved.</p>
+                        <div className="border-t border-gray-800 pt-8">
+                            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                                <p className="text-gray-400">
+                                    &copy; {new Date().getFullYear()} Family Safety & Coordination. All rights reserved.
+                                </p>
+                                <div className="flex gap-6">
+                                    <button className="text-gray-400 hover:text-purple-400 transition-colors">Privacy Policy</button>
+                                    <button className="text-gray-400 hover:text-purple-400 transition-colors">Terms of Service</button>
+                                    <button className="text-gray-400 hover:text-purple-400 transition-colors">Cookie Policy</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </footer>
