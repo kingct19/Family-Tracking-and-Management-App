@@ -41,14 +41,9 @@ const LocationPage = () => {
 
     const [showMemberList, setShowMemberList] = useState(true);
 
-    // Auto-start tracking on mount to get user's location
-    useEffect(() => {
-        // Automatically start tracking to center map on user
-        if (!isWatching && user && currentHub) {
-            startTracking();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Run once on mount
+    // Apple-style: Don't auto-start tracking, let user initiate
+    // This prevents multiple permission prompts and errors
+    // User can click the purple tracking button when ready
 
     return (
         <>

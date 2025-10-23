@@ -74,8 +74,8 @@ class LocationService {
                 },
                 {
                     enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0,
+                    timeout: 15000, // Increased to 15 seconds
+                    maximumAge: 60000, // Accept cached position up to 1 minute old
                 }
             );
         });
@@ -109,9 +109,9 @@ class LocationService {
                 onError?.(this.mapError(error));
             },
             {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 5000, // Accept cached positions up to 5 seconds old
+                enableHighAccuracy: false, // Use false for faster results, true for accuracy
+                timeout: 15000, // 15 seconds timeout
+                maximumAge: 30000, // Accept cached positions up to 30 seconds old
             }
         );
 

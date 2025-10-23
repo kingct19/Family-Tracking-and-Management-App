@@ -82,7 +82,7 @@ export const MapView = ({
         const loader = new Loader({
             apiKey: GOOGLE_MAPS_API_KEY,
             version: 'weekly',
-            libraries: ['places', 'geometry'],
+            libraries: ['places', 'geometry', 'marker'],
         });
 
         loader
@@ -129,10 +129,10 @@ export const MapView = ({
         }
     }, [currentLocation]);
 
-    // Request user location on mount to center map
+    // Request user location on mount to center map (Apple-style: silent fallback)
     useEffect(() => {
         if (isMapLoaded && !currentLocation) {
-            // Try to get current position to center map
+            // Try to get current position to center map, but fail gracefully
             locationService.getCurrentPosition()
                 .then((position) => {
                     const center = new google.maps.LatLng(
@@ -144,9 +144,9 @@ export const MapView = ({
                         googleMapRef.current.setZoom(14);
                     }
                 })
-                .catch((error) => {
-                    console.log('Could not get initial location:', error.message);
-                    // Stay at default location (New York) if permission denied
+                .catch(() => {
+                    // Silent fallback - stay at default location
+                    // User can manually enable location later via the FAB buttons
                 });
         }
     }, [isMapLoaded, currentLocation]);
