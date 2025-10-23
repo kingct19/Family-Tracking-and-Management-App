@@ -14,14 +14,14 @@ import { Helmet } from 'react-helmet-async';
 import { MapView } from '../components/MapView';
 import { MemberLocationCard } from '../components/MemberLocationCard';
 import { GeofenceManager } from '../../geofencing/components/GeofenceManager';
-import { GeofenceModal } from '../../geofencing/components/GeofenceModal';
+import { GeofenceMapEditor } from '../../geofencing/components/GeofenceMapEditor';
+import { GeofenceAlertToast } from '../../geofencing/components/GeofenceAlertToast';
 import { useUserLocation, useHubLocations } from '../hooks/useLocation';
 import { useHubStore } from '@/lib/store/hub-store';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import {
     FiNavigation,
     FiMapPin,
-    FiAlertCircle,
     FiCheckCircle,
     FiSettings,
     FiChevronDown,
@@ -41,7 +41,6 @@ const LocationPage = () => {
         isWatching,
         error,
         startTracking,
-        stopTracking,
         toggleSharing,
     } = useUserLocation();
 
@@ -50,17 +49,18 @@ const LocationPage = () => {
     const otherLocations = locations.filter(loc => loc.userId !== user?.id);
     const allLocations = user && currentLocation && isSharing
         ? [
-            ...otherLocations,
-            {
-                userId: user.id,
-                latitude: currentLocation.latitude,
-                longitude: currentLocation.longitude,
-                accuracy: currentLocation.accuracy,
-                timestamp: currentLocation.timestamp,
-                isSharing: true,
-                lastUpdated: Date.now(), // Use timestamp instead of Date object
-            },
-        ]
+              ...otherLocations,
+              {
+                  userId: user.id,
+                  hubId: currentHub?.id || '',
+                  latitude: currentLocation.latitude,
+                  longitude: currentLocation.longitude,
+                  accuracy: currentLocation.accuracy,
+                  timestamp: new Date(currentLocation.timestamp),
+                  isSharing: true,
+                  lastUpdated: Date.now(), // Use timestamp instead of Date object
+              },
+          ]
         : otherLocations;
 
     const [showMemberList, setShowMemberList] = useState(true);
@@ -68,7 +68,7 @@ const LocationPage = () => {
     
     // Geofence management state
     const [showGeofenceManager, setShowGeofenceManager] = useState(false);
-    const [showGeofenceModal, setShowGeofenceModal] = useState(false);
+    const [showGeofenceEditor, setShowGeofenceEditor] = useState(false);
     const [editingGeofence, setEditingGeofence] = useState<GeofenceZone | null>(null);
 
     // Auto-request location permission when app loads (Life360 style)
@@ -295,29 +295,35 @@ const LocationPage = () => {
                                 <FiX size={20} />
                             </button>
                         </div>
-                        <GeofenceManager
-                            onCreateGeofence={() => {
-                                setEditingGeofence(null);
-                                setShowGeofenceModal(true);
-                            }}
-                            onEditGeofence={(geofence) => {
-                                setEditingGeofence(geofence);
-                                setShowGeofenceModal(true);
-                            }}
-                            onDeleteGeofence={(geofenceId) => {
-                                // TODO: Implement delete
-                                console.log('Delete geofence:', geofenceId);
-                            }}
-                        />
+                <GeofenceManager
+                    onCreateGeofence={() => {
+                        setEditingGeofence(null);
+                        setShowGeofenceEditor(true);
+                    }}
+                    onEditGeofence={(geofence) => {
+                        setEditingGeofence(geofence);
+                        setShowGeofenceEditor(true);
+                    }}
+                    onDeleteGeofence={(geofenceId) => {
+                        // TODO: Implement delete
+                        console.log('Delete geofence:', geofenceId);
+                    }}
+                />
                     </div>
                 </div>
             )}
 
-            {/* Geofence Modal */}
-            <GeofenceModal
-                isOpen={showGeofenceModal}
+            {/* Geofence Map Editor */}
+            <GeofenceMapEditor
+                isOpen={showGeofenceEditor}
                 onClose={() => {
-                    setShowGeofenceModal(false);
+                    setShowGeofenceEditor(false);
+                    setEditingGeofence(null);
+                }}
+                onSave={(data) => {
+                    // TODO: Implement save geofence
+                    console.log('Save geofence:', data);
+                    setShowGeofenceEditor(false);
                     setEditingGeofence(null);
                 }}
                 geofence={editingGeofence}
@@ -326,6 +332,9 @@ const LocationPage = () => {
                     longitude: currentLocation.longitude,
                 } : undefined}
             />
+
+            {/* Geofence Alert Toast */}
+            <GeofenceAlertToast />
 
             {/* Custom Styles */}
             <style>{`
@@ -354,6 +363,13 @@ const LocationPage = () => {
                 }
                 .animate-slide-down {
                     animation: slide-down 0.3s ease-out;
+                }
+                @keyframes slide-in-right {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                .animate-slide-in-right {
+                    animation: slide-in-right 0.3s ease-out;
                 }
             `}</style>
         </>

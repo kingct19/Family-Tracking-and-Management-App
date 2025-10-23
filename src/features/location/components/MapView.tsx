@@ -8,30 +8,16 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { Loader } from '@googlemaps/js-api-loader';
+import { googleMapsLoader } from '@/lib/services/google-maps-loader';
 import { useHubLocations, useUserLocation } from '../hooks/useLocation';
 import { useGeofences } from '../../geofencing/hooks/useGeofences';
 import { useHubStore } from '@/lib/store/hub-store';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { locationService } from '../services/location-service';
 import { geofenceDetectionService } from '../../geofencing/services/geofence-detection';
+import { alertService } from '../../geofencing/services/alert-service';
 import type { UserLocation } from '../api/location-api';
-import type { GeofenceZone } from '../../geofencing/types';
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
-
-// Create singleton loader to prevent multiple initialization errors
-let mapLoader: Loader | null = null;
-const getMapLoader = () => {
-    if (!mapLoader) {
-        mapLoader = new Loader({
-            apiKey: GOOGLE_MAPS_API_KEY,
-            version: 'weekly',
-            libraries: ['places', 'geometry', 'marker'],
-        });
-    }
-    return mapLoader;
-};
+// Using shared Google Maps loader service
 
 // Helper function to get geofence colors
 const getGeofenceColor = (type: string): string => {
@@ -60,7 +46,7 @@ export const MapView = ({
 }: MapViewProps) => {
     const { currentHub } = useHubStore();
     const { currentLocation } = useUserLocation();
-    const { locations, isLoading } = useHubLocations(currentHub?.id);
+    const { locations } = useHubLocations(currentHub?.id);
     const { geofences } = useGeofences();
 
     const mapRef = useRef<HTMLDivElement>(null);
@@ -84,23 +70,8 @@ export const MapView = ({
         return () => clearTimeout(timeout);
     }, [isMapLoaded, loadError]);
 
-    // Validate API key on mount
-    useEffect(() => {
-        if (!GOOGLE_MAPS_API_KEY) {
-            console.error('MapView: Google Maps API key not configured');
-            setLoadError('Map configuration error');
-        }
-    }, []);
-
     // Initialize Google Map
     useEffect(() => {
-        // Check API key first
-        if (!GOOGLE_MAPS_API_KEY) {
-            const errorMsg = `Google Maps API key not configured (key length: ${GOOGLE_MAPS_API_KEY.length})`;
-            console.error('MapView Error:', errorMsg);
-            setLoadError('Google Maps API key not configured');
-            return;
-        }
 
         // Prevent re-initialization if already loaded
         if (isMapLoaded || googleMapRef.current) {
@@ -112,10 +83,8 @@ export const MapView = ({
             return;
         }
 
-        // Use singleton loader to prevent re-initialization errors
-        const loader = getMapLoader();
-
-        loader
+        // Use shared loader service
+        googleMapsLoader
             .load()
             .then((google) => {
                 if (!mapRef.current) return;
@@ -179,7 +148,23 @@ export const MapView = ({
 
         if (results.length > 0) {
             console.log('🚨 Geofence events detected:', results);
-            // TODO: Show alerts/notifications
+            
+            // Create alerts for each geofence event
+            results.forEach(event => {
+                const geofence = geofences.find(g => g.id === event.geofenceId);
+                if (geofence) {
+                    alertService.createAlert(
+                        geofence.id,
+                        geofence.name,
+                        'current-user', // Current user ID
+                        event.eventType,
+                        {
+                            latitude: currentLocation.latitude,
+                            longitude: currentLocation.longitude,
+                        }
+                    );
+                }
+            });
         }
     }, [currentLocation, geofences, currentHub?.id]);
 
