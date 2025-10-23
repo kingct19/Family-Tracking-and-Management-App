@@ -40,15 +40,18 @@ const LocationPage = () => {
     } = useUserLocation();
 
     const [showMemberList, setShowMemberList] = useState(true);
+    const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
 
-    // Auto-start location tracking when app loads (Life360 style)
+    // Auto-request location permission when app loads (Life360 style)
+    // This ensures we get location BEFORE showing the map
     useEffect(() => {
-        if (!isWatching && user && currentHub) {
-            // Silently start tracking - user can toggle sharing separately
+        if (!hasRequestedPermission && user && currentHub) {
+            setHasRequestedPermission(true);
+            // Request permission and start tracking immediately
             startTracking();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user, currentHub]); // Start when user and hub are ready
+    }, [user, currentHub, hasRequestedPermission]); // Start when user and hub are ready
 
     return (
         <>
@@ -84,12 +87,43 @@ const LocationPage = () => {
                     </div>
                 </div>
 
-                {/* Map - Full Screen */}
+                {/* Map - Full Screen or Loading State */}
                 <div className="flex-1 relative">
-                    <MapView height="100%" zoom={13} showControls={false} />
+                    {!currentLocation ? (
+                        // Show loading while getting initial location
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
+                            <div className="text-center space-y-6 px-6">
+                                <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto animate-pulse">
+                                    <FiMapPin size={40} className="text-white" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h2 className="text-2xl font-bold text-gray-900">
+                                        Finding your location...
+                                    </h2>
+                                    <p className="text-gray-600">
+                                        Please allow location access to see your family on the map
+                                    </p>
+                                </div>
+                                {error && (
+                                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg max-w-md mx-auto">
+                                        <p className="text-sm">{error}</p>
+                                        <button
+                                            onClick={startTracking}
+                                            className="mt-2 text-sm font-semibold underline hover:no-underline"
+                                        >
+                                            Try Again
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <MapView height="100%" zoom={13} showControls={false} />
+                    )}
 
-                    {/* Floating Action Buttons */}
-                    <div className="absolute top-24 right-4 flex flex-col gap-3 z-10">
+                    {/* Floating Action Buttons - Only show when map is loaded */}
+                    {currentLocation && (
+                        <div className="absolute top-24 right-4 flex flex-col gap-3 z-10">
                         {/* Location Sharing Toggle */}
                         <button
                             onClick={toggleSharing}
@@ -127,6 +161,7 @@ const LocationPage = () => {
                             <FiCheckCircle size={24} />
                         </button>
                     </div>
+                    )}
 
                     {/* Error Toast */}
                     {error && (
@@ -136,11 +171,12 @@ const LocationPage = () => {
                     )}
                 </div>
 
-                {/* Bottom Member List Panel */}
-                <div
-                    className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm shadow-2xl rounded-t-3xl transition-all duration-300 z-10 ${showMemberList ? 'translate-y-0' : 'translate-y-full'
-                        }`}
-                >
+                {/* Bottom Member List Panel - Only show when map loaded */}
+                {currentLocation && (
+                    <div
+                        className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm shadow-2xl rounded-t-3xl transition-all duration-300 z-10 ${showMemberList ? 'translate-y-0' : 'translate-y-full'
+                            }`}
+                    >
                     {/* Drag Handle */}
                     <button
                         onClick={() => setShowMemberList(!showMemberList)}
@@ -194,6 +230,7 @@ const LocationPage = () => {
                         )}
                     </div>
                 </div>
+                )}
             </div>
 
             {/* Custom Styles */}

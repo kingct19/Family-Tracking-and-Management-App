@@ -101,7 +101,7 @@ export const MapView = ({
                 if (!mapRef.current) return;
 
                 // Use current location if available, otherwise default to New York
-                const defaultCenter = currentLocation 
+                const defaultCenter = currentLocation
                     ? { lat: currentLocation.latitude, lng: currentLocation.longitude }
                     : { lat: 40.7128, lng: -74.0060 }; // New York fallback
 
