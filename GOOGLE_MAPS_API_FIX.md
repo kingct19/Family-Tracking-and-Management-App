@@ -7,7 +7,7 @@ Your Google Maps API key is restricted and doesn't allow requests from `localhos
 
 ### Step 1: Go to Google Cloud Console
 1. Visit: https://console.cloud.google.com/apis/credentials
-2. Find your API key (starts with `AIzaSyC7nn...`)
+2. Find your API key (starts with `AIzaSy...`)
 3. Click on the key name to edit
 
 ### Step 2: Update API Restrictions

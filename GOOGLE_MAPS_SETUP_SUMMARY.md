@@ -28,7 +28,7 @@ nano .env
 
 **Add this line:**
 ```env
-VITE_GOOGLE_MAPS_API_KEY=AIzaSy...your_actual_key_here
+VITE_GOOGLE_MAPS_API_KEY=your_actual_key_here
 ```
 
 ### 3. Verify & Run

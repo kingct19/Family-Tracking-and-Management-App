@@ -20,7 +20,7 @@ Expected output: `.env` file exists
 cat .env | grep VITE_GOOGLE_MAPS_API_KEY
 ```
 
-Expected: `VITE_GOOGLE_MAPS_API_KEY=AIzaSyC7nnBWoJT5-kDKkTr6KGuY79_GlEo1yHg`
+Expected: `VITE_GOOGLE_MAPS_API_KEY=your_actual_api_key_here`
 
 ### Step 3: Verify Vite Config
 Check if `vite.config.ts` is blocking environment variables:
@@ -52,7 +52,7 @@ After refreshing, open DevTools (F12) and check console for:
 MapView - API Key Status: {
   exists: true,
   length: 39,
-  firstChars: 'AIzaSyC7nn',
+  firstChars: 'AIzaSy...',
   allEnvVars: {...}
 }
 ```
@@ -115,7 +115,7 @@ If nothing works, try hardcoding temporarily to test:
 
 ```typescript
 // TEMPORARY - Remove after testing
-const GOOGLE_MAPS_API_KEY = 'AIzaSyC7nnBWoJT5-kDKkTr6KGuY79_GlEo1yHg';
+const GOOGLE_MAPS_API_KEY = 'your_actual_api_key_here';
 // const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 ```
 
@@ -161,7 +161,7 @@ npm run dev
 MapView - API Key Status: {
   exists: true,
   length: 39,
-  firstChars: 'AIzaSyC7nn',
+  firstChars: 'AIzaSy...',
   ...
 }
 ```
