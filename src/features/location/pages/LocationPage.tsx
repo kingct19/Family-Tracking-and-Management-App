@@ -47,12 +47,18 @@ const LocationPage = () => {
     // This ensures we get location BEFORE showing the map
     useEffect(() => {
         if (!hasRequestedPermission && user && currentHub) {
+            console.log('🚀 Starting location tracking...');
             setHasRequestedPermission(true);
             // Request permission and start tracking immediately
             startTracking();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, currentHub, hasRequestedPermission]); // Start when user and hub are ready
+
+    // Debug: Log when currentLocation changes
+    useEffect(() => {
+        console.log('🗺️ currentLocation changed:', currentLocation);
+    }, [currentLocation]);
 
     return (
         <>

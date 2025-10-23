@@ -85,6 +85,7 @@ export const useUserLocation = () => {
         // Start watching position
         locationService.startWatching(
             (location) => {
+                console.log('📍 Location update received:', location);
                 setCurrentLocation(location);
                 setError(null);
 
@@ -94,12 +95,14 @@ export const useUserLocation = () => {
                 }
             },
             (error) => {
+                console.error('❌ Location error:', error);
                 setError(error.message);
                 toast.error(error.message);
             }
         );
 
         setIsWatching(true);
+        console.log('✅ Location tracking started');
     }, [isSharing, user, currentHub, updateMutation]);
 
     // Stop tracking location
