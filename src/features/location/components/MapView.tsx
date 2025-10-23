@@ -10,10 +10,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
 import { useHubLocations, useUserLocation } from '../hooks/useLocation';
+import { useGeofences } from '../../geofencing/hooks/useGeofences';
 import { useHubStore } from '@/lib/store/hub-store';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { locationService } from '../services/location-service';
+import { geofenceDetectionService } from '../../geofencing/services/geofence-detection';
 import type { UserLocation } from '../api/location-api';
+import type { GeofenceZone } from '../../geofencing/types';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
@@ -30,6 +33,20 @@ const getMapLoader = () => {
     return mapLoader;
 };
 
+// Helper function to get geofence colors
+const getGeofenceColor = (type: string): string => {
+    switch (type) {
+        case 'home':
+            return '#3B82F6'; // Blue
+        case 'school':
+            return '#10B981'; // Green
+        case 'work':
+            return '#8B5CF6'; // Purple
+        default:
+            return '#6B7280'; // Gray
+    }
+};
+
 interface MapViewProps {
     height?: string;
     zoom?: number;
@@ -44,11 +61,13 @@ export const MapView = ({
     const { currentHub } = useHubStore();
     const { currentLocation } = useUserLocation();
     const { locations, isLoading } = useHubLocations(currentHub?.id);
+    const { geofences } = useGeofences();
 
     const mapRef = useRef<HTMLDivElement>(null);
     const googleMapRef = useRef<google.maps.Map | null>(null);
     const markersRef = useRef<Map<string, google.maps.Marker>>(new Map());
     const currentUserMarkerRef = useRef<google.maps.Marker | null>(null);
+    const geofenceCirclesRef = useRef<Map<string, google.maps.Circle>>(new Map());
 
     const [isMapLoaded, setIsMapLoaded] = useState(false);
     const [loadError, setLoadError] = useState<string | null>(null);
@@ -147,6 +166,23 @@ export const MapView = ({
     // No need for manual location request - LocationPage auto-starts tracking
     // and the currentLocation effect above will handle centering
 
+    // Geofence detection - monitor current user's location against geofences
+    useEffect(() => {
+        if (!currentLocation || !geofences.length || !currentHub?.id) return;
+
+        console.log('🔍 Checking geofence state for current location');
+        const results = geofenceDetectionService.checkGeofenceState(
+            'current-user', // Use a fixed ID for current user
+            currentLocation,
+            geofences
+        );
+
+        if (results.length > 0) {
+            console.log('🚨 Geofence events detected:', results);
+            // TODO: Show alerts/notifications
+        }
+    }, [currentLocation, geofences, currentHub?.id]);
+
     // Update current user's marker
     useEffect(() => {
         if (!googleMapRef.current || !isMapLoaded || !currentLocation) return;
@@ -189,6 +225,59 @@ export const MapView = ({
             });
         }
     }, [currentLocation, isMapLoaded]);
+
+    // Update geofence circles when geofences change
+    useEffect(() => {
+        if (!googleMapRef.current || !isMapLoaded) return;
+
+        const currentCircles = geofenceCirclesRef.current;
+
+        // Remove circles for geofences that no longer exist
+        currentCircles.forEach((circle, geofenceId) => {
+            if (!geofences.find(g => g.id === geofenceId)) {
+                circle.setMap(null);
+                currentCircles.delete(geofenceId);
+            }
+        });
+
+        // Add or update circles for active geofences
+        geofences.forEach((geofence) => {
+            if (!geofence.isActive) return;
+
+            const center = new google.maps.LatLng(
+                geofence.center.latitude,
+                geofence.center.longitude
+            );
+
+            const existingCircle = currentCircles.get(geofence.id);
+            if (existingCircle) {
+                // Update existing circle
+                existingCircle.setCenter(center);
+                existingCircle.setRadius(geofence.radius);
+            } else {
+                // Create new circle
+                const circle = new google.maps.Circle({
+                    strokeColor: getGeofenceColor(geofence.type),
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: getGeofenceColor(geofence.type),
+                    fillOpacity: 0.2,
+                    map: googleMapRef.current,
+                    center,
+                    radius: geofence.radius,
+                    clickable: true,
+                });
+
+                // Add click listener
+                circle.addListener('click', () => {
+                    console.log('Clicked geofence:', geofence.name);
+                    // TODO: Show geofence details or edit modal
+                });
+
+                currentCircles.set(geofence.id, circle);
+            }
+        });
+    }, [geofences, isMapLoaded]);
 
     // Update markers when locations change
     useEffect(() => {

@@ -13,6 +13,8 @@ import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { MapView } from '../components/MapView';
 import { MemberLocationCard } from '../components/MemberLocationCard';
+import { GeofenceManager } from '../../geofencing/components/GeofenceManager';
+import { GeofenceModal } from '../../geofencing/components/GeofenceModal';
 import { useUserLocation, useHubLocations } from '../hooks/useLocation';
 import { useHubStore } from '@/lib/store/hub-store';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -24,7 +26,10 @@ import {
     FiSettings,
     FiChevronDown,
     FiUsers,
+    FiShield,
+    FiX,
 } from 'react-icons/fi';
+import type { GeofenceZone } from '../../geofencing/types';
 
 const LocationPage = () => {
     const { user } = useAuth();
@@ -45,21 +50,26 @@ const LocationPage = () => {
     const otherLocations = locations.filter(loc => loc.userId !== user?.id);
     const allLocations = user && currentLocation && isSharing
         ? [
-              ...otherLocations,
-              {
-                  userId: user.id,
-                  latitude: currentLocation.latitude,
-                  longitude: currentLocation.longitude,
-                  accuracy: currentLocation.accuracy,
-                  timestamp: currentLocation.timestamp,
-                  isSharing: true,
-                  lastUpdated: Date.now(), // Use timestamp instead of Date object
-              },
-          ]
+            ...otherLocations,
+            {
+                userId: user.id,
+                latitude: currentLocation.latitude,
+                longitude: currentLocation.longitude,
+                accuracy: currentLocation.accuracy,
+                timestamp: currentLocation.timestamp,
+                isSharing: true,
+                lastUpdated: Date.now(), // Use timestamp instead of Date object
+            },
+        ]
         : otherLocations;
 
     const [showMemberList, setShowMemberList] = useState(true);
     const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
+    
+    // Geofence management state
+    const [showGeofenceManager, setShowGeofenceManager] = useState(false);
+    const [showGeofenceModal, setShowGeofenceModal] = useState(false);
+    const [editingGeofence, setEditingGeofence] = useState<GeofenceZone | null>(null);
 
     // Auto-request location permission when app loads (Life360 style)
     // This ensures we get location BEFORE showing the map
@@ -177,6 +187,16 @@ const LocationPage = () => {
                                 <FiNavigation size={24} />
                             </button>
 
+                            {/* Geofence Management Button */}
+                            <button
+                                onClick={() => setShowGeofenceManager(true)}
+                                className="w-14 h-14 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center text-gray-700 transition-all duration-200 hover:scale-110 active:scale-95"
+                                title="Manage Geofences"
+                                aria-label="Open geofence management"
+                            >
+                                <FiShield size={24} />
+                            </button>
+
                             {/* Check-In Button */}
                             <button
                                 className="w-14 h-14 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center text-gray-700 transition-all duration-200 hover:scale-110 active:scale-95"
@@ -261,6 +281,51 @@ const LocationPage = () => {
                     </div>
                 )}
             </div>
+
+            {/* Geofence Manager Modal */}
+            {showGeofenceManager && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                            <h2 className="text-2xl font-bold text-gray-900">Geofence Management</h2>
+                            <button
+                                onClick={() => setShowGeofenceManager(false)}
+                                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                <FiX size={20} />
+                            </button>
+                        </div>
+                        <GeofenceManager
+                            onCreateGeofence={() => {
+                                setEditingGeofence(null);
+                                setShowGeofenceModal(true);
+                            }}
+                            onEditGeofence={(geofence) => {
+                                setEditingGeofence(geofence);
+                                setShowGeofenceModal(true);
+                            }}
+                            onDeleteGeofence={(geofenceId) => {
+                                // TODO: Implement delete
+                                console.log('Delete geofence:', geofenceId);
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Geofence Modal */}
+            <GeofenceModal
+                isOpen={showGeofenceModal}
+                onClose={() => {
+                    setShowGeofenceModal(false);
+                    setEditingGeofence(null);
+                }}
+                geofence={editingGeofence}
+                initialLocation={currentLocation ? {
+                    latitude: currentLocation.latitude,
+                    longitude: currentLocation.longitude,
+                } : undefined}
+            />
 
             {/* Custom Styles */}
             <style>{`
