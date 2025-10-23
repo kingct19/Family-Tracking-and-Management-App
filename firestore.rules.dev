@@ -59,6 +59,21 @@ service cloud.firestore {
         allow read, write: if isAuthenticated();
       }
       
+      // Geofences subcollection
+      match /geofences/{geofenceId} {
+        allow read, write: if isAuthenticated();
+      }
+      
+      // Geofence events subcollection
+      match /geofenceEvents/{eventId} {
+        allow read, write: if isAuthenticated();
+      }
+      
+      // Geofence alerts subcollection
+      match /geofenceAlerts/{alertId} {
+        allow read, write: if isAuthenticated();
+      }
+      
       // Broadcasts subcollection
       match /broadcasts/{broadcastId} {
         allow read, write: if isAuthenticated();

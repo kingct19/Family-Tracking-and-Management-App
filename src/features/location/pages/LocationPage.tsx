@@ -43,17 +43,17 @@ const LocationPage = () => {
     // Include current user in locations list if they're sharing
     const allLocations = user && currentLocation && isSharing
         ? [
-              ...locations,
-              {
-                  userId: user.id,
-                  latitude: currentLocation.latitude,
-                  longitude: currentLocation.longitude,
-                  accuracy: currentLocation.accuracy,
-                  timestamp: currentLocation.timestamp,
-                  isSharing: true,
-                  lastUpdated: Date.now(), // Use timestamp instead of Date object
-              },
-          ]
+            ...locations,
+            {
+                userId: user.id,
+                latitude: currentLocation.latitude,
+                longitude: currentLocation.longitude,
+                accuracy: currentLocation.accuracy,
+                timestamp: currentLocation.timestamp,
+                isSharing: true,
+                lastUpdated: Date.now(), // Use timestamp instead of Date object
+            },
+        ]
         : locations;
 
     const [showMemberList, setShowMemberList] = useState(true);

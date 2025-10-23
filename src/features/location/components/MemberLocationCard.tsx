@@ -33,7 +33,7 @@ export const MemberLocationCard = ({
     // Format timestamp - handles Date objects, timestamps, and Firestore Timestamps
     const formatTime = (date: Date | number | any) => {
         const now = new Date();
-        
+
         // Convert to timestamp if it's a Date object or Firestore Timestamp
         let timestamp: number;
         if (typeof date === 'number') {
@@ -46,7 +46,7 @@ export const MemberLocationCard = ({
         } else {
             return 'Unknown';
         }
-        
+
         const diff = Math.floor((now.getTime() - timestamp) / 1000); // seconds
 
         if (diff < 60) return 'Just now';
