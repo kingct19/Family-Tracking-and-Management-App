@@ -34,6 +34,25 @@ export const useUserLocation = () => {
     const [error, setError] = useState<string | null>(null);
     const [isWatching, setIsWatching] = useState(false);
 
+    // On mount, check if location service is already running and sync state
+    useEffect(() => {
+        const isAlreadyWatching = locationService.getWatchingStatus();
+        if (isAlreadyWatching) {
+            console.log('🔄 Syncing with existing location service');
+            setIsWatching(true);
+            
+            // Try to get current position immediately
+            locationService.getCurrentPosition()
+                .then((position) => {
+                    console.log('📍 Restored location from service:', position);
+                    setCurrentLocation(position);
+                })
+                .catch((err) => {
+                    console.warn('Could not restore location:', err);
+                });
+        }
+    }, []);
+
     // Mutation for updating location in Firestore
     const updateMutation = useMutation({
         mutationFn: (coordinates: LocationCoordinates) => {
