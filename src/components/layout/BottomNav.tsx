@@ -20,17 +20,12 @@ interface NavItem {
 export const BottomNav = () => {
     const { isFeatureEnabled } = useHubStore();
 
-    // Bottom nav shows max 5 items for mobile
+    // Bottom nav shows max 5 items for mobile (Life360 style - Map first)
     const navItems: NavItem[] = [
         {
-            to: '/dashboard',
-            icon: <FiHome size={24} />,
-            label: 'Home',
-        },
-        {
-            to: '/location',
+            to: '/',
             icon: <FiMapPin size={24} />,
-            label: 'Location',
+            label: 'Map',
             feature: 'location',
         },
         {
@@ -42,8 +37,13 @@ export const BottomNav = () => {
         {
             to: '/messages',
             icon: <FiMessageCircle size={24} />,
-            label: 'Messages',
+            label: 'Chat',
             feature: 'chat',
+        },
+        {
+            to: '/dashboard',
+            icon: <FiHome size={24} />,
+            label: 'More',
         },
         {
             to: '/settings',

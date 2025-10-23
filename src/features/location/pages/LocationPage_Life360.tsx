@@ -56,27 +56,21 @@ const LocationPage = () => {
             </Helmet>
 
             {/* Full screen container */}
-            <div className="fixed inset-0 flex flex-col bg-gray-50">
+            <div className="fixed inset-0 flex flex-col bg-gray-100">
                 {/* Top Header Bar */}
-                <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-white via-white/95 to-transparent backdrop-blur-md shadow-sm">
-                    <div className="flex items-center justify-between p-4 safe-top">
+                <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-white/95 via-white/80 to-transparent backdrop-blur-sm">
+                    <div className="flex items-center justify-between p-4">
                         {/* Hub Selector */}
-                        <button 
-                            className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
-                            aria-label="Select hub"
-                        >
+                        <button className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-shadow">
                             <FiUsers size={18} className="text-purple-600" />
-                            <span className="font-semibold text-gray-900 text-sm">
+                            <span className="font-semibold text-gray-900">
                                 {currentHub?.name || 'Select Hub'}
                             </span>
                             <FiChevronDown size={16} className="text-gray-500" />
                         </button>
 
                         {/* Settings Button */}
-                        <button 
-                            className="w-11 h-11 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center"
-                            aria-label="Settings"
-                        >
+                        <button className="w-10 h-10 bg-white rounded-full shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center">
                             <FiSettings size={20} className="text-gray-700" />
                         </button>
                     </div>
@@ -87,83 +81,76 @@ const LocationPage = () => {
                     <MapView height="100%" zoom={13} showControls={false} />
 
                     {/* Floating Action Buttons */}
-                    <div className="absolute top-24 right-4 flex flex-col gap-3 z-10">
+                    <div className="absolute top-20 right-4 flex flex-col gap-3">
                         {/* Location Sharing Toggle */}
                         <button
                             onClick={toggleSharing}
-                            className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${
-                                isSharing
-                                    ? 'bg-green-500 hover:bg-green-600 text-white shadow-green-200'
-                                    : 'bg-white hover:bg-gray-50 text-gray-700'
-                            }`}
+                            className={`w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all transform hover:scale-110 ${isSharing
+                                    ? 'bg-green-500 text-white'
+                                    : 'bg-white text-gray-700'
+                                }`}
                             title={isSharing ? 'Sharing Location' : 'Share Location'}
-                            aria-label={isSharing ? 'Stop sharing location' : 'Start sharing location'}
                         >
-                            <FiMapPin size={24} />
+                            <FiMapPin size={22} />
                         </button>
 
                         {/* Start/Stop Tracking */}
                         {!isWatching ? (
                             <button
                                 onClick={startTracking}
-                                className="w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-purple-200"
+                                className="w-12 h-12 bg-purple-600 rounded-full shadow-xl flex items-center justify-center text-white hover:bg-purple-700 transition-all transform hover:scale-110"
                                 title="Start Tracking"
-                                aria-label="Start location tracking"
                             >
-                                <FiNavigation size={24} />
+                                <FiNavigation size={22} />
                             </button>
                         ) : (
                             <button
                                 onClick={stopTracking}
-                                className="w-14 h-14 bg-red-500 hover:bg-red-600 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-red-200"
+                                className="w-12 h-12 bg-red-500 rounded-full shadow-xl flex items-center justify-center text-white hover:bg-red-600 transition-all transform hover:scale-110"
                                 title="Stop Tracking"
-                                aria-label="Stop location tracking"
                             >
-                                <FiAlertCircle size={24} />
+                                <FiAlertCircle size={22} />
                             </button>
                         )}
 
                         {/* Check-In Button */}
                         <button
-                            className="w-14 h-14 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center text-gray-700 transition-all duration-200 hover:scale-110 active:scale-95"
+                            className="w-12 h-12 bg-white rounded-full shadow-xl flex items-center justify-center text-gray-700 hover:bg-gray-50 transition-all transform hover:scale-110"
                             title="Check In"
-                            aria-label="Check in at current location"
                         >
-                            <FiCheckCircle size={24} />
+                            <FiCheckCircle size={22} />
                         </button>
                     </div>
 
                     {/* Error Toast */}
                     {error && (
-                        <div className="absolute top-24 left-4 right-24 bg-red-500 text-white px-4 py-3 rounded-xl shadow-lg animate-slide-down z-10">
-                            <p className="font-medium text-sm">{error}</p>
+                        <div className="absolute top-20 left-4 right-20 bg-red-500 text-white px-4 py-3 rounded-lg shadow-xl">
+                            <p className="font-semibold text-sm">{error}</p>
                         </div>
                     )}
                 </div>
 
                 {/* Bottom Member List Panel */}
                 <div
-                    className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm shadow-2xl rounded-t-3xl transition-all duration-300 z-10 ${
-                        showMemberList ? 'translate-y-0' : 'translate-y-full'
-                    }`}
+                    className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-transparent transition-all duration-300 ${showMemberList ? 'translate-y-0' : 'translate-y-full'
+                        }`}
                 >
                     {/* Drag Handle */}
                     <button
                         onClick={() => setShowMemberList(!showMemberList)}
-                        className="w-full py-4 flex justify-center hover:bg-gray-50/50 transition-colors rounded-t-3xl"
-                        aria-label={showMemberList ? 'Hide member list' : 'Show member list'}
+                        className="w-full py-3 flex justify-center"
                     >
-                        <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+                        <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
                     </button>
 
                     {/* Header */}
-                    <div className="px-6 pb-4">
+                    <div className="px-4 pb-3">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold text-gray-900">
+                            <h2 className="text-xl font-bold text-gray-900">
                                 Family Members
                             </h2>
-                            <div className="px-4 py-1.5 bg-purple-100 rounded-full">
-                                <span className="text-sm font-bold text-purple-700">
+                            <div className="px-3 py-1 bg-purple-100 rounded-full">
+                                <span className="text-sm font-semibold text-purple-700">
                                     {locations.length} online
                                 </span>
                             </div>
@@ -171,9 +158,9 @@ const LocationPage = () => {
                     </div>
 
                     {/* Member Cards - Horizontal Scroll */}
-                    <div className="px-6 pb-safe">
+                    <div className="px-4 pb-safe">
                         {locations.length > 0 ? (
-                            <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar">
+                            <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar">
                                 {locations.map((location) => (
                                     <div key={location.userId} className="flex-shrink-0 w-80">
                                         <MemberLocationCard
@@ -186,12 +173,12 @@ const LocationPage = () => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-12 pb-safe">
-                                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <FiUsers size={36} className="text-gray-400" />
+                            <div className="text-center py-8 pb-safe">
+                                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <FiUsers size={32} className="text-gray-400" />
                                 </div>
-                                <p className="text-gray-700 font-semibold text-lg">No members sharing location</p>
-                                <p className="text-sm text-gray-500 mt-2">
+                                <p className="text-gray-600 font-medium">No members sharing location</p>
+                                <p className="text-sm text-gray-500 mt-1">
                                     Invite family members to start tracking
                                 </p>
                             </div>
@@ -210,23 +197,7 @@ const LocationPage = () => {
                     scrollbar-width: none;
                 }
                 .pb-safe {
-                    padding-bottom: max(env(safe-area-inset-bottom), 1.5rem);
-                }
-                .safe-top {
-                    padding-top: max(env(safe-area-inset-top), 1rem);
-                }
-                @keyframes slide-down {
-                    from {
-                        opacity: 0;
-                        transform: translateY(-10px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                .animate-slide-down {
-                    animation: slide-down 0.3s ease-out;
+                    padding-bottom: env(safe-area-inset-bottom, 1rem);
                 }
             `}</style>
         </>

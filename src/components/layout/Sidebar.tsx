@@ -21,16 +21,12 @@ interface NavItem {
 export const Sidebar = () => {
     const { isFeatureEnabled } = useHubStore();
 
+    // Nav items - Map first (Life360 style)
     const navItems: NavItem[] = [
         {
-            to: '/dashboard',
-            icon: <FiHome size={20} />,
-            label: 'Dashboard',
-        },
-        {
-            to: '/location',
+            to: '/',
             icon: <FiMapPin size={20} />,
-            label: 'Location',
+            label: 'Map',
             feature: 'location',
         },
         {
@@ -50,6 +46,11 @@ export const Sidebar = () => {
             icon: <FiLock size={20} />,
             label: 'Vault',
             feature: 'vault',
+        },
+        {
+            to: '/dashboard',
+            icon: <FiHome size={20} />,
+            label: 'Dashboard',
         },
         {
             to: '/settings',

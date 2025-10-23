@@ -20,7 +20,7 @@ const HomePage = () => {
     // Redirect if already authenticated
     useEffect(() => {
         if (isAuthenticated) {
-            navigate('/dashboard');
+            navigate('/'); // Redirect to map (main screen)
         }
     }, [isAuthenticated, navigate]);
 

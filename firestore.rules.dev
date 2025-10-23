@@ -1,0 +1,113 @@
+rules_version = '2';
+
+// DEVELOPMENT RULES - More permissive for initial setup
+// TODO: Replace with production rules after testing
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isUser(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection - allow authenticated users to read/write their own data
+    match /users/{userId} {
+      allow read, write: if isUser(userId);
+      
+      // Private subcollection
+      match /private/{document=**} {
+        allow read, write: if isUser(userId);
+      }
+    }
+    
+    // Hubs collection - simplified for development
+    match /hubs/{hubId} {
+      // Allow authenticated users to read and create hubs
+      allow read, create: if isAuthenticated();
+      
+      // Allow updates if user is in members array
+      allow update: if isAuthenticated() && 
+        request.auth.uid in resource.data.members;
+      
+      // Allow delete if user created the hub
+      allow delete: if isAuthenticated() && 
+        resource.data.createdBy == request.auth.uid;
+      
+      // Memberships subcollection
+      match /memberships/{memberUserId} {
+        // Allow authenticated users to read/write
+        allow read, write: if isAuthenticated();
+      }
+      
+      // Tasks subcollection
+      match /tasks/{taskId} {
+        allow read, write: if isAuthenticated();
+      }
+      
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read, write: if isAuthenticated();
+      }
+      
+      // Broadcasts subcollection
+      match /broadcasts/{broadcastId} {
+        allow read, write: if isAuthenticated();
+      }
+      
+      // Locations subcollection
+      match /locations/{locationUserId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated();
+        
+        // Location history
+        match /history/{historyId} {
+          allow read, write: if isAuthenticated();
+        }
+      }
+      
+      // Geofences subcollection
+      match /geofences/{geofenceId} {
+        allow read, write: if isAuthenticated();
+      }
+      
+      // Policies subcollection
+      match /policies/{policyId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+    
+    // XP Records collection
+    match /xpRecords/{recordId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+    
+    // Vault collection (user-specific)
+    match /vault/{userId}/{vaultId} {
+      allow read, write: if isUser(userId);
+    }
+    
+    // Invites collection
+    match /invites/{inviteCode} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Event logs collection
+    match /eventLogs/{eventId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

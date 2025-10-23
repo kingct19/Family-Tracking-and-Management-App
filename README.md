@@ -49,6 +49,8 @@ Before you begin, ensure you have the following installed:
 
 ## 🚀 Quick Start
 
+**For detailed setup instructions, see [QUICKSTART.md](./QUICKSTART.md)**
+
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/kingct19/Family-Tracking-and-Management-App.git
@@ -66,6 +68,8 @@ Copy the example environment file and configure your Firebase and Google Maps cr
 ```bash
 cp env.example .env
 ```
+
+**Google Maps Setup:** See [GOOGLE_MAPS_SETUP.md](./GOOGLE_MAPS_SETUP.md) for detailed instructions.
 
 Edit `.env` with your credentials:
 ```env
@@ -282,12 +286,55 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - GSAP for smooth animations
 - All open-source contributors
 
+## 📚 Documentation
+
+### Setup Guides
+- **[QUICKSTART.md](./QUICKSTART.md)** - Complete setup guide (5 minutes)
+- **[GOOGLE_MAPS_SETUP.md](./GOOGLE_MAPS_SETUP.md)** - Google Maps API setup instructions
+- **[env.example](./env.example)** - Environment variables template
+
+### Implementation Guides
+- **[group-safety-app-implementation.plan.md](./group-safety-app-implementation.plan.md)** - Full implementation plan (10 phases)
+- **[PHASE1_LOCATION_COMPLETE.md](./PHASE1_LOCATION_COMPLETE.md)** - Phase 1.1: Location tracking (✅ Complete)
+- **[LIFE360_ARCHITECTURE_COMPLETE.md](./LIFE360_ARCHITECTURE_COMPLETE.md)** - Life360-style architecture (✅ Complete)
+
+### Verification
+```bash
+# Verify your setup is complete
+node scripts/verify-setup.js
+```
+
 ## 📞 Support
 
 For support and questions:
 - Create an issue in the repository
 - Contact the development team
-- Check the documentation
+- Check the documentation above
+
+## 🗺️ Roadmap
+
+### ✅ Completed
+- Phase 1.1: Real-time location tracking with Google Maps
+- Life360-style map-first interface
+- Firebase Authentication & Firestore
+- Beautiful Material Design 3 UI
+
+### 🚧 In Progress
+- Phase 1.2: Geofencing system with alerts
+- Phase 1.3: Device monitoring (battery, online status)
+
+### 📋 Upcoming
+- Phase 2: Real-time chat and broadcast alerts
+- Phase 3: Photo-proof task verification
+- Phase 4: XP system and gamification
+- Phase 5: Multi-hub membership
+- Phase 6: Digital vault with encryption
+- Phase 7: Feature toggles per hub
+- Phase 8: Role progression system
+- Phase 9: PWA optimization & offline support
+- Phase 10: Comprehensive testing & accessibility
+
+See [group-safety-app-implementation.plan.md](./group-safety-app-implementation.plan.md) for details.
 
 ---
 

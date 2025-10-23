@@ -41,7 +41,7 @@ export const RegisterForm = () => {
 
             if (response.success) {
                 toast.success('Account created successfully!');
-                navigate('/dashboard');
+                navigate('/'); // Redirect to map (main screen)
             } else {
                 toast.error(response.error || 'Registration failed');
             }

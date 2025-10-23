@@ -53,8 +53,10 @@ function App() {
                     <AppLayout />
                   </ProtectedRoute>
                 }>
+                  {/* Map is the main screen (Life360 style) */}
+                  <Route index element={<LocationPage />} />
+                  <Route path="map" element={<LocationPage />} />
                   <Route path="dashboard" element={<DashboardPage />} />
-                  <Route path="location" element={<LocationPage />} />
                   <Route path="tasks" element={<TasksPage />} />
                   <Route path="messages" element={<MessagesPage />} />
                   <Route path="vault" element={<VaultPage />} />

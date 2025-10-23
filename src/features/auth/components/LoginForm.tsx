@@ -39,7 +39,7 @@ export const LoginForm = () => {
 
             if (response.success) {
                 toast.success('Welcome back!');
-                navigate('/dashboard');
+                navigate('/'); // Redirect to map (main screen)
             } else {
                 toast.error(response.error || 'Login failed');
             }
