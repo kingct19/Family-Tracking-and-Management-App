@@ -31,6 +31,7 @@ const LocationPage = () => {
     const { currentHub } = useHubStore();
     const { locations } = useHubLocations(currentHub?.id);
     const {
+        currentLocation,
         isSharing,
         isWatching,
         error,
@@ -124,43 +125,43 @@ const LocationPage = () => {
                     {/* Floating Action Buttons - Only show when map is loaded */}
                     {currentLocation && (
                         <div className="absolute top-24 right-4 flex flex-col gap-3 z-10">
-                        {/* Location Sharing Toggle */}
-                        <button
-                            onClick={toggleSharing}
-                            className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${isSharing
-                                ? 'bg-green-500 hover:bg-green-600 text-white shadow-green-200'
-                                : 'bg-white hover:bg-gray-50 text-gray-700'
-                                }`}
-                            title={isSharing ? 'Sharing Location' : 'Share Location'}
-                            aria-label={isSharing ? 'Stop sharing location' : 'Start sharing location'}
-                        >
-                            <FiMapPin size={24} />
-                        </button>
+                            {/* Location Sharing Toggle */}
+                            <button
+                                onClick={toggleSharing}
+                                className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${isSharing
+                                    ? 'bg-green-500 hover:bg-green-600 text-white shadow-green-200'
+                                    : 'bg-white hover:bg-gray-50 text-gray-700'
+                                    }`}
+                                title={isSharing ? 'Sharing Location' : 'Share Location'}
+                                aria-label={isSharing ? 'Stop sharing location' : 'Start sharing location'}
+                            >
+                                <FiMapPin size={24} />
+                            </button>
 
-                        {/* Center on My Location */}
-                        <button
-                            onClick={() => {
-                                // Auto-start tracking if not already started
-                                if (!isWatching) {
-                                    startTracking();
-                                }
-                            }}
-                            className="w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-purple-200"
-                            title="Center on My Location"
-                            aria-label="Center map on my current location"
-                        >
-                            <FiNavigation size={24} />
-                        </button>
+                            {/* Center on My Location */}
+                            <button
+                                onClick={() => {
+                                    // Auto-start tracking if not already started
+                                    if (!isWatching) {
+                                        startTracking();
+                                    }
+                                }}
+                                className="w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-purple-200"
+                                title="Center on My Location"
+                                aria-label="Center map on my current location"
+                            >
+                                <FiNavigation size={24} />
+                            </button>
 
-                        {/* Check-In Button */}
-                        <button
-                            className="w-14 h-14 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center text-gray-700 transition-all duration-200 hover:scale-110 active:scale-95"
-                            title="Check In"
-                            aria-label="Check in at current location"
-                        >
-                            <FiCheckCircle size={24} />
-                        </button>
-                    </div>
+                            {/* Check-In Button */}
+                            <button
+                                className="w-14 h-14 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center text-gray-700 transition-all duration-200 hover:scale-110 active:scale-95"
+                                title="Check In"
+                                aria-label="Check in at current location"
+                            >
+                                <FiCheckCircle size={24} />
+                            </button>
+                        </div>
                     )}
 
                     {/* Error Toast */}
@@ -177,59 +178,59 @@ const LocationPage = () => {
                         className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm shadow-2xl rounded-t-3xl transition-all duration-300 z-10 ${showMemberList ? 'translate-y-0' : 'translate-y-full'
                             }`}
                     >
-                    {/* Drag Handle */}
-                    <button
-                        onClick={() => setShowMemberList(!showMemberList)}
-                        className="w-full py-4 flex justify-center hover:bg-gray-50/50 transition-colors rounded-t-3xl"
-                        aria-label={showMemberList ? 'Hide member list' : 'Show member list'}
-                    >
-                        <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
-                    </button>
+                        {/* Drag Handle */}
+                        <button
+                            onClick={() => setShowMemberList(!showMemberList)}
+                            className="w-full py-4 flex justify-center hover:bg-gray-50/50 transition-colors rounded-t-3xl"
+                            aria-label={showMemberList ? 'Hide member list' : 'Show member list'}
+                        >
+                            <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+                        </button>
 
-                    {/* Header */}
-                    <div className="px-6 pb-4">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold text-gray-900">
-                                Family Members
-                            </h2>
-                            <div className="px-4 py-1.5 bg-purple-100 rounded-full">
-                                <span className="text-sm font-bold text-purple-700">
-                                    {locations.length} online
-                                </span>
+                        {/* Header */}
+                        <div className="px-6 pb-4">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-2xl font-bold text-gray-900">
+                                    Family Members
+                                </h2>
+                                <div className="px-4 py-1.5 bg-purple-100 rounded-full">
+                                    <span className="text-sm font-bold text-purple-700">
+                                        {locations.length} online
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Member Cards - Horizontal Scroll */}
-                    <div className="px-6 pb-safe">
-                        {locations.length > 0 ? (
-                            <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar">
-                                {locations
-                                    .filter((location) => location && location.userId) // Filter out invalid entries
-                                    .map((location) => (
-                                        <div key={location.userId} className="flex-shrink-0 w-80">
-                                            <MemberLocationCard
-                                                location={location}
-                                                userName={`User ${location.userId.slice(0, 8)}`}
-                                                batteryLevel={85} // TODO: Get from device monitoring
-                                                isOnline={true}
-                                            />
-                                        </div>
-                                    ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12 pb-safe">
-                                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <FiUsers size={36} className="text-gray-400" />
+                        {/* Member Cards - Horizontal Scroll */}
+                        <div className="px-6 pb-safe">
+                            {locations.length > 0 ? (
+                                <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar">
+                                    {locations
+                                        .filter((location) => location && location.userId) // Filter out invalid entries
+                                        .map((location) => (
+                                            <div key={location.userId} className="flex-shrink-0 w-80">
+                                                <MemberLocationCard
+                                                    location={location}
+                                                    userName={`User ${location.userId.slice(0, 8)}`}
+                                                    batteryLevel={85} // TODO: Get from device monitoring
+                                                    isOnline={true}
+                                                />
+                                            </div>
+                                        ))}
                                 </div>
-                                <p className="text-gray-700 font-semibold text-lg">No members sharing location</p>
-                                <p className="text-sm text-gray-500 mt-2">
-                                    Invite family members to start tracking
-                                </p>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="text-center py-12 pb-safe">
+                                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <FiUsers size={36} className="text-gray-400" />
+                                    </div>
+                                    <p className="text-gray-700 font-semibold text-lg">No members sharing location</p>
+                                    <p className="text-sm text-gray-500 mt-2">
+                                        Invite family members to start tracking
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
                 )}
             </div>
 
