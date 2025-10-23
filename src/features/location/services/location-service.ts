@@ -29,6 +29,7 @@ export type LocationErrorCallback = (error: LocationError) => void;
 class LocationService {
     private watchId: number | null = null;
     private isWatching: boolean = false;
+    private lastKnownPosition: LocationCoordinates | null = null;
 
     /**
      * Check if geolocation is supported by the browser
@@ -103,7 +104,9 @@ class LocationService {
 
         this.watchId = navigator.geolocation.watchPosition(
             (position) => {
-                onLocation(this.mapPosition(position));
+                const mappedPosition = this.mapPosition(position);
+                this.lastKnownPosition = mappedPosition; // Store last known position
+                onLocation(mappedPosition);
             },
             (error) => {
                 onError?.(this.mapError(error));
@@ -134,6 +137,13 @@ class LocationService {
      */
     getWatchingStatus(): boolean {
         return this.isWatching;
+    }
+
+    /**
+     * Get the last known position (if available)
+     */
+    getLastKnownPosition(): LocationCoordinates | null {
+        return this.lastKnownPosition;
     }
 
     /**

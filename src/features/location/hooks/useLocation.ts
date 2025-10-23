@@ -41,15 +41,14 @@ export const useUserLocation = () => {
             console.log('🔄 Syncing with existing location service');
             setIsWatching(true);
             
-            // Try to get current position immediately
-            locationService.getCurrentPosition()
-                .then((position) => {
-                    console.log('📍 Restored location from service:', position);
-                    setCurrentLocation(position);
-                })
-                .catch((err) => {
-                    console.warn('Could not restore location:', err);
-                });
+            // Get last known position from service (instant, no timeout!)
+            const lastPosition = locationService.getLastKnownPosition();
+            if (lastPosition) {
+                console.log('📍 Restored location from service:', lastPosition);
+                setCurrentLocation(lastPosition);
+            } else {
+                console.log('⏳ Waiting for first location update...');
+            }
         }
     }, []);
 
@@ -88,7 +87,7 @@ export const useUserLocation = () => {
         if (!hasPermission) {
             setError('Location permission denied');
             toast.error('Please enable location permissions in your browser');
-            
+
             // Store permission denial
             if (user) {
                 await updateLocationPermission(user.id, false);
@@ -139,10 +138,10 @@ export const useUserLocation = () => {
 
         // Update in Firestore location collection
         const result = await updateLocationSharing(currentHub.id, user.id, newValue);
-        
+
         // Also update in user preferences
         await updateLocationSharingPreference(user.id, newValue);
-        
+
         if (result.success) {
             toast.success(newValue ? 'Location sharing enabled' : 'Location sharing disabled');
         } else {
