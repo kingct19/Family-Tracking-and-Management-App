@@ -100,12 +100,14 @@ export const MapView = ({
             .then((google) => {
                 if (!mapRef.current) return;
 
-                // Default center (will be updated when user location is available)
-                const defaultCenter = { lat: 40.7128, lng: -74.0060 }; // New York
+                // Use current location if available, otherwise default to New York
+                const defaultCenter = currentLocation 
+                    ? { lat: currentLocation.latitude, lng: currentLocation.longitude }
+                    : { lat: 40.7128, lng: -74.0060 }; // New York fallback
 
                 googleMapRef.current = new google.maps.Map(mapRef.current, {
                     center: defaultCenter,
-                    zoom,
+                    zoom: currentLocation ? 15 : zoom, // Zoom in if we have user location
                     mapTypeControl: showControls,
                     streetViewControl: showControls,
                     fullscreenControl: showControls,
@@ -120,6 +122,7 @@ export const MapView = ({
                 });
 
                 setIsMapLoaded(true);
+                console.log('Map initialized at:', defaultCenter);
             })
             .catch((error) => {
                 console.error('Error loading Google Maps:', error);
@@ -129,37 +132,19 @@ export const MapView = ({
 
     // Center map on user's current location when it becomes available
     useEffect(() => {
-        if (googleMapRef.current && currentLocation) {
+        if (googleMapRef.current && currentLocation && isMapLoaded) {
+            console.log('Centering map on user location:', currentLocation);
             const center = new google.maps.LatLng(
                 currentLocation.latitude,
                 currentLocation.longitude
             );
             googleMapRef.current.setCenter(center);
-            googleMapRef.current.setZoom(14); // Zoom in a bit closer when user location is found
+            googleMapRef.current.setZoom(15); // Zoom in closer when user location is found
         }
-    }, [currentLocation]);
+    }, [currentLocation, isMapLoaded]);
 
-    // Request user location on mount to center map (Apple-style: silent fallback)
-    useEffect(() => {
-        if (isMapLoaded && !currentLocation) {
-            // Try to get current position to center map, but fail gracefully
-            locationService.getCurrentPosition()
-                .then((position) => {
-                    const center = new google.maps.LatLng(
-                        position.latitude,
-                        position.longitude
-                    );
-                    if (googleMapRef.current) {
-                        googleMapRef.current.setCenter(center);
-                        googleMapRef.current.setZoom(14);
-                    }
-                })
-                .catch(() => {
-                    // Silent fallback - stay at default location
-                    // User can manually enable location later via the FAB buttons
-                });
-        }
-    }, [isMapLoaded, currentLocation]);
+    // No need for manual location request - LocationPage auto-starts tracking
+    // and the currentLocation effect above will handle centering
 
     // Update markers when locations change
     useEffect(() => {
