@@ -17,6 +17,19 @@ import type { UserLocation } from '../api/location-api';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
+// Create singleton loader to prevent multiple initialization errors
+let mapLoader: Loader | null = null;
+const getMapLoader = () => {
+    if (!mapLoader) {
+        mapLoader = new Loader({
+            apiKey: GOOGLE_MAPS_API_KEY,
+            version: 'weekly',
+            libraries: ['places', 'geometry', 'marker'],
+        });
+    }
+    return mapLoader;
+};
+
 interface MapViewProps {
     height?: string;
     zoom?: number;
@@ -79,11 +92,8 @@ export const MapView = ({
             return;
         }
 
-        const loader = new Loader({
-            apiKey: GOOGLE_MAPS_API_KEY,
-            version: 'weekly',
-            libraries: ['places', 'geometry', 'marker'],
-        });
+        // Use singleton loader to prevent re-initialization errors
+        const loader = getMapLoader();
 
         loader
             .load()
