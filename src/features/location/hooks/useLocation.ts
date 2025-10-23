@@ -40,7 +40,7 @@ export const useUserLocation = () => {
         if (isAlreadyWatching) {
             console.log('🔄 Syncing with existing location service');
             setIsWatching(true);
-            
+
             // Get last known position from service (instant, no timeout!)
             const lastPosition = locationService.getLastKnownPosition();
             if (lastPosition) {

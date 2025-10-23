@@ -40,6 +40,22 @@ const LocationPage = () => {
         toggleSharing,
     } = useUserLocation();
 
+    // Include current user in locations list if they're sharing
+    const allLocations = user && currentLocation && isSharing
+        ? [
+              ...locations,
+              {
+                  userId: user.id,
+                  latitude: currentLocation.latitude,
+                  longitude: currentLocation.longitude,
+                  accuracy: currentLocation.accuracy,
+                  timestamp: currentLocation.timestamp,
+                  isSharing: true,
+                  lastUpdated: new Date(),
+              },
+          ]
+        : locations;
+
     const [showMemberList, setShowMemberList] = useState(true);
     const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
 
@@ -201,7 +217,7 @@ const LocationPage = () => {
                                 </h2>
                                 <div className="px-4 py-1.5 bg-purple-100 rounded-full">
                                     <span className="text-sm font-bold text-purple-700">
-                                        {locations.length} online
+                                        {allLocations.length} online
                                     </span>
                                 </div>
                             </div>
@@ -209,15 +225,19 @@ const LocationPage = () => {
 
                         {/* Member Cards - Horizontal Scroll */}
                         <div className="px-6 pb-safe">
-                            {locations.length > 0 ? (
+                            {allLocations.length > 0 ? (
                                 <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar">
-                                    {locations
+                                    {allLocations
                                         .filter((location) => location && location.userId) // Filter out invalid entries
                                         .map((location) => (
                                             <div key={location.userId} className="flex-shrink-0 w-80">
                                                 <MemberLocationCard
                                                     location={location}
-                                                    userName={`User ${location.userId.slice(0, 8)}`}
+                                                    userName={
+                                                        location.userId === user?.id
+                                                            ? `${user?.email?.split('@')[0] || 'You'} (You)`
+                                                            : `User ${location.userId.slice(0, 8)}`
+                                                    }
                                                     batteryLevel={85} // TODO: Get from device monitoring
                                                     isOnline={true}
                                                 />
