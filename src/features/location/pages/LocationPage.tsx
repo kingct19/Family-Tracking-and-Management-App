@@ -44,9 +44,10 @@ const LocationPage = () => {
     // Auto-start tracking on mount to get user's location
     useEffect(() => {
         // Automatically start tracking to center map on user
-        if (!isWatching) {
+        if (!isWatching && user && currentHub) {
             startTracking();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Run once on mount
 
     return (

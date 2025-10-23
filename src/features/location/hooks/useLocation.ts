@@ -14,6 +14,11 @@ import {
     updateLocationSharing,
     type UserLocation,
 } from '../api/location-api';
+import {
+    getUserPreferences,
+    updateLocationPermission,
+    updateLocationSharingPreference,
+} from '@/lib/api/user-preferences-api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useHubStore } from '@/lib/store/hub-store';
 import toast from 'react-hot-toast';
@@ -52,12 +57,29 @@ export const useUserLocation = () => {
             return;
         }
 
+        // Check if already watching
+        if (locationService.getWatchingStatus()) {
+            console.log('Location tracking already active');
+            setIsWatching(true);
+            return;
+        }
+
         // Request permission
         const hasPermission = await locationService.requestPermission();
         if (!hasPermission) {
             setError('Location permission denied');
-            toast.error('Please enable location permissions');
+            toast.error('Please enable location permissions in your browser');
+            
+            // Store permission denial
+            if (user) {
+                await updateLocationPermission(user.id, false);
+            }
             return;
+        }
+
+        // Store permission grant
+        if (user) {
+            await updateLocationPermission(user.id, true);
         }
 
         // Start watching position
@@ -93,8 +115,12 @@ export const useUserLocation = () => {
         const newValue = !isSharing;
         setIsSharing(newValue);
 
-        // Update in Firestore
+        // Update in Firestore location collection
         const result = await updateLocationSharing(currentHub.id, user.id, newValue);
+        
+        // Also update in user preferences
+        await updateLocationSharingPreference(user.id, newValue);
+        
         if (result.success) {
             toast.success(newValue ? 'Location sharing enabled' : 'Location sharing disabled');
         } else {
