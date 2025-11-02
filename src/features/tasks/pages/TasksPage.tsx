@@ -3,9 +3,10 @@ import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { TaskList, TaskFilter, TaskSort } from '../components/TaskList';
-import { useHubTasks, useCompleteTask, useDeleteTask } from '../hooks/useTasks';
+import { TaskModal, type CreateTaskData } from '../components/TaskModal';
+import { useHubTasks, useCompleteTask, useDeleteTask, useCreateTask, useUpdateTask } from '../hooks/useTasks';
 import { useHasRole } from '@/features/auth/hooks/useAuth';
-import { FiPlus } from 'react-icons/fi';
+import { FiPlus, FiCheckSquare } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import type { TaskStatus, Task } from '@/types';
 
@@ -13,10 +14,14 @@ const TasksPage = () => {
     const { data: tasks, isLoading, error } = useHubTasks();
     const completeTaskMutation = useCompleteTask();
     const deleteTaskMutation = useDeleteTask();
+    const createTaskMutation = useCreateTask();
+    const updateTaskMutation = useUpdateTask();
     const isAdmin = useHasRole('admin');
 
     const [filter, setFilter] = useState<TaskStatus | 'all'>('all');
     const [sortBy, setSortBy] = useState<'deadline' | 'createdAt' | 'weight'>('deadline');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingTask, setEditingTask] = useState<Task | null>(null);
 
     // Calculate filter counts
     const filterCounts = useMemo(() => {
@@ -49,19 +54,57 @@ const TasksPage = () => {
         }
     };
 
-    const handleEdit = (_task: Task) => {
-        // TODO: Open edit modal
-        toast('Edit functionality coming soon');
+    const handleEdit = (task: Task) => {
+        setEditingTask(task);
+        setIsModalOpen(true);
     };
 
-    const handleViewDetails = (_task: Task) => {
-        // TODO: Open task details modal
-        toast('Task details coming soon');
+    const handleViewDetails = (task: Task) => {
+        // For now, just edit the task
+        handleEdit(task);
     };
 
     const handleCreateTask = () => {
-        // TODO: Open create task modal
-        toast('Create task functionality coming soon');
+        setEditingTask(null);
+        setIsModalOpen(true);
+    };
+
+    const handleSaveTask = async (data: CreateTaskData) => {
+        try {
+            if (editingTask) {
+                // Update existing task
+                await updateTaskMutation.mutateAsync({
+                    taskId: editingTask.id,
+                    updates: {
+                        title: data.title,
+                        description: data.description,
+                        deadline: data.deadline ? new Date(data.deadline) : undefined,
+                        weight: data.weight,
+                        status: data.status,
+                    },
+                });
+                toast.success('Task updated successfully!');
+            } else {
+                // Create new task
+                await createTaskMutation.mutateAsync({
+                    title: data.title,
+                    description: data.description,
+                    deadline: data.deadline ? new Date(data.deadline) : undefined,
+                    weight: data.weight,
+                });
+                toast.success('Task created successfully!');
+            }
+            setIsModalOpen(false);
+            setEditingTask(null);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to save task');
+            throw error;
+        }
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setEditingTask(null);
     };
 
     if (isLoading) {
@@ -123,17 +166,45 @@ const TasksPage = () => {
                 </div>
 
                 {/* Task List */}
-                <TaskList
-                    tasks={tasks || []}
-                    filter={filter}
-                    sortBy={sortBy}
-                    onComplete={handleComplete}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onViewDetails={handleViewDetails}
-                    isAdmin={isAdmin}
-                />
+                {tasks && tasks.length > 0 ? (
+                    <TaskList
+                        tasks={tasks}
+                        filter={filter}
+                        sortBy={sortBy}
+                        onComplete={handleComplete}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onViewDetails={handleViewDetails}
+                        isAdmin={isAdmin}
+                    />
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-16 px-4">
+                        <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center mb-6">
+                            <FiCheckSquare size={48} className="text-purple-600" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">No tasks yet</h3>
+                        <p className="text-gray-600 text-center mb-6 max-w-md">
+                            {isAdmin
+                                ? 'Create your first task to get started with task management'
+                                : 'No tasks have been assigned yet. Check back later!'}
+                        </p>
+                        {isAdmin && (
+                            <Button variant="filled" onClick={handleCreateTask} startIcon={<FiPlus size={20} />}>
+                                Create Your First Task
+                            </Button>
+                        )}
+                    </div>
+                )}
             </div>
+
+            {/* Task Modal */}
+            <TaskModal
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+                onSave={handleSaveTask}
+                task={editingTask}
+                isLoading={createTaskMutation.isPending || updateTaskMutation.isPending}
+            />
         </>
     );
 };
