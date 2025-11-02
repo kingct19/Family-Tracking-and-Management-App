@@ -52,7 +52,15 @@ export async function updateDeviceStatus(
 
         return { success: true };
     } catch (error) {
-        console.error('Update device status error:', error);
+        // Silently handle permission errors (rules may not be deployed yet)
+        // Device status monitoring works locally even if Firestore write fails
+        const isPermissionError = error instanceof Error && 
+            (error.message.includes('permission') || error.message.includes('Permission'));
+        
+        if (!isPermissionError && process.env.NODE_ENV === 'development') {
+            console.warn('Update device status error:', error);
+        }
+        
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Failed to update device status',
@@ -85,7 +93,14 @@ export async function getDeviceStatus(
             } as DeviceStatusDocument,
         };
     } catch (error) {
-        console.error('Get device status error:', error);
+        // Silently handle permission errors
+        const isPermissionError = error instanceof Error && 
+            (error.message.includes('permission') || error.message.includes('Permission'));
+        
+        if (!isPermissionError && process.env.NODE_ENV === 'development') {
+            console.warn('Get device status error:', error);
+        }
+        
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Failed to get device status',
@@ -123,7 +138,14 @@ export function subscribeToHubDeviceStatus(
                 onUpdate(statusMap);
             },
             (error) => {
-                console.error('Device status subscription error:', error);
+                // Silently handle permission errors
+                const isPermissionError = error instanceof Error && 
+                    (error.message.includes('permission') || error.message.includes('Permission'));
+                
+                if (!isPermissionError && process.env.NODE_ENV === 'development') {
+                    console.warn('Device status subscription error:', error);
+                }
+                
                 if (onError) {
                     onError(error);
                 }
@@ -132,7 +154,14 @@ export function subscribeToHubDeviceStatus(
 
         return unsubscribe;
     } catch (error) {
-        console.error('Failed to subscribe to device status:', error);
+        // Silently handle permission errors
+        const isPermissionError = error instanceof Error && 
+            (error.message.includes('permission') || error.message.includes('Permission'));
+        
+        if (!isPermissionError && process.env.NODE_ENV === 'development') {
+            console.warn('Failed to subscribe to device status:', error);
+        }
+        
         if (onError) {
             onError(error instanceof Error ? error : new Error('Unknown error'));
         }
