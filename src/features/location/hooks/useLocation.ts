@@ -39,16 +39,12 @@ export const useUserLocation = () => {
     useEffect(() => {
         const isAlreadyWatching = locationService.getWatchingStatus();
         if (isAlreadyWatching) {
-            console.log('🔄 Syncing with existing location service');
             setIsWatching(true);
 
             // Get last known position from service (instant, no timeout!)
             const lastPosition = locationService.getLastKnownPosition();
             if (lastPosition) {
-                console.log('📍 Restored location from service:', lastPosition);
                 setCurrentLocation(lastPosition);
-            } else {
-                console.log('⏳ Waiting for first location update...');
             }
         }
 
@@ -87,7 +83,6 @@ export const useUserLocation = () => {
 
         // Check if already watching
         if (locationService.getWatchingStatus()) {
-            console.log('Location tracking already active');
             setIsWatching(true);
             return;
         }
@@ -113,7 +108,6 @@ export const useUserLocation = () => {
         // Start watching position
         locationService.startWatching(
             (location) => {
-                console.log('📍 Location update received:', location);
                 setCurrentLocation(location);
                 setError(null);
 
@@ -123,14 +117,12 @@ export const useUserLocation = () => {
                 }
             },
             (error) => {
-                console.error('❌ Location error:', error);
                 setError(error.message);
                 toast.error(error.message);
             }
         );
 
         setIsWatching(true);
-        console.log('✅ Location tracking started');
     }, [isSharing, user, currentHub, updateMutation]);
 
     // Stop tracking location

@@ -111,7 +111,6 @@ export const MapView = ({
                 });
 
                 setIsMapLoaded(true);
-                console.log('Map initialized at:', defaultCenter);
             })
             .catch((error) => {
                 console.error('Error loading Google Maps:', error);
@@ -122,7 +121,6 @@ export const MapView = ({
     // Center map on user's current location when it becomes available
     useEffect(() => {
         if (googleMapRef.current && currentLocation && isMapLoaded) {
-            console.log('Centering map on user location:', currentLocation);
             const center = new google.maps.LatLng(
                 currentLocation.latitude,
                 currentLocation.longitude
@@ -139,7 +137,6 @@ export const MapView = ({
     useEffect(() => {
         if (!currentLocation || !geofences.length || !currentHub?.id) return;
 
-        console.log('🔍 Checking geofence state for current location');
         const results = geofenceDetectionService.checkGeofenceState(
             'current-user', // Use a fixed ID for current user
             currentLocation,
@@ -147,8 +144,6 @@ export const MapView = ({
         );
 
         if (results.length > 0) {
-            console.log('🚨 Geofence events detected:', results);
-            
             // Create alerts for each geofence event
             results.forEach(event => {
                 const geofence = geofences.find(g => g.id === event.geofenceId);
@@ -255,7 +250,6 @@ export const MapView = ({
 
                 // Add click listener
                 circle.addListener('click', () => {
-                    console.log('Clicked geofence:', geofence.name);
                     // TODO: Show geofence details or edit modal
                 });
 

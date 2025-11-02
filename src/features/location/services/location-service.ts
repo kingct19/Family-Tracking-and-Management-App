@@ -98,7 +98,7 @@ class LocationService {
         }
 
         if (this.isWatching) {
-            console.warn('Already watching location');
+            // Already watching - silently return (expected in React Strict Mode)
             return;
         }
 
