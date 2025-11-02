@@ -9,17 +9,19 @@ const AppLayout = () => {
     const { isSidebarOpen } = useUIStore();
     const location = useLocation();
 
-    // Check if we're on the map page (Life360 style - full screen)
+    // Check if we're on full-screen pages (Life360 style)
     const isMapPage = location.pathname === '/' || location.pathname === '/map';
+    const isMessagesPage = location.pathname === '/messages';
+    const isFullScreenPage = isMapPage || isMessagesPage;
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
-            {/* Top Bar - Desktop (hidden on map page) */}
-            {!isMapPage && <TopBar />}
+            {/* Top Bar - Desktop (hidden on full-screen pages) */}
+            {!isFullScreenPage && <TopBar />}
 
             <div className="flex flex-1 overflow-hidden">
-                {/* Sidebar - Desktop (hidden on map page) */}
-                {!isMapPage && (
+                {/* Sidebar - Desktop (hidden on full-screen pages) */}
+                {!isFullScreenPage && (
                     <aside
                         className={cn(
                             'hidden md:block w-64 bg-surface border-r border-outline-variant transition-transform duration-normal',
@@ -37,11 +39,11 @@ const AppLayout = () => {
                 <main
                     className={cn(
                         'flex-1 overflow-y-auto',
-                        isMapPage ? '' : 'pb-16 md:pb-0'
+                        isFullScreenPage ? '' : 'pb-16 md:pb-0'
                     )}
                 >
-                    {isMapPage ? (
-                        // Full-screen for map (no padding, no container)
+                    {isFullScreenPage ? (
+                        // Full-screen for map/messages (no padding, no container)
                         <Outlet />
                     ) : (
                         // Normal layout for other pages
