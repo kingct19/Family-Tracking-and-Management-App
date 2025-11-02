@@ -263,7 +263,8 @@ export const useHubDeviceStatus = (hubId: string | undefined) => {
                 setDeviceStatuses(statuses);
             },
             (error) => {
-                console.error('Device status subscription error:', error);
+                // Silently handle errors (already handled in API)
+                // Device status monitoring works locally even if Firestore fails
             }
         );
 

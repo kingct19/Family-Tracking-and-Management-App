@@ -13,7 +13,6 @@ import {
     getDocs,
     getDoc,
     query,
-    where,
     orderBy,
     serverTimestamp,
     Timestamp,
@@ -113,7 +112,14 @@ export const createGeofence = async (
 
         return { success: true, data: geofence };
     } catch (error) {
-        console.error('Error creating geofence:', error);
+        // Silently handle permission errors
+        const isPermissionError = error instanceof Error && 
+            (error.message.includes('permission') || error.message.includes('Permission'));
+        
+        if (!isPermissionError && process.env.NODE_ENV === 'development') {
+            console.warn('Error creating geofence:', error);
+        }
+        
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Failed to create geofence',
@@ -128,21 +134,29 @@ export const getGeofences = async (
     hubId: string
 ): Promise<ApiResponse<GeofenceZone[]>> => {
     try {
-        const q = query(
-            getGeofencesRef(hubId),
-            where('isActive', '==', true),
-            orderBy('createdAt', 'desc')
-        );
+        // Simplified query - filter and sort in memory to avoid index requirement
+        const q = query(getGeofencesRef(hubId));
 
         const snapshot = await getDocs(q);
-        const geofences = snapshot.docs.map(convertGeofenceZone);
+        const geofences = snapshot.docs
+            .map(convertGeofenceZone)
+            .filter((geofence) => geofence.isActive) // Filter active geofences
+            .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // Sort by createdAt desc
 
         return { success: true, data: geofences };
     } catch (error) {
-        console.error('Error getting geofences:', error);
+        // Silently handle permission errors
+        const isPermissionError = error instanceof Error && 
+            (error.message.includes('permission') || error.message.includes('Permission'));
+        
+        if (!isPermissionError && process.env.NODE_ENV === 'development') {
+            console.warn('Error getting geofences:', error);
+        }
+        
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Failed to get geofences',
+            data: [],
         };
     }
 };

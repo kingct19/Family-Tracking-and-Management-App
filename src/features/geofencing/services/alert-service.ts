@@ -29,7 +29,9 @@ class AlertService {
 
     constructor() {
         this.initializeAudioContext();
-        this.requestNotificationPermission();
+        // Check existing permission, but don't request automatically
+        // (must be requested from user gesture)
+        this.checkNotificationPermission();
     }
 
     // Initialize Web Audio API for sound alerts
@@ -41,15 +43,38 @@ class AlertService {
         }
     }
 
-    // Request notification permission
-    private async requestNotificationPermission() {
+    // Check existing notification permission (no prompt)
+    private checkNotificationPermission() {
         if ('Notification' in window) {
-            try {
-                const permission = await Notification.requestPermission();
-                this.isNotificationPermissionGranted = permission === 'granted';
-            } catch (error) {
-                console.warn('Failed to request notification permission:', error);
-            }
+            this.isNotificationPermissionGranted = Notification.permission === 'granted';
+        }
+    }
+
+    // Request notification permission (must be called from user gesture)
+    async requestNotificationPermission(): Promise<boolean> {
+        if (!('Notification' in window)) {
+            return false;
+        }
+
+        // If already granted, return true
+        if (Notification.permission === 'granted') {
+            this.isNotificationPermissionGranted = true;
+            return true;
+        }
+
+        // If denied, return false
+        if (Notification.permission === 'denied') {
+            return false;
+        }
+
+        // Request permission (must be called from user gesture)
+        try {
+            const permission = await Notification.requestPermission();
+            this.isNotificationPermissionGranted = permission === 'granted';
+            return this.isNotificationPermissionGranted;
+        } catch (error) {
+            console.warn('Failed to request notification permission:', error);
+            return false;
         }
     }
 
