@@ -31,6 +31,7 @@ import {
     FiShield,
     FiX,
     FiMenu,
+    FiUsers,
 } from 'react-icons/fi';
 import type { GeofenceZone } from '../../geofencing/types';
 

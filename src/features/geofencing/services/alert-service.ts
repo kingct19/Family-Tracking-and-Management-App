@@ -31,7 +31,14 @@ class AlertService {
         this.initializeAudioContext();
         // Check existing permission, but don't request automatically
         // (must be requested from user gesture)
-        this.checkNotificationPermission();
+        try {
+            this.checkNotificationPermission();
+        } catch (error) {
+            // Silently fail - permission check shouldn't throw
+            if (process.env.NODE_ENV === 'development') {
+                console.warn('Failed to check notification permission:', error);
+            }
+        }
     }
 
     // Initialize Web Audio API for sound alerts
