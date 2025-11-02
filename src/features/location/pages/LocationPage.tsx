@@ -16,6 +16,7 @@ import { MemberLocationCard } from '../components/MemberLocationCard';
 import { GeofenceManager } from '../../geofencing/components/GeofenceManager';
 import { GeofenceMapEditor } from '../../geofencing/components/GeofenceMapEditor';
 import { GeofenceAlertToast } from '../../geofencing/components/GeofenceAlertToast';
+import { NavigationPanel } from '../components/NavigationPanel';
 import { useUserLocation, useHubLocations, useHubDeviceStatus } from '../hooks/useLocation';
 import { useDeviceStatus } from '../hooks/useDeviceStatus';
 import { useHubStore } from '@/lib/store/hub-store';
@@ -29,6 +30,7 @@ import {
     FiUsers,
     FiShield,
     FiX,
+    FiMenu,
 } from 'react-icons/fi';
 import type { GeofenceZone } from '../../geofencing/types';
 
@@ -70,6 +72,7 @@ const LocationPage = () => {
 
     const [showMemberList, setShowMemberList] = useState(true);
     const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
+    const [showNavigationPanel, setShowNavigationPanel] = useState(false);
     
     // Geofence management state
     const [showGeofenceManager, setShowGeofenceManager] = useState(false);
@@ -103,27 +106,45 @@ const LocationPage = () => {
             {/* Full screen container */}
             <div className="fixed inset-0 flex flex-col bg-gray-50">
                 {/* Top Header Bar */}
-                <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-white via-white/95 to-transparent backdrop-blur-md shadow-sm">
+                <div className="absolute top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-200">
                     <div className="flex items-center justify-between p-4 safe-top">
-                        {/* Hub Selector */}
-                        <button
-                            className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
-                            aria-label="Select hub"
-                        >
-                            <FiUsers size={18} className="text-purple-600" />
-                            <span className="font-semibold text-gray-900 text-sm">
-                                {currentHub?.name || 'Select Hub'}
-                            </span>
-                            <FiChevronDown size={16} className="text-gray-500" />
-                        </button>
+                        {/* Left: Menu & Hub Selector */}
+                        <div className="flex items-center gap-3">
+                            {/* Hamburger Menu Button */}
+                            <button
+                                onClick={() => setShowNavigationPanel(true)}
+                                className="w-10 h-10 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center"
+                                aria-label="Open menu"
+                            >
+                                <FiMenu size={20} className="text-gray-700" />
+                            </button>
 
-                        {/* Settings Button */}
-                        <button
-                            className="w-11 h-11 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center"
-                            aria-label="Settings"
-                        >
-                            <FiSettings size={20} className="text-gray-700" />
-                        </button>
+                            {/* Hub Selector */}
+                            <button
+                                className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
+                                aria-label="Select hub"
+                            >
+                                <FiUsers size={18} className="text-purple-600" />
+                                <span className="font-semibold text-gray-900 text-sm hidden sm:inline">
+                                    {currentHub?.name || 'Select Hub'}
+                                </span>
+                                <span className="font-semibold text-gray-900 text-sm sm:hidden">
+                                    Hub
+                                </span>
+                                <FiChevronDown size={16} className="text-gray-500" />
+                            </button>
+                        </div>
+
+                        {/* Right: Action Buttons */}
+                        <div className="flex items-center gap-2">
+                            {/* Settings Button */}
+                            <button
+                                className="w-10 h-10 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center"
+                                aria-label="Settings"
+                            >
+                                <FiSettings size={20} className="text-gray-700" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -165,51 +186,70 @@ const LocationPage = () => {
                     {currentLocation && (
                         <div className="absolute top-24 right-4 flex flex-col gap-3 z-10">
                             {/* Location Sharing Toggle */}
-                            <button
-                                onClick={toggleSharing}
-                                className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${isSharing
-                                    ? 'bg-green-500 hover:bg-green-600 text-white shadow-green-200'
-                                    : 'bg-white hover:bg-gray-50 text-gray-700'
-                                    }`}
-                                title={isSharing ? 'Sharing Location' : 'Share Location'}
-                                aria-label={isSharing ? 'Stop sharing location' : 'Start sharing location'}
-                            >
-                                <FiMapPin size={24} />
-                            </button>
+                            <div className="group relative">
+                                <button
+                                    onClick={toggleSharing}
+                                    className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${isSharing
+                                        ? 'bg-green-500 hover:bg-green-600 text-white shadow-green-200'
+                                        : 'bg-white hover:bg-gray-50 text-gray-700'
+                                        }`}
+                                    aria-label={isSharing ? 'Stop sharing location' : 'Start sharing location'}
+                                >
+                                    <FiMapPin size={24} />
+                                </button>
+                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    {isSharing ? 'Sharing Location' : 'Share Location'}
+                                    <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
+                                </div>
+                            </div>
 
                             {/* Center on My Location */}
-                            <button
-                                onClick={() => {
-                                    // Auto-start tracking if not already started
-                                    if (!isWatching) {
-                                        startTracking();
-                                    }
-                                }}
-                                className="w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-purple-200"
-                                title="Center on My Location"
-                                aria-label="Center map on my current location"
-                            >
-                                <FiNavigation size={24} />
-                            </button>
+                            <div className="group relative">
+                                <button
+                                    onClick={() => {
+                                        if (!isWatching) {
+                                            startTracking();
+                                        }
+                                    }}
+                                    className="w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-purple-200"
+                                    aria-label="Center map on my current location"
+                                >
+                                    <FiNavigation size={24} />
+                                </button>
+                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    Center on Me
+                                    <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
+                                </div>
+                            </div>
 
                             {/* Geofence Management Button */}
-                            <button
-                                onClick={() => setShowGeofenceManager(true)}
-                                className="w-14 h-14 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center text-gray-700 transition-all duration-200 hover:scale-110 active:scale-95"
-                                title="Manage Geofences"
-                                aria-label="Open geofence management"
-                            >
-                                <FiShield size={24} />
-                            </button>
+                            <div className="group relative">
+                                <button
+                                    onClick={() => setShowGeofenceManager(true)}
+                                    className="w-14 h-14 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center text-gray-700 transition-all duration-200 hover:scale-110 active:scale-95"
+                                    aria-label="Open geofence management"
+                                >
+                                    <FiShield size={24} />
+                                </button>
+                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    Geofences
+                                    <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
+                                </div>
+                            </div>
 
                             {/* Check-In Button */}
-                            <button
-                                className="w-14 h-14 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center text-gray-700 transition-all duration-200 hover:scale-110 active:scale-95"
-                                title="Check In"
-                                aria-label="Check in at current location"
-                            >
-                                <FiCheckCircle size={24} />
-                            </button>
+                            <div className="group relative">
+                                <button
+                                    className="w-14 h-14 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center text-gray-700 transition-all duration-200 hover:scale-110 active:scale-95"
+                                    aria-label="Check in at current location"
+                                >
+                                    <FiCheckCircle size={24} />
+                                </button>
+                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    Check In
+                                    <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -224,8 +264,9 @@ const LocationPage = () => {
                 {/* Bottom Member List Panel - Only show when map loaded */}
                 {currentLocation && (
                     <div
-                        className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm shadow-2xl rounded-t-3xl transition-all duration-300 z-10 ${showMemberList ? 'translate-y-0' : 'translate-y-full'
-                            }`}
+                        className={`absolute left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm shadow-2xl rounded-t-3xl transition-all duration-300 z-10 bottom-16 md:bottom-0 ${
+                            showMemberList ? 'translate-y-0' : 'translate-y-full'
+                        }`}
                     >
                         {/* Drag Handle */}
                         <button
@@ -348,6 +389,12 @@ const LocationPage = () => {
 
             {/* Geofence Alert Toast */}
             <GeofenceAlertToast />
+
+            {/* Navigation Panel */}
+            <NavigationPanel
+                isOpen={showNavigationPanel}
+                onClose={() => setShowNavigationPanel(false)}
+            />
 
             {/* Custom Styles */}
             <style>{`
