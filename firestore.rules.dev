@@ -90,6 +90,12 @@ service cloud.firestore {
         }
       }
       
+      // Device status subcollection
+      match /deviceStatus/{deviceUserId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated();
+      }
+      
       // Geofences subcollection
       match /geofences/{geofenceId} {
         allow read, write: if isAuthenticated();

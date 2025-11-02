@@ -16,7 +16,8 @@ import { MemberLocationCard } from '../components/MemberLocationCard';
 import { GeofenceManager } from '../../geofencing/components/GeofenceManager';
 import { GeofenceMapEditor } from '../../geofencing/components/GeofenceMapEditor';
 import { GeofenceAlertToast } from '../../geofencing/components/GeofenceAlertToast';
-import { useUserLocation, useHubLocations } from '../hooks/useLocation';
+import { useUserLocation, useHubLocations, useHubDeviceStatus } from '../hooks/useLocation';
+import { useDeviceStatus } from '../hooks/useDeviceStatus';
 import { useHubStore } from '@/lib/store/hub-store';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import {
@@ -43,6 +44,10 @@ const LocationPage = () => {
         startTracking,
         toggleSharing,
     } = useUserLocation();
+    
+    // Device status monitoring
+    const { deviceStatus: currentUserDeviceStatus } = useDeviceStatus();
+    const { getDeviceStatus } = useHubDeviceStatus(currentHub?.id);
 
     // Include current user in locations list if they're sharing
     // Filter out current user from Firestore locations to avoid duplicates
@@ -251,20 +256,28 @@ const LocationPage = () => {
                                 <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar">
                                     {allLocations
                                         .filter((location) => location && location.userId) // Filter out invalid entries
-                                        .map((location) => (
-                                            <div key={location.userId} className="flex-shrink-0 w-80">
-                                                <MemberLocationCard
-                                                    location={location}
-                                                    userName={
-                                                        location.userId === user?.id
-                                                            ? `${user?.email?.split('@')[0] || 'You'} (You)`
-                                                            : `User ${location.userId.slice(0, 8)}`
-                                                    }
-                                                    batteryLevel={85} // TODO: Get from device monitoring
-                                                    isOnline={true}
-                                                />
-                                            </div>
-                                        ))}
+                                        .map((location) => {
+                                            // Get device status for this user
+                                            const isCurrentUser = location.userId === user?.id;
+                                            const deviceStatus = isCurrentUser
+                                                ? currentUserDeviceStatus
+                                                : getDeviceStatus(location.userId);
+                                            
+                                            return (
+                                                <div key={location.userId} className="flex-shrink-0 w-80">
+                                                    <MemberLocationCard
+                                                        location={location}
+                                                        userName={
+                                                            isCurrentUser
+                                                                ? `${user?.email?.split('@')[0] || 'You'} (You)`
+                                                                : `User ${location.userId.slice(0, 8)}`
+                                                        }
+                                                        batteryLevel={deviceStatus?.batteryLevel ?? undefined}
+                                                        isOnline={deviceStatus?.isOnline ?? true}
+                                                    />
+                                                </div>
+                                            );
+                                        })}
                                 </div>
                             ) : (
                                 <div className="text-center py-12 pb-safe">

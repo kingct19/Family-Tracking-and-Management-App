@@ -14,6 +14,7 @@ import {
     updateLocationSharing,
     type UserLocation,
 } from '../api/location-api';
+import { subscribeToHubDeviceStatus, type DeviceStatusDocument } from '../api/device-status-api';
 import {
     getUserPreferences,
     updateLocationPermission,
@@ -244,5 +245,39 @@ export const useDistance = (
     }, [coord1, coord2]);
 
     return distance;
+};
+
+/**
+ * Hook for fetching hub member device status
+ */
+export const useHubDeviceStatus = (hubId: string | undefined) => {
+    const [deviceStatuses, setDeviceStatuses] = useState<Map<string, DeviceStatusDocument>>(new Map());
+
+    // Subscribe to real-time device status updates
+    useEffect(() => {
+        if (!hubId) return;
+
+        const unsubscribe = subscribeToHubDeviceStatus(
+            hubId,
+            (statuses) => {
+                setDeviceStatuses(statuses);
+            },
+            (error) => {
+                console.error('Device status subscription error:', error);
+            }
+        );
+
+        return unsubscribe;
+    }, [hubId]);
+
+    // Helper to get device status for a specific user
+    const getDeviceStatus = useCallback((userId: string): DeviceStatusDocument | null => {
+        return deviceStatuses.get(userId) || null;
+    }, [deviceStatuses]);
+
+    return {
+        deviceStatuses,
+        getDeviceStatus,
+    };
 };
 
