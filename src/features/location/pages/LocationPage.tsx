@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { MapView } from '../components/MapView';
 import { MemberLocationCard } from '../components/MemberLocationCard';
@@ -17,6 +18,7 @@ import { GeofenceManager } from '../../geofencing/components/GeofenceManager';
 import { GeofenceMapEditor } from '../../geofencing/components/GeofenceMapEditor';
 import { GeofenceAlertToast } from '../../geofencing/components/GeofenceAlertToast';
 import { NavigationPanel } from '../components/NavigationPanel';
+import { HubSelector } from '../components/HubSelector';
 import { useUserLocation, useHubLocations, useHubDeviceStatus } from '../hooks/useLocation';
 import { useDeviceStatus } from '../hooks/useDeviceStatus';
 import { useHubStore } from '@/lib/store/hub-store';
@@ -26,8 +28,6 @@ import {
     FiMapPin,
     FiCheckCircle,
     FiSettings,
-    FiChevronDown,
-    FiUsers,
     FiShield,
     FiX,
     FiMenu,
@@ -35,6 +35,7 @@ import {
 import type { GeofenceZone } from '../../geofencing/types';
 
 const LocationPage = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const { currentHub } = useHubStore();
     const { locations } = useHubLocations(currentHub?.id);
@@ -120,25 +121,14 @@ const LocationPage = () => {
                             </button>
 
                             {/* Hub Selector */}
-                            <button
-                                className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
-                                aria-label="Select hub"
-                            >
-                                <FiUsers size={18} className="text-purple-600" />
-                                <span className="font-semibold text-gray-900 text-sm hidden sm:inline">
-                                    {currentHub?.name || 'Select Hub'}
-                                </span>
-                                <span className="font-semibold text-gray-900 text-sm sm:hidden">
-                                    Hub
-                                </span>
-                                <FiChevronDown size={16} className="text-gray-500" />
-                            </button>
+                            <HubSelector />
                         </div>
 
                         {/* Right: Action Buttons */}
                         <div className="flex items-center gap-2">
                             {/* Settings Button */}
                             <button
+                                onClick={() => navigate('/settings')}
                                 className="w-10 h-10 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center"
                                 aria-label="Settings"
                             >
@@ -237,16 +227,23 @@ const LocationPage = () => {
                                 </div>
                             </div>
 
-                            {/* Check-In Button */}
+                            {/* Check-In Button - TODO: Implement check-in functionality */}
                             <div className="group relative">
                                 <button
-                                    className="w-14 h-14 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center text-gray-700 transition-all duration-200 hover:scale-110 active:scale-95"
+                                    onClick={() => {
+                                        // TODO: Implement check-in functionality
+                                        // Should create a location check-in event at current location
+                                        console.log('Check-in clicked');
+                                    }}
+                                    className="w-14 h-14 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center text-gray-700 transition-all duration-200 hover:scale-110 active:scale-95 opacity-50 cursor-not-allowed"
                                     aria-label="Check in at current location"
+                                    disabled
+                                    title="Check-in coming soon"
                                 >
                                     <FiCheckCircle size={24} />
                                 </button>
                                 <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                    Check In
+                                    Check In (Coming Soon)
                                     <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
                                 </div>
                             </div>
@@ -264,7 +261,7 @@ const LocationPage = () => {
                 {/* Bottom Member List Panel - Only show when map loaded */}
                 {currentLocation && (
                     <div
-                        className={`absolute left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm shadow-2xl rounded-t-3xl transition-all duration-300 z-10 bottom-16 md:bottom-0 ${
+                        className={`absolute left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm shadow-2xl rounded-t-3xl transition-all duration-300 z-10 bottom-0 ${
                             showMemberList ? 'translate-y-0' : 'translate-y-full'
                         }`}
                     >

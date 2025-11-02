@@ -54,10 +54,8 @@ const AppLayout = () => {
                 </main>
             </div>
 
-            {/* Bottom Navigation - Mobile (always visible, overlays on full-screen pages) */}
-            <div className={isFullScreenPage ? 'fixed bottom-0 left-0 right-0 z-30' : ''}>
-                <BottomNav />
-            </div>
+            {/* Bottom Navigation - Mobile (hidden on full-screen pages with hamburger menu) */}
+            {!isFullScreenPage && <BottomNav />}
         </div>
     );
 };

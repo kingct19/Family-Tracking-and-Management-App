@@ -5,16 +5,18 @@
  */
 
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { MessageList } from '../components/MessageList';
 import { MessageInput } from '../components/MessageInput';
 import { useHubMessages, useSendMessage, useDeleteMessage, useMarkMessageAsRead } from '../hooks/useMessages';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useHubStore } from '@/lib/store/hub-store';
-import { FiUsers } from 'react-icons/fi';
+import { FiUsers, FiArrowLeft, FiMenu } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 const MessagesPage = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const { currentHub } = useHubStore();
     const { messages, isLoading } = useHubMessages(currentHub?.id);
@@ -94,11 +96,36 @@ const MessagesPage = () => {
 
             <div className="flex flex-col h-screen">
                 {/* Header */}
-                <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 bg-white">
-                    <h1 className="text-2xl font-bold text-gray-900">{currentHub.name}</h1>
-                    <p className="text-sm text-gray-500 mt-1">
-                        {messages.length} {messages.length === 1 ? 'message' : 'messages'}
-                    </p>
+                <div className="flex-shrink-0 px-4 py-4 border-b border-gray-200 bg-white">
+                    <div className="flex items-center gap-3">
+                        {/* Back Button - Mobile */}
+                        <button
+                            onClick={() => navigate('/')}
+                            className="md:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                            aria-label="Back to map"
+                        >
+                            <FiArrowLeft size={20} />
+                        </button>
+
+                        {/* Hub Info */}
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">
+                                {currentHub.name}
+                            </h1>
+                            <p className="text-sm text-gray-500">
+                                {messages.length} {messages.length === 1 ? 'message' : 'messages'}
+                            </p>
+                        </div>
+
+                        {/* Menu Button - Desktop */}
+                        <button
+                            onClick={() => navigate('/')}
+                            className="hidden md:flex p-2 text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                            aria-label="Back to map"
+                        >
+                            <FiMenu size={20} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Message List */}
