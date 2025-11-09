@@ -7,8 +7,8 @@ const LoginPage = () => {
     return (
         <>
             <Helmet>
-                <title>Sign In - Family Safety App</title>
-                <meta name="description" content="Sign in to your Family Safety App account" />
+                <title>Sign In · HaloHub</title>
+                <meta name="description" content="Sign in to your HaloHub account" />
             </Helmet>
 
             <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 flex items-center justify-center p-4">
