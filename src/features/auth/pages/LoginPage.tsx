@@ -20,7 +20,7 @@ const LoginPage = () => {
                                 <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl">
                                     <FiMapPin size={32} className="text-white" />
                                 </div>
-                                <h2 className="text-4xl font-bold text-gray-900">Family Safety</h2>
+                                <h2 className="text-4xl font-bold text-gray-900">HaloHub</h2>
                             </div>
 
                             <h3 className="text-3xl font-bold text-gray-900 leading-tight">

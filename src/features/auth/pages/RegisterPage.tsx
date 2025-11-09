@@ -7,8 +7,8 @@ const RegisterPage = () => {
     return (
         <>
             <Helmet>
-                <title>Create Account - Family Safety App</title>
-                <meta name="description" content="Create a new Family Safety App account" />
+                <title>Create Account · HaloHub</title>
+                <meta name="description" content="Create a new HaloHub account" />
             </Helmet>
 
             <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
@@ -21,7 +21,7 @@ const RegisterPage = () => {
                                 <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center">
                                     <FiMapPin size={24} className="text-white" />
                                 </div>
-                                <h2 className="text-2xl font-bold text-gray-900">Family Safety</h2>
+                                <h2 className="text-2xl font-bold text-gray-900">HaloHub</h2>
                             </div>
 
                             <div className="text-center mb-8">
@@ -62,7 +62,7 @@ const RegisterPage = () => {
                                 <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl">
                                     <FiMapPin size={32} className="text-white" />
                                 </div>
-                                <h2 className="text-4xl font-bold text-gray-900">Family Safety</h2>
+                                <h2 className="text-4xl font-bold text-gray-900">HaloHub</h2>
                             </div>
 
                             <h3 className="text-3xl font-bold text-gray-900 leading-tight">

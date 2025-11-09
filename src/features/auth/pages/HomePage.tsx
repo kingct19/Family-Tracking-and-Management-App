@@ -65,7 +65,7 @@ const HomePage = () => {
     return (
         <>
             <Helmet>
-                <title>Family Safety & Coordination App</title>
+                <title>HaloHub · Family Safety & Coordination</title>
                 <meta
                     name="description"
                     content="A comprehensive family safety app with location tracking, task management, and secure communication"
@@ -93,7 +93,7 @@ const HomePage = () => {
                             </div>
 
                             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-white">
-                                Family Safety & Coordination
+                                HaloHub
                             </h1>
                             <p className="text-xl md:text-2xl mb-12 text-white/90 max-w-3xl mx-auto leading-relaxed">
                                 Keep your family safe, organized, and connected with real-time location tracking, task management, and secure communication
@@ -242,7 +242,7 @@ const HomePage = () => {
                                     <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
                                         <FiMapPin size={24} className="text-white" />
                                     </div>
-                                    <h3 className="text-2xl font-bold text-white">Family Safety</h3>
+                                    <h3 className="text-2xl font-bold text-white">HaloHub</h3>
                                 </div>
                                 <p className="text-gray-400 mb-6 leading-relaxed">
                                     The most comprehensive family safety platform that combines location tracking,
@@ -282,7 +282,7 @@ const HomePage = () => {
                         <div className="border-t border-gray-800 pt-8">
                             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                                 <p className="text-gray-400">
-                                    &copy; {new Date().getFullYear()} Family Safety & Coordination. All rights reserved.
+                                    &copy; {new Date().getFullYear()} HaloHub. All rights reserved.
                                 </p>
                                 <div className="flex gap-6">
                                     <button className="text-gray-400 hover:text-purple-400 transition-colors">Privacy Policy</button>
