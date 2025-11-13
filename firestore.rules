@@ -123,6 +123,15 @@ service cloud.firestore {
         allow create, update, delete: if isHubAdmin(hubId) && isMembershipActive(hubId);
       }
       
+      // Typing indicators subcollection
+      match /typing/{userId} {
+        // All hub members can read typing status
+        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        
+        // Users can only write their own typing status
+        allow create, update, delete: if isUser(userId) && isHubMember(hubId) && isMembershipActive(hubId);
+      }
+      
       // Locations subcollection
       match /locations/{locationUserId} {
         // All hub members can read locations

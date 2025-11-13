@@ -10,8 +10,10 @@ import {
     assignTask,
     completeTask,
 } from '../api/task-api';
+import { awardXP } from '@/features/xp/api/xp-api';
 import type { CreateTaskFormData } from '@/lib/validation/task-schemas';
 import type { Task } from '@/types';
+import toast from 'react-hot-toast';
 
 /**
  * Hook to fetch all tasks for current hub
@@ -136,15 +138,40 @@ export const useAssignTask = () => {
 export const useCompleteTask = () => {
     const queryClient = useQueryClient();
     const { currentHub } = useHubStore();
+    const { user } = useAuth();
 
     return useMutation({
-        mutationFn: async (taskId: string) => {
+        mutationFn: async (data: { taskId: string; task: Task }) => {
             if (!currentHub) throw new Error('No hub selected');
-            const response = await completeTask(currentHub.id, taskId);
+            
+            // Complete the task
+            const response = await completeTask(currentHub.id, data.taskId);
             if (!response.success) throw new Error(response.error);
+            
+            // Award XP to the user who completed the task
+            if (user && data.task.assignedTo === user.id) {
+                const xpAmount = data.task.weight || 10; // Default to 10 XP if no weight
+                const xpResponse = await awardXP({
+                    userId: user.id,
+                    userName: user.displayName || user.email,
+                    amount: xpAmount,
+                    source: 'task_completion',
+                    sourceId: data.taskId,
+                    description: `Completed task: ${data.task.title}`,
+                    hubId: currentHub.id,
+                });
+                
+                if (xpResponse.success) {
+                    toast.success(`🎉 +${xpAmount} XP for completing the task!`, {
+                        duration: 3000,
+                    });
+                }
+            }
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['tasks', 'hub', currentHub?.id] });
+            queryClient.invalidateQueries({ queryKey: ['xpRecords'] });
+            queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
         },
     });
 };

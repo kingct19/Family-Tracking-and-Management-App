@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { TaskCardSkeleton } from '@/components/ui/Skeleton';
 import { TaskList, TaskFilter, TaskSort } from '../components/TaskList';
 import { TaskModal, type CreateTaskData } from '../components/TaskModal';
 import { useHubTasks, useCompleteTask, useDeleteTask, useCreateTask, useUpdateTask } from '../hooks/useTasks';
@@ -38,7 +39,10 @@ const TasksPage = () => {
 
     const handleComplete = async (taskId: string) => {
         try {
-            await completeTaskMutation.mutateAsync(taskId);
+            const task = tasks?.find(t => t.id === taskId);
+            if (!task) throw new Error('Task not found');
+            
+            await completeTaskMutation.mutateAsync({ taskId, task });
             toast.success('Task completed!');
         } catch (error) {
             toast.error('Failed to complete task');
@@ -109,9 +113,38 @@ const TasksPage = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center py-16">
-                <LoadingSpinner size="large" text="Loading tasks..." />
-            </div>
+            <>
+                <Helmet>
+                    <title>Tasks - Family Safety App</title>
+                </Helmet>
+                <div className="space-y-6">
+                    {/* Header Skeleton */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-gray-200 rounded-2xl animate-pulse" />
+                            <div>
+                                <div className="h-8 w-32 bg-gray-200 rounded animate-pulse mb-2" />
+                                <div className="h-4 w-48 bg-gray-200 rounded animate-pulse" />
+                            </div>
+                        </div>
+                        <div className="h-11 w-32 bg-gray-200 rounded-xl animate-pulse" />
+                    </div>
+
+                    {/* Filter Tabs Skeleton */}
+                    <div className="flex gap-2 overflow-x-auto">
+                        {[...Array(5)].map((_, i) => (
+                            <div key={i} className="h-10 w-24 bg-gray-200 rounded-xl animate-pulse" />
+                        ))}
+                    </div>
+
+                    {/* Tasks Skeleton */}
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {[...Array(6)].map((_, i) => (
+                            <TaskCardSkeleton key={i} />
+                        ))}
+                    </div>
+                </div>
+            </>
         );
     }
 

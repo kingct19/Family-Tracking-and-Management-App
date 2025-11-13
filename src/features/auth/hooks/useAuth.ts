@@ -25,55 +25,66 @@ export const useAuth = () => {
 
   // Listen to Firebase auth state changes
   useEffect(() => {
-    setLoading(true);
+    let isMounted = true;
+    
+    const setupAuthListener = async () => {
+      if (!isMounted) return;
+      
+      setLoading(true);
 
-    // Add timeout to prevent infinite loading
-    const timeout = setTimeout(() => {
-      console.log('Auth loading timeout - forcing stop');
-      setLoading(false);
-    }, 10000); // 10 second timeout
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        if (!isMounted) return;
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      clearTimeout(timeout); // Clear timeout when auth state changes
-
-      if (firebaseUser) {
-        try {
-          const authUser = await mapFirebaseUser(firebaseUser);
-          setUser(authUser);
-
-          // Try to load user's hubs (optional - don't fail if no hubs exist)
+        if (firebaseUser) {
           try {
-            const hubsResponse = await getUserHubs(firebaseUser.uid);
-            if (hubsResponse.success && hubsResponse.data && hubsResponse.data.length > 0) {
-              // Set first hub as current if none selected
-              const firstHub = hubsResponse.data[0];
-              const membershipResponse = await getUserMembership(firstHub.id, firebaseUser.uid);
-
-              if (membershipResponse.success && membershipResponse.data) {
-                setCurrentHub(firstHub, membershipResponse.data.role);
-              }
+            const authUser = await mapFirebaseUser(firebaseUser);
+            if (isMounted) {
+              setUser(authUser);
             }
-          } catch (hubError) {
-            // Hub loading failed - this is OK for new users
-            console.log('No hubs found for user or hub loading failed:', hubError);
-          }
-        } catch (error) {
-          console.error('Error mapping Firebase user:', error);
-          setUser(null);
-        }
-      } else {
-        setUser(null);
-        clearCurrentHub();
-      }
 
-      setLoading(false);
-    });
+            // Try to load user's hubs (optional - don't fail if no hubs exist)
+            try {
+              const hubsResponse = await getUserHubs(firebaseUser.uid);
+              if (isMounted && hubsResponse.success && hubsResponse.data && hubsResponse.data.length > 0) {
+                // Set first hub as current if none selected
+                const firstHub = hubsResponse.data[0];
+                const membershipResponse = await getUserMembership(firstHub.id, firebaseUser.uid);
+
+                if (isMounted && membershipResponse.success && membershipResponse.data) {
+                  setCurrentHub(firstHub, membershipResponse.data.role);
+                }
+              }
+            } catch (hubError) {
+              // Hub loading failed - this is OK for new users
+              console.log('No hubs found for user or hub loading failed:', hubError);
+            }
+          } catch (error) {
+            console.error('Error mapping Firebase user:', error);
+            if (isMounted) {
+              setUser(null);
+            }
+          }
+        } else {
+          if (isMounted) {
+            setUser(null);
+            clearCurrentHub();
+          }
+        }
+
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+
+      return unsubscribe;
+    };
+
+    setupAuthListener();
 
     return () => {
-      clearTimeout(timeout);
-      unsubscribe();
+      isMounted = false;
     };
-  }, [setUser, setLoading, setCurrentHub, clearCurrentHub]);
+  }, []);
 
   // Register mutation
   const registerMutation = useMutation({

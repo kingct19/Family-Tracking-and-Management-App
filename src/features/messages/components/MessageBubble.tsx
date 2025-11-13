@@ -42,31 +42,33 @@ export const MessageBubble = ({
 
     return (
         <div
-            className={`flex gap-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} group`}
+            className={`flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} group`}
         >
             {/* Avatar */}
-            {showAvatar && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold">
+            {showAvatar ? (
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold shadow-md ring-2 ring-white">
                     {message.senderName.charAt(0).toUpperCase()}
                 </div>
+            ) : (
+                <div className="flex-shrink-0 w-10" />
             )}
 
             {/* Message Content */}
-            <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-[75%]`}>
+            <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-[75%] md:max-w-[65%]`}>
                 {/* Sender Name (only for others' messages) */}
-                {!isOwnMessage && (
-                    <span className="text-xs text-gray-500 mb-1 px-1">
+                {!isOwnMessage && showAvatar && (
+                    <span className="text-xs font-medium text-gray-600 mb-1.5 px-1">
                         {message.senderName}
                     </span>
                 )}
 
                 {/* Bubble */}
                 <div
-                    className={`relative px-4 py-2 rounded-2xl ${
+                    className={`relative px-4 py-2.5 rounded-2xl ${
                         isOwnMessage
-                            ? 'bg-purple-600 text-white rounded-br-sm'
-                            : 'bg-gray-100 text-gray-900 rounded-bl-sm'
-                    } shadow-sm`}
+                            ? 'bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-br-sm shadow-md'
+                            : 'bg-white text-gray-900 rounded-bl-sm shadow-sm border border-gray-200/50'
+                    }`}
                 >
                     {/* Message Text */}
                     <p className="text-sm whitespace-pre-wrap break-words">
@@ -85,14 +87,14 @@ export const MessageBubble = ({
                     )}
 
                     {/* Timestamp & Read Status */}
-                    <div className={`flex items-center gap-1 mt-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                        <span className={`text-xs ${isOwnMessage ? 'text-purple-100' : 'text-gray-500'}`}>
+                    <div className={`flex items-center gap-1.5 mt-1.5 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                        <span className={`text-xs ${isOwnMessage ? 'text-purple-100/90' : 'text-gray-500'}`}>
                             {formatTime(message.timestamp)}
                         </span>
                         {isOwnMessage && (
                             <FiCheck
-                                size={12}
-                                className={isRead ? 'text-blue-300' : 'text-purple-200'}
+                                size={14}
+                                className={isRead ? 'text-blue-200' : 'text-purple-200/70'}
                             />
                         )}
                     </div>

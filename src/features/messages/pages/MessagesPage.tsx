@@ -4,25 +4,34 @@
  * Real-time messaging interface (Life360/iMessage style)
  */
 
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { MessageList } from '../components/MessageList';
 import { MessageInput } from '../components/MessageInput';
+import { BroadcastPanel } from '../components/BroadcastPanel';
+import { BroadcastHistory } from '../components/BroadcastHistory';
+import { BroadcastAlert } from '../components/BroadcastAlert';
+import { TypingIndicator } from '../components/TypingIndicator';
 import { useHubMessages, useSendMessage, useDeleteMessage, useMarkMessageAsRead } from '../hooks/useMessages';
+import { useHubBroadcasts } from '../hooks/useBroadcasts';
+import { useTyping } from '../hooks/useTyping';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useHubStore } from '@/lib/store/hub-store';
-import { FiUsers, FiArrowLeft, FiMenu } from 'react-icons/fi';
+import { FiUsers, FiRadio } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 const MessagesPage = () => {
-    const navigate = useNavigate();
     const { user } = useAuth();
     const { currentHub } = useHubStore();
     const { messages, isLoading } = useHubMessages(currentHub?.id);
+    const { data: broadcasts = [] } = useHubBroadcasts();
+    const { typingUsers, setTyping, clearTyping } = useTyping(currentHub?.id);
     const { sendMessage, sendMessageAsync, isSending, error: sendError } = useSendMessage();
     const { deleteMessage, deleteMessageAsync } = useDeleteMessage();
     const { markAsRead, markAsReadAsync } = useMarkMessageAsRead();
+    const [showBroadcastPanel, setShowBroadcastPanel] = useState(false);
+    const [showBroadcastHistory, setShowBroadcastHistory] = useState(false);
+    const [dismissedBroadcasts, setDismissedBroadcasts] = useState<string[]>([]);
 
     // Mark messages as read when viewing
     useEffect(() => {
@@ -94,56 +103,90 @@ const MessagesPage = () => {
                 <meta name="description" content="Chat with your family" />
             </Helmet>
 
-            <div className="flex flex-col h-screen">
-                {/* Header */}
-                <div className="flex-shrink-0 px-4 py-4 border-b border-gray-200 bg-white">
-                    <div className="flex items-center gap-3">
-                        {/* Back Button - Mobile */}
-                        <button
-                            onClick={() => navigate('/')}
-                            className="md:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                            aria-label="Back to map"
-                        >
-                            <FiArrowLeft size={20} />
-                        </button>
-
-                        {/* Hub Info */}
+            {/* Full screen container - TopBar is handled by AppLayout */}
+            <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 pt-20 z-10">
+                {/* Hub Info Bar - Below TopBar */}
+                <div className="flex-shrink-0 px-4 md:px-6 py-4 border-b border-gray-200/50 bg-white/80 backdrop-blur-md shadow-sm">
+                    <div className="flex items-center justify-between gap-4">
                         <div className="flex-1 min-w-0">
                             <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">
                                 {currentHub.name}
                             </h1>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-600 mt-0.5">
                                 {messages.length} {messages.length === 1 ? 'message' : 'messages'}
                             </p>
                         </div>
-
-                        {/* Menu Button - Desktop */}
-                        <button
-                            onClick={() => navigate('/')}
-                            className="hidden md:flex p-2 text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                            aria-label="Back to map"
-                        >
-                            <FiMenu size={20} />
-                        </button>
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowBroadcastHistory(true)}
+                                className="flex-shrink-0 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2 font-semibold text-sm"
+                            >
+                                <FiRadio size={18} />
+                                <span className="hidden md:inline">History</span>
+                            </button>
+                            <button
+                                onClick={() => setShowBroadcastPanel(true)}
+                                className="flex-shrink-0 px-4 py-2 bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all shadow-md flex items-center gap-2 font-semibold text-sm"
+                            >
+                                <FiRadio size={18} />
+                                <span className="hidden sm:inline">Broadcast</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
+                {/* Active Broadcasts */}
+                {broadcasts.length > 0 && (
+                    <div className="flex-shrink-0 px-4 md:px-6 py-3 space-y-3 bg-white/50 border-b border-gray-200/50">
+                        {broadcasts
+                            .filter((b) => !dismissedBroadcasts.includes(b.id))
+                            .slice(0, 3)
+                            .map((broadcast) => (
+                                <BroadcastAlert
+                                    key={broadcast.id}
+                                    broadcast={broadcast}
+                                    onDismiss={() => setDismissedBroadcasts((prev) => [...prev, broadcast.id])}
+                                />
+                            ))}
+                    </div>
+                )}
+
                 {/* Message List */}
-                <MessageList
-                    messages={messages}
-                    currentUserId={user?.id || ''}
-                    isLoading={isLoading}
-                    onDeleteMessage={handleDelete}
-                />
+                <div className="flex-1 overflow-hidden flex flex-col">
+                    <MessageList
+                        messages={messages}
+                        currentUserId={user?.id || ''}
+                        isLoading={isLoading}
+                        onDeleteMessage={handleDelete}
+                    />
+                </div>
+
+                {/* Typing Indicator */}
+                <TypingIndicator typingUsers={typingUsers} />
 
                 {/* Message Input */}
-                <MessageInput
-                    onSend={handleSend}
-                    isSending={isSending}
-                    placeholder={`Message ${currentHub.name}...`}
-                    disabled={!user}
-                />
+                <div className="flex-shrink-0">
+                    <MessageInput
+                        onSend={handleSend}
+                        isSending={isSending}
+                        placeholder={`Message ${currentHub.name}...`}
+                        disabled={!user}
+                        onTyping={setTyping}
+                        onStopTyping={clearTyping}
+                    />
+                </div>
             </div>
+
+            {/* Broadcast Panel */}
+            {showBroadcastPanel && (
+                <BroadcastPanel onClose={() => setShowBroadcastPanel(false)} />
+            )}
+
+            {/* Broadcast History */}
+            {showBroadcastHistory && (
+                <BroadcastHistory onClose={() => setShowBroadcastHistory(false)} />
+            )}
         </>
     );
 };
