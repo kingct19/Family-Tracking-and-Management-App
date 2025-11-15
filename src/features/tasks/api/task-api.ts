@@ -304,5 +304,33 @@ export const completeTask = async (
     }
 };
 
+/**
+ * Submit task proof with photo
+ */
+export const submitTaskProof = async (
+    hubId: string,
+    taskId: string,
+    proofURL: string,
+    notes?: string
+): Promise<ApiResponse<void>> => {
+    try {
+        await updateDoc(doc(db, 'hubs', hubId, 'tasks', taskId), {
+            proofURL,
+            proofStatus: 'pending',
+            proofSubmittedAt: serverTimestamp(),
+            status: 'submitted',
+            updatedAt: serverTimestamp(),
+        });
+
+        return { success: true };
+    } catch (error: any) {
+        console.error('Submit task proof error:', error);
+        return {
+            success: false,
+            error: 'Failed to submit task proof',
+        };
+    }
+};
+
 
 

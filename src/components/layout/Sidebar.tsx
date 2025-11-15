@@ -1,6 +1,7 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useHubStore } from '@/lib/store/hub-store';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import {
     FiHome,
     FiMapPin,
@@ -8,8 +9,10 @@ import {
     FiMessageCircle,
     FiLock,
     FiSettings,
+    FiLogOut,
 } from 'react-icons/fi';
 import { cn } from '@/lib/utils/cn';
+import toast from 'react-hot-toast';
 
 interface NavItem {
     to: string;
@@ -20,11 +23,23 @@ interface NavItem {
 
 export const Sidebar = () => {
     const { isFeatureEnabled } = useHubStore();
+    const { logout, isLoggingOut } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            toast.success('Logged out successfully');
+            navigate('/login');
+        } catch (error) {
+            toast.error('Failed to logout');
+        }
+    };
 
     // Nav items - Map first (Life360 style)
     const navItems: NavItem[] = [
         {
-            to: '/',
+            to: '/map',
             icon: <FiMapPin size={20} />,
             label: 'Map',
             feature: 'location',
@@ -88,6 +103,25 @@ export const Sidebar = () => {
                         <span>{item.label}</span>
                     </NavLink>
                 ))}
+            </div>
+
+            {/* Logout Button */}
+            <div className="px-2 pt-4 border-t border-outline-variant">
+                <button
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className={cn(
+                        'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-fast',
+                        'text-body-md font-medium',
+                        'text-error hover:bg-error-container focus:outline-none focus:ring-2 focus:ring-error focus:ring-offset-2',
+                        {
+                            'opacity-50 cursor-not-allowed': isLoggingOut,
+                        }
+                    )}
+                >
+                    <FiLogOut size={20} />
+                    <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
+                </button>
             </div>
         </nav>
     );

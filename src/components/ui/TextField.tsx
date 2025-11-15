@@ -41,12 +41,12 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
     );
 
     const inputStyles = cn(
-      // Base styles
-      'peer w-full px-4 py-3 text-base text-gray-900 bg-white border-2 rounded-lg',
-      'transition-all duration-200',
-      'focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500',
-      'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-gray-100',
-      'placeholder:text-gray-400',
+      // Base styles - use Material Design 3 tokens
+      'peer w-full px-4 py-3 text-body-md text-on-surface bg-surface border-2 rounded-xl',
+      'transition-all duration-fast',
+      'focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary',
+      'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-surface-variant',
+      'placeholder:text-on-variant',
 
       // Error state
       error && 'border-red-500 focus:border-red-500 focus:ring-red-500',
@@ -59,10 +59,10 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
     );
 
     const labelStyles = cn(
-      'block text-sm font-medium text-gray-700 mb-2',
+      'block text-label-md text-on-surface mb-2',
 
       // Error state
-      error && 'text-red-600'
+      error && 'text-error'
     );
 
     return (
@@ -71,14 +71,14 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         {label && (
           <label htmlFor={inputId} className={labelStyles}>
             {label}
-            {props.required && <span className="text-red-600 ml-1">*</span>}
+            {props.required && <span className="text-error ml-1">*</span>}
           </label>
         )}
 
         <div className={containerStyles}>
           {/* Start adornment */}
           {startAdornment && (
-            <div className="absolute left-4 text-gray-400 pointer-events-none">
+            <div className="absolute left-4 text-on-variant pointer-events-none">
               {startAdornment}
             </div>
           )}
@@ -95,7 +95,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
 
           {/* End adornment */}
           {endAdornment && (
-            <div className="absolute right-4 text-gray-400">
+            <div className="absolute right-4 text-on-variant">
               {endAdornment}
             </div>
           )}
@@ -105,7 +105,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         {error && (
           <p
             id={errorId}
-            className="text-sm text-red-600 mt-1"
+            className="text-label-sm text-error mt-2"
             role="alert"
           >
             {error}
@@ -116,7 +116,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         {!error && helperText && (
           <p
             id={helperTextId}
-            className="text-sm text-gray-600 mt-1"
+            className="text-label-sm text-on-variant mt-2"
           >
             {helperText}
           </p>

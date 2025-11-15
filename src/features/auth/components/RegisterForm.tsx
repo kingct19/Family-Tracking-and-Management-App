@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
@@ -9,7 +9,7 @@ import { FiMail, FiLock, FiUser } from 'react-icons/fi';
 
 export const RegisterForm = () => {
     const navigate = useNavigate();
-    const { register: registerUser, isRegistering } = useAuth();
+    const { register: registerUser, isRegistering, isAuthenticated } = useAuth();
     const [formData, setFormData] = useState<RegisterFormData>({
         email: '',
         displayName: '',
@@ -18,6 +18,15 @@ export const RegisterForm = () => {
         acceptTerms: false,
     });
     const [errors, setErrors] = useState<Partial<Record<keyof RegisterFormData, string>>>({});
+    const [registerSuccess, setRegisterSuccess] = useState(false);
+
+    // Redirect when auth state updates after successful registration
+    useEffect(() => {
+        if (registerSuccess && isAuthenticated) {
+            navigate('/map', { replace: true });
+            setRegisterSuccess(false);
+        }
+    }, [registerSuccess, isAuthenticated, navigate]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -41,7 +50,9 @@ export const RegisterForm = () => {
 
             if (response.success) {
                 toast.success('Account created successfully!');
-                navigate('/'); // Redirect to map (main screen)
+                // Set flag to trigger redirect when auth state updates
+                setRegisterSuccess(true);
+                // Auth state listener will handle the redirect via useEffect above
             } else {
                 toast.error(response.error || 'Registration failed');
             }

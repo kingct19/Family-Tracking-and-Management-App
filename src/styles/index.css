@@ -4,6 +4,209 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Base Styles */
+@layer base {
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+        font-family: 'Roboto Flex', 'Inter', system-ui, sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 400;
+        color: #1C1B1F; /* on-surface */
+        background-color: #FEF7FF; /* background */
+        font-feature-settings: 'kern' 1, 'liga' 1;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 400;
+        letter-spacing: -0.01em;
+    }
+
+    /* Focus styles for accessibility */
+    *:focus-visible {
+        outline: 2px solid #6750A4; /* primary */
+        outline-offset: 2px;
+    }
+
+    /* Smooth scrolling */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
+
+/* Component Styles */
+@layer components {
+    /* Typography Utilities */
+    .text-display-lg {
+        @apply text-[57px] leading-[64px] font-normal tracking-[-0.025em];
+    }
+
+    .text-display-md {
+        @apply text-[45px] leading-[52px] font-normal tracking-[-0.02em];
+    }
+
+    .text-display-sm {
+        @apply text-[36px] leading-[44px] font-normal tracking-[-0.015em];
+    }
+
+    .text-headline-lg {
+        @apply text-[32px] leading-[40px] font-normal tracking-[-0.01em];
+    }
+
+    .text-headline-md {
+        @apply text-[28px] leading-[36px] font-normal tracking-[-0.01em];
+    }
+
+    .text-headline-sm {
+        @apply text-[24px] leading-[32px] font-normal tracking-[-0.005em];
+    }
+
+    .text-title-lg {
+        @apply text-[22px] leading-[28px] font-normal;
+    }
+
+    .text-title-md {
+        @apply text-[16px] leading-[24px] font-semibold;
+    }
+
+    .text-title-sm {
+        @apply text-[14px] leading-[20px] font-semibold;
+    }
+
+    .text-body-lg {
+        @apply text-[16px] leading-[24px] font-normal;
+    }
+
+    .text-body-md {
+        @apply text-[14px] leading-[20px] font-normal;
+    }
+
+    .text-body-sm {
+        @apply text-[12px] leading-[16px] font-normal;
+    }
+
+    .text-label-lg {
+        @apply text-[14px] leading-[20px] font-semibold;
+    }
+
+    .text-label-md {
+        @apply text-[12px] leading-[16px] font-semibold;
+    }
+
+    .text-label-sm {
+        @apply text-[11px] leading-[16px] font-semibold;
+    }
+
+    /* Card Styles */
+    .card {
+        background-color: #FEF7FF; /* surface */
+        border-radius: 0.75rem; /* rounded-xl */
+        border: 1px solid #CAC4D0; /* outline-variant */
+        box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15); /* elevation-1 */
+        transition: all 200ms; /* duration-normal */
+    }
+
+    .card-interactive {
+        background-color: #FEF7FF; /* surface */
+        border-radius: 0.75rem; /* rounded-xl */
+        border: 1px solid #CAC4D0; /* outline-variant */
+        box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15); /* elevation-1 */
+        transition: all 200ms; /* duration-normal */
+        cursor: pointer;
+    }
+
+    .card-interactive:hover {
+        box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15); /* elevation-2 */
+        transform: translateY(-2px);
+    }
+
+    .card-interactive:active {
+        box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15); /* elevation-1 */
+        transform: translateY(0);
+    }
+
+    .card-interactive:focus-visible {
+        outline: 2px solid #6750A4; /* primary */
+        outline-offset: 2px;
+    }
+
+    /* Surface Variants */
+    .surface-elevated {
+        background-color: #FFFFFF;
+        box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15); /* elevation-2 */
+    }
+
+    .surface-filled {
+        background-color: #E7E0EC; /* surface-variant */
+    }
+
+    /* Button Base Styles */
+    .btn-base {
+        min-height: 44px;
+        padding: 0.75rem 1.5rem; /* px-6 py-3 */
+        border-radius: 9999px; /* rounded-full */
+        font-weight: 600; /* font-semibold */
+        font-size: 14px; /* label-lg */
+        line-height: 20px;
+        transition: all 120ms; /* duration-fast */
+    }
+
+    .btn-base:focus-visible {
+        outline: 2px solid #6750A4; /* primary */
+        outline-offset: 2px;
+    }
+
+    .btn-base:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Input Base Styles */
+    .input-base {
+        width: 100%;
+        padding: 0.75rem 1rem; /* px-4 py-3 */
+        border-radius: 0.75rem; /* rounded-xl */
+        border: 2px solid #CAC4D0; /* outline-variant */
+        background-color: #FEF7FF; /* surface */
+        color: #1C1B1F; /* on-surface */
+        transition: all 120ms; /* duration-fast */
+    }
+
+    .input-base:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px #6750A4; /* ring-primary */
+        border-color: #6750A4; /* primary */
+    }
+
+    .input-base::placeholder {
+        color: #49454F; /* on-variant */
+    }
+
+    /* Section Spacing */
+    .section-spacing {
+        @apply py-8 md:py-12 lg:py-16;
+    }
+
+    .container-padding {
+        @apply px-4 md:px-6 lg:px-8;
+    }
+}
+
 /* Animations */
 @keyframes slide-up {
     from {
@@ -16,6 +219,45 @@
     }
 }
 
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 .animate-slide-up {
     animation: slide-up 0.3s ease-out;
+}
+
+.animate-fade-in {
+    animation: fade-in 0.2s ease-out;
+}
+
+.animate-scale-in {
+    animation: scale-in 0.2s ease-out;
+}
+
+/* Utility Classes */
+@layer utilities {
+    .text-balance {
+        text-wrap: balance;
+    }
+
+    .text-pretty {
+        text-wrap: pretty;
+    }
 }

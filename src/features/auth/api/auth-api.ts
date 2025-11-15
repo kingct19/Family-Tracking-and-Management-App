@@ -262,13 +262,47 @@ export const getUserProfile = async (userId: string): Promise<ApiResponse<User>>
  */
 export const updateUserProfile = async (
     userId: string,
-    updates: Partial<User>
+    updates: Partial<User> & { phone?: string; bio?: string }
 ): Promise<ApiResponse<void>> => {
     try {
-        await updateDoc(doc(db, 'users', userId), {
-            ...updates,
+        // Check if document exists first
+        const userRef = doc(db, 'users', userId);
+        const userDoc = await getDoc(userRef);
+        
+        // Only update allowed fields (exclude hubs, id, createdAt, email)
+        const allowedUpdates: any = {};
+        if (updates.displayName !== undefined) allowedUpdates.displayName = updates.displayName;
+        if (updates.photoURL !== undefined) allowedUpdates.photoURL = updates.photoURL;
+        if (updates.xpTotal !== undefined) allowedUpdates.xpTotal = updates.xpTotal;
+        if ((updates as any).phone !== undefined) allowedUpdates.phone = (updates as any).phone;
+        if ((updates as any).bio !== undefined) allowedUpdates.bio = (updates as any).bio;
+        
+        // Ensure we're not trying to update restricted fields
+        const finalUpdates = {
+            ...allowedUpdates,
             updatedAt: serverTimestamp(),
-        });
+        };
+        
+        console.log('Updating user profile:', { userId, updates: finalUpdates, docExists: userDoc.exists() });
+        
+        // Use setDoc with merge if document doesn't exist, otherwise use updateDoc
+        if (!userDoc.exists()) {
+            // Document doesn't exist, create it with the updates
+            await setDoc(userRef, {
+                id: userId,
+                email: auth.currentUser?.email || '',
+                displayName: updates.displayName || '',
+                photoURL: updates.photoURL,
+                xpTotal: updates.xpTotal || 0,
+                hubs: [],
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                ...allowedUpdates,
+            });
+        } else {
+            // Document exists, update it
+            await updateDoc(userRef, finalUpdates);
+        }
 
         // Update Firebase Auth display name if provided
         if (updates.displayName && auth.currentUser) {

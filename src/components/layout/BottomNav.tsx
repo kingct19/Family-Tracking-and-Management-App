@@ -23,7 +23,7 @@ export const BottomNav = () => {
     // Bottom nav shows max 5 items for mobile (Life360 style - Map first)
     const navItems: NavItem[] = [
         {
-            to: '/',
+            to: '/map',
             icon: <FiMapPin size={24} />,
             label: 'Map',
             feature: 'location',

@@ -35,12 +35,27 @@ export const useGeofences = () => {
         refetch,
     } = useQuery({
         queryKey: ['geofences', currentHub?.id],
-        queryFn: () => {
-            if (!currentHub?.id) throw new Error('No hub selected');
-            return getGeofences(currentHub.id);
+        queryFn: async () => {
+            if (!currentHub?.id) {
+                console.log('[useGeofences] Query skipped - no hub selected');
+                throw new Error('No hub selected');
+            }
+            console.log('[useGeofences] Fetching geofences for hub:', currentHub.id);
+            const result = await getGeofences(currentHub.id);
+            console.log('[useGeofences] Query result:', result);
+            if (result.success) {
+                console.log('[useGeofences] Geofences fetched:', result.data.length, 'geofences');
+            } else {
+                console.error('[useGeofences] Query failed:', result.error);
+            }
+            return result;
         },
         enabled: !!currentHub?.id,
-        select: (data) => data.success ? data.data : [],
+        select: (data) => {
+            const selected = data.success ? data.data : [];
+            console.log('[useGeofences] Query select - geofences count:', selected.length);
+            return selected;
+        },
     });
 
     // Create geofence mutation
@@ -49,18 +64,32 @@ export const useGeofences = () => {
             if (!currentHub?.id || !user?.id) {
                 throw new Error('No hub or user selected');
             }
-            return createGeofence(currentHub.id, user.id, data);
+            console.log('[useGeofences] Creating geofence:', { hubId: currentHub.id, userId: user.id, data });
+            const result = await createGeofence(currentHub.id, user.id, data);
+            console.log('[useGeofences] Create geofence result:', result);
+            return result;
         },
         onSuccess: (result) => {
+            console.log('[useGeofences] Mutation onSuccess called:', { result, hubId: currentHub?.id });
             if (result.success) {
-                queryClient.invalidateQueries({ queryKey: ['geofences', currentHub?.id] });
+                const queryKey = ['geofences', currentHub?.id];
+                console.log('[useGeofences] Invalidating queries with key:', queryKey);
+                // Invalidate and refetch immediately
+                queryClient.invalidateQueries({ queryKey });
+                // Also explicitly refetch to ensure immediate update
+                queryClient.refetchQueries({ queryKey }).then(() => {
+                    console.log('[useGeofences] Query refetched successfully');
+                }).catch((error) => {
+                    console.error('[useGeofences] Error refetching query:', error);
+                });
                 toast.success('Geofence created successfully');
             } else {
+                console.error('[useGeofences] Failed to create geofence:', result.error);
                 toast.error(result.error || 'Failed to create geofence');
             }
         },
         onError: (error) => {
-            console.error('Error creating geofence:', error);
+            console.error('[useGeofences] Error creating geofence:', error);
             toast.error('Failed to create geofence');
         },
     });
@@ -71,18 +100,30 @@ export const useGeofences = () => {
             if (!currentHub?.id) {
                 throw new Error('No hub selected');
             }
-            return updateGeofence(currentHub.id, data.id, data);
+            console.log('[useGeofences] Updating geofence:', { hubId: currentHub.id, data });
+            const result = await updateGeofence(currentHub.id, data.id, data);
+            console.log('[useGeofences] Update geofence result:', result);
+            return result;
         },
         onSuccess: (result) => {
+            console.log('[useGeofences] Update mutation onSuccess called:', { result, hubId: currentHub?.id });
             if (result.success) {
-                queryClient.invalidateQueries({ queryKey: ['geofences', currentHub?.id] });
+                const queryKey = ['geofences', currentHub?.id];
+                console.log('[useGeofences] Invalidating queries with key:', queryKey);
+                queryClient.invalidateQueries({ queryKey });
+                queryClient.refetchQueries({ queryKey }).then(() => {
+                    console.log('[useGeofences] Query refetched successfully');
+                }).catch((error) => {
+                    console.error('[useGeofences] Error refetching query:', error);
+                });
                 toast.success('Geofence updated successfully');
             } else {
+                console.error('[useGeofences] Failed to update geofence:', result.error);
                 toast.error(result.error || 'Failed to update geofence');
             }
         },
         onError: (error) => {
-            console.error('Error updating geofence:', error);
+            console.error('[useGeofences] Error updating geofence:', error);
             toast.error('Failed to update geofence');
         },
     });
@@ -96,8 +137,16 @@ export const useGeofences = () => {
             return deleteGeofence(currentHub.id, geofenceId);
         },
         onSuccess: (result) => {
+            console.log('[useGeofences] Delete mutation onSuccess called:', { result, hubId: currentHub?.id });
             if (result.success) {
-                queryClient.invalidateQueries({ queryKey: ['geofences', currentHub?.id] });
+                const queryKey = ['geofences', currentHub?.id];
+                console.log('[useGeofences] Invalidating queries with key:', queryKey);
+                queryClient.invalidateQueries({ queryKey });
+                queryClient.refetchQueries({ queryKey }).then(() => {
+                    console.log('[useGeofences] Query refetched successfully');
+                }).catch((error) => {
+                    console.error('[useGeofences] Error refetching query:', error);
+                });
                 toast.success('Geofence deleted successfully');
             } else {
                 toast.error(result.error || 'Failed to delete geofence');
@@ -111,15 +160,33 @@ export const useGeofences = () => {
 
     // Helper functions
     const createGeofenceHandler = useCallback(
-        (data: CreateGeofenceRequest) => {
-            createMutation.mutate(data);
+        async (data: CreateGeofenceRequest) => {
+            try {
+                const result = await createMutation.mutateAsync(data);
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to create geofence');
+                }
+                return result;
+            } catch (error) {
+                console.error('[useGeofences] Error in createGeofenceHandler:', error);
+                throw error;
+            }
         },
         [createMutation]
     );
 
     const updateGeofenceHandler = useCallback(
-        (data: UpdateGeofenceRequest) => {
-            updateMutation.mutate(data);
+        async (data: UpdateGeofenceRequest) => {
+            try {
+                const result = await updateMutation.mutateAsync(data);
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to update geofence');
+                }
+                return result;
+            } catch (error) {
+                console.error('[useGeofences] Error in updateGeofenceHandler:', error);
+                throw error;
+            }
         },
         [updateMutation]
     );

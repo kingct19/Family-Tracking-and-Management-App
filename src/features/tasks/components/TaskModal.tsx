@@ -8,6 +8,8 @@ import { useState, useEffect } from 'react';
 import { FiX, FiCalendar, FiUser, FiAward, FiFileText } from 'react-icons/fi';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { useHubMembers } from '../hooks/useHubMembers';
 import type { Task, TaskStatus } from '@/types';
 import { cn } from '@/lib/utils/cn';
 
@@ -39,6 +41,7 @@ const initialFormData: CreateTaskData = {
 export const TaskModal = ({ isOpen, onClose, onSave, task, isLoading = false }: TaskModalProps) => {
     const [formData, setFormData] = useState<CreateTaskData>(initialFormData);
     const [errors, setErrors] = useState<Partial<Record<keyof CreateTaskData, string>>>({});
+    const { data: hubMembers = [], isLoading: isLoadingMembers } = useHubMembers();
 
     // Reset form when modal opens/closes or task changes
     useEffect(() => {
@@ -163,6 +166,45 @@ export const TaskModal = ({ isOpen, onClose, onSave, task, isLoading = false }: 
                             {errors.description && (
                                 <p className="mt-1 text-sm text-red-600">{errors.description}</p>
                             )}
+                        </div>
+
+                        {/* Assign To */}
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                <FiUser size={16} className="inline mr-1" />
+                                Assign To (Optional)
+                            </label>
+                            {isLoadingMembers ? (
+                                <div className="flex items-center gap-2 px-4 py-3 rounded-xl border-2 border-gray-200">
+                                    <LoadingSpinner size="small" />
+                                    <span className="text-sm text-gray-500">Loading members...</span>
+                                </div>
+                            ) : (
+                                <select
+                                    value={formData.assignedTo || ''}
+                                    onChange={(e) => handleChange('assignedTo', e.target.value)}
+                                    className={cn(
+                                        'w-full px-4 py-3 rounded-xl border-2 transition-colors',
+                                        'focus:outline-none focus:ring-2 focus:ring-purple-500',
+                                        errors.assignedTo
+                                            ? 'border-red-300 focus:border-red-500'
+                                            : 'border-gray-200 focus:border-purple-500'
+                                    )}
+                                >
+                                    <option value="">Unassigned</option>
+                                    {hubMembers.map((member) => (
+                                        <option key={member.userId} value={member.userId}>
+                                            {member.displayName} {member.role === 'admin' ? '(Admin)' : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                            {errors.assignedTo && (
+                                <p className="mt-1 text-sm text-red-600">{errors.assignedTo}</p>
+                            )}
+                            <p className="mt-1 text-xs text-gray-500">
+                                Leave unassigned to create a general task, or assign to a specific member
+                            </p>
                         </div>
 
                         {/* Deadline and Weight */}

@@ -22,7 +22,7 @@ export const Skeleton = ({
     return (
         <div
             className={cn(
-                'animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%]',
+                'animate-pulse bg-gradient-to-r from-surface-variant via-surface-variant/80 to-surface-variant bg-[length:200%_100%]',
                 variantStyles[variant],
                 className
             )}
@@ -38,19 +38,19 @@ export const Skeleton = ({
 // Task Card Skeleton
 export const TaskCardSkeleton = () => {
     return (
-        <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
+        <div className="card p-6">
             <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                     <Skeleton className="h-6 w-3/4 mb-2" />
                     <Skeleton className="h-4 w-1/2" />
                 </div>
-                <Skeleton variant="rectangular" className="h-6 w-20" />
+                <Skeleton variant="rectangular" className="h-6 w-20 rounded-full" />
             </div>
             <Skeleton className="h-4 w-full mb-2" />
             <Skeleton className="h-4 w-5/6 mb-4" />
             <div className="flex items-center gap-2">
                 <Skeleton variant="circular" className="h-8 w-8" />
-                <Skeleton className="h-8 w-24" />
+                <Skeleton className="h-8 w-24 rounded-full" />
             </div>
         </div>
     );
@@ -83,7 +83,7 @@ export const AvatarSkeleton = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) =
 // Card Skeleton
 export const CardSkeleton = () => {
     return (
-        <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
+        <div className="card p-6">
             <Skeleton className="h-6 w-3/4 mb-4" />
             <Skeleton className="h-4 w-full mb-2" />
             <Skeleton className="h-4 w-full mb-2" />
@@ -136,22 +136,98 @@ export const XPProgressSkeleton = () => {
 // Leaderboard Skeleton
 export const LeaderboardSkeleton = () => {
     return (
-        <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
-            <div className="bg-gradient-to-br from-purple-600 to-purple-700 p-6">
-                <Skeleton className="h-7 w-40 bg-white/20" />
-            </div>
-            <div className="p-6 space-y-4">
-                {[...Array(5)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-4">
-                        <Skeleton className="h-8 w-8" />
+        <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+                <div key={i} className="card p-5">
+                    <div className="flex items-center gap-4">
+                        <Skeleton className="h-8 w-8 rounded-full" />
                         <Skeleton variant="circular" className="h-12 w-12" />
                         <div className="flex-1">
-                            <Skeleton className="h-5 w-32 mb-1" />
+                            <Skeleton className="h-5 w-32 mb-2" />
                             <Skeleton className="h-4 w-24" />
                         </div>
-                        <Skeleton className="h-8 w-16" />
+                        <Skeleton className="h-8 w-16 rounded-full" />
                     </div>
-                ))}
+                </div>
+            ))}
+        </div>
+    );
+};
+
+// Dashboard Stats Skeleton
+export const DashboardStatsSkeleton = () => {
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+                <div key={i} className="card p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <Skeleton variant="circular" className="h-12 w-12" />
+                        <Skeleton className="h-5 w-5 rounded-full" />
+                    </div>
+                    <Skeleton className="h-9 w-20 mb-1" />
+                    <Skeleton className="h-4 w-24" />
+                </div>
+            ))}
+        </div>
+    );
+};
+
+// Dashboard Quick Actions Skeleton
+export const DashboardQuickActionsSkeleton = () => {
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+                <div key={i} className="card p-6">
+                    <Skeleton variant="circular" className="h-14 w-14 mb-4" />
+                    <Skeleton className="h-5 w-24 mb-2" />
+                    <Skeleton className="h-4 w-32" />
+                </div>
+            ))}
+        </div>
+    );
+};
+
+// Vault Item Skeleton
+export const VaultItemSkeleton = () => {
+    return (
+        <div className="card p-6">
+            <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                    <Skeleton variant="circular" className="h-10 w-10" />
+                    <div className="flex-1">
+                        <Skeleton className="h-5 w-32 mb-2" />
+                        <Skeleton className="h-4 w-20" />
+                    </div>
+                </div>
+                <Skeleton className="h-6 w-16 rounded-full" />
+            </div>
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-3/4" />
+        </div>
+    );
+};
+
+// Pending Approval Card Skeleton
+export const PendingApprovalSkeleton = () => {
+    return (
+        <div className="card p-6">
+            <div className="flex flex-col md:flex-row gap-6">
+                <Skeleton className="w-full md:w-64 h-48 rounded-xl" />
+                <div className="flex-1 space-y-4">
+                    <div>
+                        <Skeleton className="h-6 w-3/4 mb-2" />
+                        <Skeleton className="h-4 w-full" />
+                    </div>
+                    <div className="flex flex-wrap gap-4">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-6 w-16 rounded-full" />
+                    </div>
+                    <div className="flex gap-3 pt-4 border-t border-outline-variant">
+                        <Skeleton className="h-11 w-24 rounded-full" />
+                        <Skeleton className="h-11 w-24 rounded-full" />
+                    </div>
+                </div>
             </div>
         </div>
     );

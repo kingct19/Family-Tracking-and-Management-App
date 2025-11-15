@@ -29,23 +29,11 @@ const RegisterPage = () => {
                                     Get started free
                                 </h1>
                                 <p className="text-lg text-gray-600">
-                                    Create your account to begin coordinating with your family
+                                    Create your account to begin coordinating with your group
                                 </p>
                             </div>
 
                             <RegisterForm />
-
-                            <div className="mt-8 text-center">
-                                <p className="text-gray-600">
-                                    Already have an account?{' '}
-                                    <Link
-                                        to="/login"
-                                        className="text-purple-600 hover:text-purple-700 font-semibold transition-colors"
-                                    >
-                                        Sign in
-                                    </Link>
-                                </p>
-                            </div>
 
                             <div className="mt-8 pt-8 border-t border-gray-200">
                                 <p className="text-center text-sm text-gray-500">
@@ -70,7 +58,7 @@ const RegisterPage = () => {
                             </h3>
 
                             <p className="text-xl text-gray-600">
-                                Join thousands of families using our platform for real-time coordination
+                                Join thousands of groups using our platform for real-time coordination
                                 and peace of mind.
                             </p>
 
@@ -89,8 +77,8 @@ const RegisterPage = () => {
                                         <FiUsers size={24} className="text-purple-600" />
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold text-gray-900 mb-1">Unlimited family members</h4>
-                                        <p className="text-gray-600">Add as many family members as you need</p>
+                                        <h4 className="font-semibold text-gray-900 mb-1">Unlimited members</h4>
+                                        <p className="text-gray-600">Add as many group members as you need</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">

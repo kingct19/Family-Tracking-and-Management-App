@@ -59,7 +59,11 @@ export const useHubStore = create<HubState>()(
 
       isFeatureEnabled: (feature) => {
         const toggles = get().featureToggles;
-        return toggles ? toggles[feature] : false;
+        // If no hub selected, use default toggles (show all features)
+        if (!toggles) {
+          return defaultFeatureToggles[feature] ?? true;
+        }
+        return toggles[feature] ?? false;
       },
     }),
     {

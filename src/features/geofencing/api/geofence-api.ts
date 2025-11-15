@@ -38,22 +38,27 @@ const getGeofenceAlertsRef = (hubId: string) =>
     collection(db, 'hubs', hubId, 'geofenceAlerts');
 
 // Convert Firestore data to GeofenceZone
-const convertGeofenceZone = (doc: any): GeofenceZone => ({
-    id: doc.id,
-    hubId: doc.hubId,
-    name: doc.name,
-    description: doc.description,
-    type: doc.type,
-    center: doc.center,
-    radius: doc.radius,
-    isActive: doc.isActive,
-    createdBy: doc.createdBy,
-    createdAt: doc.createdAt?.toDate() || new Date(),
-    updatedAt: doc.updatedAt?.toDate() || new Date(),
-    alertOnEntry: doc.alertOnEntry,
-    alertOnExit: doc.alertOnExit,
-    alertRecipients: doc.alertRecipients || [],
-});
+const convertGeofenceZone = (doc: any): GeofenceZone => {
+    // Default isActive to true if not present (for backwards compatibility)
+    const isActive = doc.isActive !== undefined ? doc.isActive : true;
+    
+    return {
+        id: doc.id,
+        hubId: doc.hubId,
+        name: doc.name,
+        description: doc.description,
+        type: doc.type,
+        center: doc.center,
+        radius: doc.radius,
+        isActive,
+        createdBy: doc.createdBy,
+        createdAt: doc.createdAt?.toDate() || new Date(),
+        updatedAt: doc.updatedAt?.toDate() || new Date(),
+        alertOnEntry: doc.alertOnEntry,
+        alertOnExit: doc.alertOnExit,
+        alertRecipients: doc.alertRecipients || [],
+    };
+};
 
 // Convert Firestore data to GeofenceEvent
 const convertGeofenceEvent = (doc: any): GeofenceEvent => ({
@@ -93,6 +98,7 @@ export const createGeofence = async (
     data: CreateGeofenceRequest
 ): Promise<ApiResponse<GeofenceZone>> => {
     try {
+        console.log('[geofence-api] Creating geofence:', { hubId, userId, data });
         const geofenceData = {
             ...data,
             hubId,
@@ -102,7 +108,10 @@ export const createGeofence = async (
             updatedAt: serverTimestamp(),
         };
 
+        console.log('[geofence-api] Geofence data to save:', geofenceData);
         const docRef = await addDoc(getGeofencesRef(hubId), geofenceData);
+        console.log('[geofence-api] Geofence created with ID:', docRef.id);
+        
         const geofence = convertGeofenceZone({
             id: docRef.id,
             ...geofenceData,
@@ -110,14 +119,19 @@ export const createGeofence = async (
             updatedAt: Timestamp.now(),
         });
 
+        console.log('[geofence-api] Geofence created successfully:', geofence);
         return { success: true, data: geofence };
     } catch (error) {
-        // Silently handle permission errors
-        const isPermissionError = error instanceof Error && 
-            (error.message.includes('permission') || error.message.includes('Permission'));
+        console.error('[geofence-api] Error creating geofence:', error);
         
-        if (!isPermissionError && process.env.NODE_ENV === 'development') {
-            console.warn('Error creating geofence:', error);
+        // Check if it's a permission error
+        const isPermissionError = error instanceof Error && 
+            (error.message.includes('permission') || 
+             error.message.includes('Permission') ||
+             error.message.includes('Missing or insufficient permissions'));
+        
+        if (isPermissionError) {
+            console.error('[geofence-api] Permission denied - user may not be admin or member with create permission');
         }
         
         return {
@@ -134,23 +148,57 @@ export const getGeofences = async (
     hubId: string
 ): Promise<ApiResponse<GeofenceZone[]>> => {
     try {
+        console.log('[geofence-api] Getting geofences for hub:', hubId);
         // Simplified query - filter and sort in memory to avoid index requirement
         const q = query(getGeofencesRef(hubId));
 
         const snapshot = await getDocs(q);
+        console.log('[geofence-api] Snapshot size:', snapshot.docs.length);
+        
+        // Log raw documents
+        snapshot.docs.forEach((doc) => {
+            const data = doc.data();
+            console.log('[geofence-api] Raw document:', {
+                id: doc.id,
+                name: data.name,
+                isActive: data.isActive,
+                hubId: data.hubId,
+                createdBy: data.createdBy,
+            });
+        });
+        
         const geofences = snapshot.docs
-            .map(convertGeofenceZone)
-            .filter((geofence) => geofence.isActive) // Filter active geofences
+            .map((doc) => {
+                const converted = convertGeofenceZone({ id: doc.id, ...doc.data() });
+                console.log('[geofence-api] Converted geofence:', {
+                    id: converted.id,
+                    name: converted.name,
+                    isActive: converted.isActive,
+                });
+                return converted;
+            })
+            .filter((geofence) => {
+                const isActive = geofence.isActive;
+                console.log('[geofence-api] Filtering geofence:', {
+                    id: geofence.id,
+                    name: geofence.name,
+                    isActive,
+                    willInclude: isActive,
+                });
+                return isActive; // Filter active geofences
+            })
             .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // Sort by createdAt desc
 
+        console.log('[geofence-api] Final geofences count:', geofences.length);
         return { success: true, data: geofences };
     } catch (error) {
+        console.error('[geofence-api] Error getting geofences:', error);
         // Silently handle permission errors
         const isPermissionError = error instanceof Error && 
             (error.message.includes('permission') || error.message.includes('Permission'));
         
         if (!isPermissionError && process.env.NODE_ENV === 'development') {
-            console.warn('Error getting geofences:', error);
+            console.warn('[geofence-api] Error getting geofences:', error);
         }
         
         return {

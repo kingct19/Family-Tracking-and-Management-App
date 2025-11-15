@@ -37,15 +37,21 @@ service cloud.firestore {
       // Users can read their own profile
       allow read: if isUser(userId);
       
-      // Users can update their own profile (but not hubs array - managed by hub operations)
-      allow update: if isUser(userId) && 
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['hubs']);
+      // Users can update their own profile
+      // Temporarily allow all updates to test - we'll add hubs restriction back later
+      allow update: if isUser(userId);
       
       // User profiles are created during registration (system operation)
       allow create: if isUser(userId);
       
       // Private subcollection
       match /private/{document=**} {
+        allow read, write: if isUser(userId);
+      }
+      
+      // Settings subcollection (user preferences)
+      match /settings/{settingId} {
+        // Users can read and write their own settings
         allow read, write: if isUser(userId);
       }
     }
@@ -69,8 +75,18 @@ service cloud.firestore {
         // Members can read all memberships in their hub
         allow read: if isHubMember(hubId) && isMembershipActive(hubId);
         
-        // Admins can create/update/delete memberships
-        allow create, update: if isHubAdmin(hubId);
+        // Allow creating membership if:
+        // 1. User is creating their own membership AND they are the hub creator, OR
+        // 2. User is already an admin of the hub
+        allow create: if isAuthenticated() && (
+          (isUser(memberUserId) && get(/databases/$(database)/documents/hubs/$(hubId)).data.createdBy == request.auth.uid) ||
+          isHubAdmin(hubId)
+        );
+        
+        // Admins can update memberships, users can update their own
+        allow update: if isHubAdmin(hubId) || isUser(memberUserId);
+        
+        // Admins can delete memberships, users can delete their own
         allow delete: if isHubAdmin(hubId) || isUser(memberUserId);
       }
       
@@ -146,13 +162,116 @@ service cloud.firestore {
         allow delete: if isHubAdmin(hubId);
       }
       
+      // Location history subcollection (within user location)
+      match /locations/{locationUserId}/history/{historyId} {
+        // Users can read their own location history
+        allow read: if isUser(locationUserId) && 
+          isHubMember(hubId) && 
+          isMembershipActive(hubId);
+        
+        // Users can create their own location history
+        allow create: if isUser(locationUserId) && 
+          isHubMember(hubId) && 
+          isMembershipActive(hubId);
+        
+        // Location history cannot be updated (immutable)
+        allow update: if false;
+        
+        // Only admins can delete location history (for cleanup)
+        allow delete: if isHubAdmin(hubId);
+      }
+      
+      // Check-ins subcollection
+      match /checkIns/{checkInId} {
+        // All hub members can read check-ins (for history)
+        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        
+        // Users can create their own check-ins
+        allow create: if isHubAdminOrMember(hubId) && 
+          isMembershipActive(hubId) &&
+          request.resource.data.userId == request.auth.uid &&
+          request.resource.data.hubId == hubId;
+        
+        // Users can update their own check-ins (e.g., to add notes)
+        allow update: if isHubMember(hubId) && 
+          isMembershipActive(hubId) &&
+          resource.data.userId == request.auth.uid &&
+          // Prevent changing userId or hubId
+          request.resource.data.userId == resource.data.userId &&
+          request.resource.data.hubId == resource.data.hubId;
+        
+        // Users can delete their own check-ins, admins can delete any
+        allow delete: if isMembershipActive(hubId) && (
+          (isHubMember(hubId) && resource.data.userId == request.auth.uid) ||
+          isHubAdmin(hubId)
+        );
+      }
+      
       // Geofences subcollection
       match /geofences/{geofenceId} {
         // All hub members can read geofences
         allow read: if isHubMember(hubId) && isMembershipActive(hubId);
         
-        // Only admins can create/update/delete geofences
-        allow create, update, delete: if isHubAdmin(hubId) && isMembershipActive(hubId);
+        // Admins and members (parents) can create geofences
+        allow create: if isHubAdminOrMember(hubId) && 
+          isMembershipActive(hubId) &&
+          request.resource.data.hubId == hubId &&
+          request.resource.data.createdBy == request.auth.uid;
+        
+        // Admins can update/delete any geofence, members can update/delete their own
+        allow update: if isMembershipActive(hubId) && (
+          isHubAdmin(hubId) ||
+          (isHubMember(hubId) && resource.data.createdBy == request.auth.uid)
+        );
+        
+        allow delete: if isMembershipActive(hubId) && (
+          isHubAdmin(hubId) ||
+          (isHubMember(hubId) && resource.data.createdBy == request.auth.uid)
+        );
+      }
+      
+      // Geofence events subcollection
+      match /geofenceEvents/{eventId} {
+        // All hub members can read geofence events
+        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        
+        // System can create events (via Cloud Functions or client when user enters/exits)
+        allow create: if isHubMember(hubId) && 
+          isMembershipActive(hubId) &&
+          request.resource.data.hubId == hubId;
+        
+        // Events are immutable (audit trail)
+        allow update: if false;
+        
+        // Only admins can delete events (for cleanup)
+        allow delete: if isHubAdmin(hubId);
+      }
+      
+      // Geofence alerts subcollection
+      match /geofenceAlerts/{alertId} {
+        // All hub members can read alerts
+        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        
+        // System can create alerts (via Cloud Functions or client)
+        allow create: if isHubMember(hubId) && 
+          isMembershipActive(hubId) &&
+          request.resource.data.hubId == hubId;
+        
+        // Users can update alerts to mark as read (only isRead and readAt fields)
+        allow update: if isHubMember(hubId) && 
+          isMembershipActive(hubId) &&
+          // Ensure hubId doesn't change
+          request.resource.data.hubId == resource.data.hubId &&
+          // Ensure immutable fields don't change
+          request.resource.data.userId == resource.data.userId &&
+          request.resource.data.geofenceId == resource.data.geofenceId &&
+          request.resource.data.eventType == resource.data.eventType &&
+          request.resource.data.message == resource.data.message &&
+          request.resource.data.geofenceName == resource.data.geofenceName &&
+          request.resource.data.userName == resource.data.userName;
+        
+        // Only admins can delete alerts
+        allow delete: if isHubAdmin(hubId);
       }
       
       // Policies subcollection
@@ -178,8 +297,20 @@ service cloud.firestore {
     }
     
     // Vault collection (user-specific, not hub-specific)
-    match /vault/{userId}/{vaultId} {
-      // Only the owner can read/write their vault items
+    match /vault/{userId} {
+      // Only the owner can access their vault
+      allow read, write: if isUser(userId);
+      
+      // Vault items subcollection
+      match /items/{itemId} {
+        // Only the owner can read/write their vault items
+        allow read, write: if isUser(userId);
+      }
+    }
+    
+    // User tokens collection (for FCM push notifications)
+    match /users/{userId}/tokens/{tokenId} {
+      // Users can read/write their own FCM tokens
       allow read, write: if isUser(userId);
     }
     

@@ -9,6 +9,8 @@ import { Toaster } from 'react-hot-toast';
 import { queryClient } from '@/lib/query-client';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { NotificationInitializer } from '@/components/NotificationInitializer';
+import { PageLoaderBar } from '@/components/PageLoader';
 
 // Lazy load pages for code splitting
 const HomePage = lazy(() => import('@/features/auth/pages/HomePage'));
@@ -17,13 +19,17 @@ const TestStylingPage = lazy(() => import('@/features/auth/pages/TestStylingPage
 const SimpleTestPage = lazy(() => import('@/features/auth/pages/SimpleTestPage'));
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('@/features/auth/pages/ForgotPasswordPage'));
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
 const DebugDashboardPage = lazy(() => import('@/features/dashboard/pages/DebugDashboardPage'));
 const LocationPage = lazy(() => import('@/features/location/pages/LocationPage'));
 const TasksPage = lazy(() => import('@/features/tasks/pages/TasksPage'));
+const PendingApprovalsPage = lazy(() => import('@/features/tasks/pages/PendingApprovalsPage'));
+const LeaderboardPage = lazy(() => import('@/features/xp/pages/LeaderboardPage'));
 const MessagesPage = lazy(() => import('@/features/messages/pages/MessagesPage'));
 const VaultPage = lazy(() => import('@/features/vault/pages/VaultPage'));
 const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage'));
+const ProfilePage = lazy(() => import('@/features/profile/pages/ProfilePage'));
 const NotFoundPage = lazy(() => import('@/features/auth/pages/NotFoundPage'));
 
 // Layout components
@@ -35,8 +41,14 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <HelmetProvider>
+          <NotificationInitializer />
+          <PageLoaderBar />
           <div className="App">
-            <Suspense fallback={<LoadingSpinner size="large" />}>
+            <Suspense fallback={
+              <div className="min-h-screen flex items-center justify-center bg-background">
+                <LoadingSpinner size="large" text="Loading page..." />
+              </div>
+            }>
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
@@ -46,21 +58,24 @@ function App() {
                 <Route path="/debug-dashboard" element={<DebugDashboardPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
                 {/* Protected Routes */}
-                <Route path="/" element={
+                <Route element={
                   <ProtectedRoute>
                     <AppLayout />
                   </ProtectedRoute>
                 }>
                   {/* Map is the main screen (Life360 style) */}
-                  <Route index element={<LocationPage />} />
-                  <Route path="map" element={<LocationPage />} />
-                  <Route path="dashboard" element={<DashboardPage />} />
-                  <Route path="tasks" element={<TasksPage />} />
-                  <Route path="messages" element={<MessagesPage />} />
-                  <Route path="vault" element={<VaultPage />} />
-                  <Route path="settings" element={<SettingsPage />} />
+                  <Route path="/map" element={<LocationPage />} />
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/tasks" element={<TasksPage />} />
+                  <Route path="/tasks/pending-approvals" element={<PendingApprovalsPage />} />
+                  <Route path="/leaderboard" element={<LeaderboardPage />} />
+                  <Route path="/messages" element={<MessagesPage />} />
+                  <Route path="/vault" element={<VaultPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
                 </Route>
 
                 {/* 404 Route */}

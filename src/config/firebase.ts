@@ -4,6 +4,7 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import { getAnalytics } from 'firebase/analytics';
+import { getMessaging, isSupported as isMessagingSupported } from 'firebase/messaging';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -43,6 +44,11 @@ export const functions = getFunctions(app);
 // Initialize Analytics (only in production)
 export const analytics = typeof window !== 'undefined' && !import.meta.env.DEV
     ? getAnalytics(app)
+    : null;
+
+// Initialize Messaging (only in browser, and only if supported)
+export const messaging = typeof window !== 'undefined' && isMessagingSupported()
+    ? getMessaging(app)
     : null;
 
 // Connect to emulators in development

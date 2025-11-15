@@ -1,17 +1,22 @@
 import { useState, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { TaskCardSkeleton } from '@/components/ui/Skeleton';
 import { TaskList, TaskFilter, TaskSort } from '../components/TaskList';
 import { TaskModal, type CreateTaskData } from '../components/TaskModal';
+import { TaskCompletionModal } from '../components/TaskCompletionModal';
 import { useHubTasks, useCompleteTask, useDeleteTask, useCreateTask, useUpdateTask } from '../hooks/useTasks';
 import { useHasRole } from '@/features/auth/hooks/useAuth';
+import { useHubStore } from '@/lib/store/hub-store';
 import { FiPlus, FiCheckSquare } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import type { TaskStatus, Task } from '@/types';
 
 const TasksPage = () => {
+    const queryClient = useQueryClient();
+    const { currentHub } = useHubStore();
     const { data: tasks, isLoading, error } = useHubTasks();
     const completeTaskMutation = useCompleteTask();
     const deleteTaskMutation = useDeleteTask();
@@ -22,7 +27,9 @@ const TasksPage = () => {
     const [filter, setFilter] = useState<TaskStatus | 'all'>('all');
     const [sortBy, setSortBy] = useState<'deadline' | 'createdAt' | 'weight'>('deadline');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
+    const [completingTask, setCompletingTask] = useState<Task | null>(null);
 
     // Calculate filter counts
     const filterCounts = useMemo(() => {
@@ -38,14 +45,25 @@ const TasksPage = () => {
     }, [tasks]);
 
     const handleComplete = async (taskId: string) => {
-        try {
-            const task = tasks?.find(t => t.id === taskId);
-            if (!task) throw new Error('Task not found');
-            
-            await completeTaskMutation.mutateAsync({ taskId, task });
-            toast.success('Task completed!');
-        } catch (error) {
-            toast.error('Failed to complete task');
+        const task = tasks?.find(t => t.id === taskId);
+        if (!task) {
+            toast.error('Task not found');
+            return;
+        }
+
+        // Check if task requires proof
+        // For now, we'll always show proof upload for assigned tasks
+        if (task.status === 'assigned' || task.status === 'pending') {
+            setCompletingTask(task);
+            setIsCompletionModalOpen(true);
+        } else {
+            // Complete without proof (for tasks that don't require it)
+            try {
+                await completeTaskMutation.mutateAsync({ taskId, task });
+                toast.success('Task completed!');
+            } catch (error) {
+                toast.error('Failed to complete task');
+            }
         }
     };
 
@@ -85,6 +103,7 @@ const TasksPage = () => {
                         deadline: data.deadline ? new Date(data.deadline) : undefined,
                         weight: data.weight,
                         status: data.status,
+                        assignedTo: data.assignedTo,
                     },
                 });
                 toast.success('Task updated successfully!');
@@ -95,6 +114,7 @@ const TasksPage = () => {
                     description: data.description,
                     deadline: data.deadline ? new Date(data.deadline) : undefined,
                     weight: data.weight,
+                    assignedTo: data.assignedTo,
                 });
                 toast.success('Task created successfully!');
             }
@@ -212,17 +232,22 @@ const TasksPage = () => {
                     />
                 ) : (
                     <div className="flex flex-col items-center justify-center py-16 px-4">
-                        <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center mb-6">
-                            <FiCheckSquare size={48} className="text-purple-600" />
+                        <div className="w-24 h-24 bg-gradient-to-br from-primary-container to-purple-100 rounded-full flex items-center justify-center mb-6 shadow-elevation-2">
+                            <FiCheckSquare size={48} className="text-primary" />
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">No tasks yet</h3>
-                        <p className="text-gray-600 text-center mb-6 max-w-md">
+                        <h3 className="text-headline-md font-normal text-on-surface mb-3">No tasks yet</h3>
+                        <p className="text-body-lg text-on-variant text-center mb-8 max-w-md">
                             {isAdmin
                                 ? 'Create your first task to get started with task management'
                                 : 'No tasks have been assigned yet. Check back later!'}
                         </p>
                         {isAdmin && (
-                            <Button variant="filled" onClick={handleCreateTask} startIcon={<FiPlus size={20} />}>
+                            <Button 
+                                variant="filled" 
+                                onClick={handleCreateTask} 
+                                startIcon={<FiPlus size={20} />}
+                                className="btn-base bg-primary text-on-primary hover:bg-primary/90 shadow-elevation-2"
+                            >
                                 Create Your First Task
                             </Button>
                         )}
@@ -238,6 +263,22 @@ const TasksPage = () => {
                 task={editingTask}
                 isLoading={createTaskMutation.isPending || updateTaskMutation.isPending}
             />
+
+            {/* Task Completion Modal */}
+            {completingTask && (
+                <TaskCompletionModal
+                    isOpen={isCompletionModalOpen}
+                    onClose={() => {
+                        setIsCompletionModalOpen(false);
+                        setCompletingTask(null);
+                    }}
+                    task={completingTask}
+                    onSuccess={() => {
+                        // Refresh tasks
+                        queryClient.invalidateQueries({ queryKey: ['tasks', 'hub', currentHub?.id] });
+                    }}
+                />
+            )}
         </>
     );
 };

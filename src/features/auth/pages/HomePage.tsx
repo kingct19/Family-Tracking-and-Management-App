@@ -20,13 +20,20 @@ const HomePage = () => {
     // Redirect if already authenticated
     useEffect(() => {
         if (isAuthenticated) {
-            navigate('/'); // Redirect to map (main screen)
+            navigate('/map', { replace: true }); // Redirect to map (main screen)
         }
     }, [isAuthenticated, navigate]);
 
-    // Show loading while redirecting
+    // Show loading while checking auth or redirecting
     if (isAuthenticated) {
-        return null;
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-on-surface">Redirecting...</p>
+                </div>
+            </div>
+        );
     }
 
     const features = [

@@ -1,8 +1,8 @@
 import { Outlet, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { Sidebar } from './layout/Sidebar';
 import { TopBar } from './layout/TopBar';
-import { BottomNav } from './layout/BottomNav';
+import { LoadingSpinner } from './LoadingSpinner';
 import { useUIStore } from '@/lib/store/ui-store';
 import { cn } from '@/lib/utils/cn';
 import { FiX } from 'react-icons/fi';
@@ -12,7 +12,7 @@ const AppLayout = () => {
     const location = useLocation();
 
     // Check if we're on full-screen pages (Life360 style)
-    const isMapPage = location.pathname === '/' || location.pathname === '/map';
+    const isMapPage = location.pathname === '/map' || location.pathname === '/';
     const isMessagesPage = location.pathname === '/messages';
     const isFullScreenPage = isMapPage || isMessagesPage;
 
@@ -59,16 +59,15 @@ const AppLayout = () => {
                 </>
             )}
 
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1 overflow-hidden relative">
                 {/* Sidebar - Desktop (only on non-full-screen pages) */}
                 {!isFullScreenPage && (
                     <aside
                         className={cn(
-                            'hidden md:block w-64 bg-surface border-r border-outline-variant transition-transform duration-normal relative',
-                            {
-                                '-translate-x-full': !isSidebarOpen,
-                                'translate-x-0': isSidebarOpen,
-                            }
+                            'hidden md:block w-64 bg-surface border-r border-outline-variant transition-transform duration-normal',
+                            isSidebarOpen
+                                ? 'relative z-10'
+                                : 'absolute left-0 top-0 bottom-0 -translate-x-full z-0'
                         )}
                     >
                         <Sidebar />
@@ -82,20 +81,28 @@ const AppLayout = () => {
                         isFullScreenPage ? 'relative' : 'pb-16 md:pb-0'
                     )}
                 >
-                    {isFullScreenPage ? (
-                        // Full-screen for map/messages (no padding, no container)
-                        <Outlet />
-                    ) : (
-                        // Normal layout for other pages (with top margin for header)
-                        <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
-                            <Outlet />
+                    <Suspense fallback={
+                        <div className="min-h-screen flex items-center justify-center bg-background">
+                            <LoadingSpinner size="large" text="Loading page..." />
                         </div>
-                    )}
+                    }>
+                        {isFullScreenPage ? (
+                            // Full-screen for map/messages (no padding, no container)
+                            <Outlet />
+                        ) : (
+                            // Normal layout for other pages (centered content with padding)
+                            <div className="w-full min-h-full">
+                                <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 lg:py-8">
+                                    <Outlet />
+                                </div>
+                            </div>
+                        )}
+                    </Suspense>
                 </main>
             </div>
 
-            {/* Bottom Navigation - Mobile */}
-            {!isFullScreenPage && <BottomNav />}
+            {/* Bottom Navigation - Removed on mobile since we have hamburger menu */}
+            {/* Bottom nav is redundant when hamburger menu is available */}
         </div>
     );
 };

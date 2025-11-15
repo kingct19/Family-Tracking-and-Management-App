@@ -21,12 +21,12 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     ref
   ) => {
     const cardStyles = cn(
-      // Base styles
-      'rounded-lg bg-surface transition-all duration-normal',
+      // Base styles - Material Design 3
+      'rounded-xl bg-surface border border-outline-variant transition-all duration-normal',
       
       // Elevation shadows
       {
-        'shadow-none': elevation === 0,
+        'shadow-none border-0': elevation === 0,
         'shadow-elevation-1': elevation === 1,
         'shadow-elevation-2': elevation === 2,
         'shadow-elevation-3': elevation === 3,
@@ -36,10 +36,12 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       
       // Interactive state
       {
-        'cursor-pointer hover:shadow-elevation-2 active:shadow-elevation-1':
+        'cursor-pointer hover:shadow-elevation-2 hover:-translate-y-0.5 active:shadow-elevation-1 active:translate-y-0':
           interactive && elevation === 1,
-        'cursor-pointer hover:shadow-elevation-3 active:shadow-elevation-2':
+        'cursor-pointer hover:shadow-elevation-3 hover:-translate-y-0.5 active:shadow-elevation-2 active:translate-y-0':
           interactive && elevation === 2,
+        'focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2':
+          interactive,
       },
       
       className
