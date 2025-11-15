@@ -165,9 +165,9 @@ const DashboardPage = () => {
                 <meta name="description" content="Your family safety dashboard" />
             </Helmet>
 
-            <div className="space-y-8">
-                {/* Welcome Header */}
-                <div className="bg-gradient-to-br from-primary via-purple-600 to-indigo-600 rounded-3xl p-8 md:p-12 text-on-primary shadow-elevation-3 overflow-hidden relative">
+            <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+                {/* Welcome Header - Mobile optimized */}
+                <div className="bg-gradient-to-br from-primary via-purple-600 to-indigo-600 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 text-on-primary shadow-elevation-3 overflow-hidden relative">
                     {/* Decorative background pattern */}
                     <div className="absolute inset-0 opacity-10">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>

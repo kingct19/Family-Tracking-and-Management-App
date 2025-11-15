@@ -105,41 +105,41 @@ const MessagesPage = () => {
             </Helmet>
 
             {/* Full screen container - TopBar is handled by AppLayout */}
-            <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 pt-20 z-10">
-                {/* Hub Info Bar - Below TopBar */}
-                <div className="flex-shrink-0 px-4 md:px-6 py-4 border-b border-gray-200/50 bg-white/80 backdrop-blur-md shadow-sm">
-                    <div className="flex items-center justify-between gap-4">
+            <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 pt-16 sm:pt-20 z-10 safe-top">
+                {/* Hub Info Bar - Below TopBar - Mobile optimized */}
+                <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b border-gray-200/50 bg-white/80 backdrop-blur-md shadow-sm safe-top">
+                    <div className="flex items-center justify-between gap-2 sm:gap-4">
                         <div className="flex-1 min-w-0">
-                            <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">
+                            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
                                 {currentHub.name}
                             </h1>
-                            <p className="text-sm text-gray-600 mt-0.5">
+                            <p className="text-xs sm:text-sm text-gray-600 mt-0.5">
                                 {messages.length} {messages.length === 1 ? 'message' : 'messages'}
                             </p>
                         </div>
-                        {/* Action Buttons */}
-                        <div className="flex items-center gap-2">
+                        {/* Action Buttons - Mobile optimized */}
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                             <button
                                 onClick={() => setShowBroadcastHistory(true)}
-                                className="flex-shrink-0 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2 font-semibold text-sm"
+                                className="flex-shrink-0 px-3 py-2 sm:px-4 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-all shadow-sm flex items-center gap-1.5 sm:gap-2 font-semibold text-xs sm:text-sm touch-target"
                             >
-                                <FiRadio size={18} />
+                                <FiRadio size={18} className="sm:w-[18px] sm:h-[18px]" />
                                 <span className="hidden md:inline">History</span>
                             </button>
                             <button
                                 onClick={() => setShowBroadcastPanel(true)}
-                                className="flex-shrink-0 px-4 py-2 bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all shadow-md flex items-center gap-2 font-semibold text-sm"
+                                className="flex-shrink-0 px-3 py-2 sm:px-4 bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 active:from-purple-800 active:to-purple-900 transition-all shadow-md flex items-center gap-1.5 sm:gap-2 font-semibold text-xs sm:text-sm touch-target"
                             >
-                                <FiRadio size={18} />
+                                <FiRadio size={18} className="sm:w-[18px] sm:h-[18px]" />
                                 <span className="hidden sm:inline">Broadcast</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Active Broadcasts */}
+                {/* Active Broadcasts - Mobile optimized */}
                 {broadcasts.length > 0 && (
-                    <div className="flex-shrink-0 px-4 md:px-6 py-3 space-y-3 bg-white/50 border-b border-gray-200/50">
+                    <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-3 space-y-2 sm:space-y-3 bg-white/50 border-b border-gray-200/50">
                         {broadcasts
                             .filter((b: BroadcastAlertType) => !dismissedBroadcasts.includes(b.id))
                             .slice(0, 3)

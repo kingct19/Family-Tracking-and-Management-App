@@ -62,7 +62,7 @@ export const TaskList = ({
     }
 
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {sortedTasks.map((task) => (
                 <TaskCard
                     key={task.id}
@@ -94,18 +94,19 @@ export const TaskFilter = ({ currentFilter, onChange, counts }: TaskFilterProps)
     ];
 
     return (
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar sm:flex-wrap">
             {filters.map((filter) => (
                 <button
                     key={filter.value}
                     onClick={() => onChange(filter.value)}
                     className={cn(
-                        'px-4 py-2 rounded-full text-label-md transition-colors duration-fast',
-                        'focus:outline-none focus:ring-2 focus:ring-primary',
+                        'px-4 py-2.5 sm:py-2 rounded-full text-label-md transition-colors duration-fast',
+                        'focus:outline-none focus:ring-2 focus:ring-primary touch-target',
+                        'active:scale-95',
                         {
                             'bg-secondary-container text-on-secondary-container':
                                 currentFilter === filter.value,
-                            'bg-surface-variant text-on-variant hover:bg-outline-variant':
+                            'bg-surface-variant text-on-variant hover:bg-outline-variant active:bg-outline-variant':
                                 currentFilter !== filter.value,
                         }
                     )}

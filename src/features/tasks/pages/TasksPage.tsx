@@ -186,12 +186,12 @@ const TasksPage = () => {
                 <meta name="description" content="Manage and track your family tasks" />
             </Helmet>
 
-            <div className="space-y-6">
-                {/* Header */}
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                    <div>
-                        <h1 className="text-headline-md text-on-background">Tasks</h1>
-                        <p className="text-body-md text-on-variant mt-1">
+            <div className="space-y-4 sm:space-y-6">
+                {/* Header - Mobile optimized */}
+                <div className="flex items-start sm:items-center justify-between flex-wrap gap-3 sm:gap-4">
+                    <div className="min-w-0 flex-1">
+                        <h1 className="text-headline-sm sm:text-headline-md text-on-background">Tasks</h1>
+                        <p className="text-body-sm sm:text-body-md text-on-variant mt-1">
                             Manage and track tasks for your team
                         </p>
                     </div>
