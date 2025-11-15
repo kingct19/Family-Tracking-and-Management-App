@@ -137,14 +137,14 @@ export const TaskSort = ({ currentSort, onChange }: TaskSortProps) => {
 
     return (
         <div className="flex items-center gap-2">
-            <span className="text-label-sm text-on-variant">Sort by:</span>
+            <span className="text-label-sm text-on-variant hidden sm:inline">Sort by:</span>
             <select
                 value={currentSort}
                 onChange={(e) => onChange(e.target.value as typeof currentSort)}
                 className={cn(
-                    'px-3 py-1.5 rounded-lg bg-surface-variant text-body-md text-on-surface',
+                    'px-3 py-2.5 sm:py-1.5 rounded-lg bg-surface-variant text-body-md text-on-surface',
                     'border border-outline focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary',
-                    'cursor-pointer'
+                    'cursor-pointer touch-target text-base sm:text-sm'
                 )}
             >
                 {sortOptions.map((option) => (
