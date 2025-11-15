@@ -47,6 +47,9 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
       'focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary',
       'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-surface-variant',
       'placeholder:text-on-variant',
+      
+      // Mobile optimization: prevent zoom on iOS (16px minimum font size)
+      'text-base sm:text-sm',
 
       // Error state
       error && 'border-red-500 focus:border-red-500 focus:ring-red-500',

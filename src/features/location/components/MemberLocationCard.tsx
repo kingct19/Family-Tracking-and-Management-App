@@ -143,15 +143,15 @@ export const MemberLocationCard = ({
                         )}
                     </div>
 
-                    {/* Quick Actions */}
+                    {/* Quick Actions - Mobile optimized */}
                     <div className="flex gap-2">
-                        <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium">
-                            <FiNavigation size={14} />
-                            Directions
+                        <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 sm:py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 active:bg-purple-300 transition-colors text-sm font-medium touch-target">
+                            <FiNavigation size={16} className="sm:w-3.5 sm:h-3.5" />
+                            <span>Directions</span>
                         </button>
-                        <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">
-                            <FiMapPin size={14} />
-                            Details
+                        <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 sm:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 active:bg-gray-300 transition-colors text-sm font-medium touch-target">
+                            <FiMapPin size={16} className="sm:w-3.5 sm:h-3.5" />
+                            <span>Details</span>
                         </button>
                     </div>
                 </div>

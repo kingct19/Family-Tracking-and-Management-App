@@ -207,21 +207,22 @@ const LocationPage = () => {
                         </div>
                     )}
 
-                    {/* Floating Action Buttons - Always show */}
-                    <div className="absolute top-24 right-4 flex flex-col gap-3 z-10">
+                    {/* Floating Action Buttons - Mobile optimized */}
+                    <div className="absolute top-20 sm:top-24 right-3 sm:right-4 flex flex-col gap-2.5 sm:gap-3 z-10 safe-right">
                             {/* Location Sharing Toggle */}
                             <div className="group relative">
                                 <button
                                     onClick={toggleSharing}
-                                    className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${isSharing
+                                    className={`w-14 h-14 sm:w-14 sm:h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 touch-target ${isSharing
                                         ? 'bg-green-500 hover:bg-green-600 text-white shadow-green-200'
                                         : 'bg-white hover:bg-gray-50 text-gray-700'
                                         }`}
                                     aria-label={isSharing ? 'Stop sharing location' : 'Start sharing location'}
                                 >
-                                    <FiMapPin size={24} />
+                                    <FiMapPin size={24} className="sm:w-6 sm:h-6" />
                                 </button>
-                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                {/* Tooltip - hidden on mobile, shown on hover for desktop */}
+                                <div className="hidden sm:block absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                                     {isSharing ? 'Sharing Location' : 'Share Location'}
                                     <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
                                 </div>
@@ -235,18 +236,19 @@ const LocationPage = () => {
                                             startTracking();
                                         }
                                     }}
-                                    className="w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-purple-200"
+                                    className="w-14 h-14 sm:w-14 sm:h-14 bg-purple-600 hover:bg-purple-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-purple-200 touch-target"
                                     aria-label="Center map on my current location"
                                 >
-                                    <FiNavigation size={24} />
+                                    <FiNavigation size={24} className="sm:w-6 sm:h-6" />
                                 </button>
-                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                {/* Tooltip - hidden on mobile */}
+                                <div className="hidden sm:block absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                                     Center on Me
                                     <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
                                 </div>
                             </div>
 
-                            {/* Geofence Management Button */}
+                            {/* Geofence Management Button - Mobile optimized */}
                             <div className="group relative">
                                 <button
                                     onClick={() => {
@@ -255,12 +257,13 @@ const LocationPage = () => {
                                         setShowGeofenceManager(true);
                                         console.log('[Geofence] State updated - showGeofenceManager set to true');
                                     }}
-                                    className="w-14 h-14 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center text-gray-700 transition-all duration-200 hover:scale-110 active:scale-95"
+                                    className="w-14 h-14 sm:w-14 sm:h-14 bg-white hover:bg-gray-50 active:bg-gray-100 rounded-full shadow-lg flex items-center justify-center text-gray-700 transition-all duration-200 hover:scale-110 active:scale-95 touch-target"
                                     aria-label="Open geofence management"
                                 >
-                                    <FiShield size={24} />
+                                    <FiShield size={24} className="sm:w-6 sm:h-6" />
                                 </button>
-                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                {/* Tooltip - hidden on mobile */}
+                                <div className="hidden sm:block absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                                     Geofences
                                     <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
                                 </div>
@@ -344,10 +347,10 @@ const LocationPage = () => {
                             </div>
                         </div>
 
-                        {/* Member Cards - Horizontal Scroll */}
-                        <div className="px-6 pb-safe">
+                        {/* Member Cards - Horizontal Scroll - Mobile optimized */}
+                        <div className="px-4 sm:px-6 pb-safe">
                             {allLocations.length > 0 ? (
-                                <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar">
+                                <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 sm:pb-6 hide-scrollbar -mx-4 sm:-mx-6 px-4 sm:px-6">
                                     {allLocations
                                         .filter((location) => location && location.userId) // Filter out invalid entries
                                         .map((location) => {
@@ -367,7 +370,7 @@ const LocationPage = () => {
                                                 : (member?.displayName || `User ${location.userId.slice(0, 8)}`);
                                             
                                             return (
-                                                <div key={location.userId} className="flex-shrink-0 w-80">
+                                                <div key={location.userId} className="flex-shrink-0 w-[280px] sm:w-80">
                                                     <MemberLocationCard
                                                         location={location}
                                                         userName={userName}
@@ -380,7 +383,7 @@ const LocationPage = () => {
                                         })}
                                 </div>
                             ) : (
-                                <div className="text-center py-12 pb-safe">
+                                <div className="text-center py-8 sm:py-12 pb-safe">
                                     <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <FiUsers size={36} className="text-gray-400" />
                                     </div>

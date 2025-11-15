@@ -37,22 +37,22 @@ const AppLayout = () => {
                         onClick={() => setSidebarOpen(false)}
                     />
                     
-                    {/* Drawer */}
-                    <aside className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-2xl z-[70] transform transition-transform duration-300 animate-in slide-in-from-left">
+                    {/* Drawer - Mobile optimized */}
+                    <aside className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-2xl z-[70] transform transition-transform duration-300 animate-in slide-in-from-left safe-top safe-bottom">
                         {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                        <div className="flex items-center justify-between px-4 py-3.5 sm:py-4 border-b border-gray-200 safe-top">
                             <h2 className="text-lg font-bold text-gray-900">Menu</h2>
                             <button
                                 onClick={() => setSidebarOpen(false)}
-                                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+                                className="w-11 h-11 sm:w-10 sm:h-10 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors touch-target"
                                 aria-label="Close menu"
                             >
-                                <FiX size={20} />
+                                <FiX size={22} className="sm:w-5 sm:h-5" />
                             </button>
                         </div>
                         
                         {/* Sidebar Content */}
-                        <div className="overflow-y-auto h-[calc(100%-64px)]">
+                        <div className="overflow-y-auto h-[calc(100%-64px)] safe-bottom">
                             <Sidebar />
                         </div>
                     </aside>
