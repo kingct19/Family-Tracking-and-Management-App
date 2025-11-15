@@ -61,8 +61,6 @@ export const createVaultItem = async (
                 tags: data.metadata?.tags || [],
                 favorite: data.metadata?.favorite || false,
             },
-            createdAt: new Date(),
-            updatedAt: new Date(),
         };
 
         // Store salt and iv separately (needed for decryption)
@@ -76,12 +74,18 @@ export const createVaultItem = async (
 
         extendVaultSession();
 
+        // Fetch the created document to return complete data
+        const createdDoc = await getDoc(vaultRef);
+        const createdData = createdDoc.data();
+        
         return {
             success: true,
             data: {
                 id: vaultRef.id,
                 ...vaultItem,
-            },
+                createdAt: createdData?.createdAt?.toDate() || new Date(),
+                updatedAt: createdData?.updatedAt?.toDate() || new Date(),
+            } as VaultItem,
         };
     } catch (error: any) {
         console.error('Create vault item error:', error);

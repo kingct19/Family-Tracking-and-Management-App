@@ -60,7 +60,9 @@ export const useGSAPAnimation = (animationType?: string) => {
     }, [animationType]);
 
     const setRef = useCallback((element: HTMLElement | null) => {
-        elementRef.current = element;
+        if (elementRef) {
+            (elementRef as React.MutableRefObject<HTMLElement | null>).current = element;
+        }
     }, []);
 
     return {
@@ -115,7 +117,9 @@ export const useScrollAnimation = (animationType: string = 'fadeIn', threshold =
     }, [animationType, threshold]);
 
     const setRef = useCallback((element: HTMLElement | null) => {
-        elementRef.current = element;
+        if (elementRef) {
+            (elementRef as React.MutableRefObject<HTMLElement | null>).current = element;
+        }
     }, []);
 
     return {

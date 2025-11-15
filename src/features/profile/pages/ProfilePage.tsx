@@ -42,7 +42,7 @@ const ProfilePage = () => {
         displayName: user.displayName,
         photoURL: user.photoURL,
         xpTotal: user.xpTotal || 0,
-        hubs: user.hubs || [],
+        hubs: [], // Hubs are fetched separately, not part of AuthUser
         createdAt: new Date(),
         updatedAt: new Date(),
     } : null);

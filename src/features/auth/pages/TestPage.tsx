@@ -29,7 +29,7 @@ const TestPage = () => {
 
                             <Button
                                 onClick={() => window.location.href = '/register'}
-                                variant="outline"
+                                variant="outlined"
                                 className="w-full"
                             >
                                 Go to Register
@@ -37,7 +37,7 @@ const TestPage = () => {
 
                             <Button
                                 onClick={() => window.location.href = '/dashboard'}
-                                variant="secondary"
+                                variant="tonal"
                                 className="w-full"
                             >
                                 Go to Dashboard (Protected)

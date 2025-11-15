@@ -6,7 +6,6 @@
  */
 
 import { sendHubNotification } from '@/lib/api/notification-api';
-import { useHubStore } from '@/lib/store/hub-store';
 
 /**
  * Trigger notification when task is assigned

@@ -12,9 +12,9 @@ import {
     collection,
     doc,
     addDoc,
+    getDoc,
     getDocs,
     query,
-    where,
     orderBy,
     limit,
     onSnapshot,
@@ -62,7 +62,7 @@ export async function sendMessage(
         const docRef = await addDoc(messagesRef, messageData);
         
         // Fetch the created message to return it
-        const messageSnap = await docRef.get();
+        const messageSnap = await getDoc(docRef);
         const messageDataReturned = messageSnap.data();
         
         if (!messageDataReturned) {
@@ -211,7 +211,7 @@ export async function markMessageAsRead(
 ): Promise<ApiResponse<void>> {
     try {
         const messageRef = doc(db, 'hubs', hubId, 'messages', messageId);
-        const messageSnap = await messageRef.get();
+        const messageSnap = await getDoc(messageRef);
         
         if (!messageSnap.exists()) {
             return {
@@ -249,7 +249,7 @@ export async function deleteMessage(
 ): Promise<ApiResponse<void>> {
     try {
         const messageRef = doc(db, 'hubs', hubId, 'messages', messageId);
-        const messageSnap = await messageRef.get();
+        const messageSnap = await getDoc(messageRef);
         
         if (!messageSnap.exists()) {
             return {

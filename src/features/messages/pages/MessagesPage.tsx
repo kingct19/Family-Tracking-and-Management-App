@@ -11,6 +11,7 @@ import { MessageInput } from '../components/MessageInput';
 import { BroadcastPanel } from '../components/BroadcastPanel';
 import { BroadcastHistory } from '../components/BroadcastHistory';
 import { BroadcastAlert } from '../components/BroadcastAlert';
+import type { BroadcastAlert as BroadcastAlertType } from '../api/broadcast-api';
 import { TypingIndicator } from '../components/TypingIndicator';
 import { useHubMessages, useSendMessage, useDeleteMessage, useMarkMessageAsRead } from '../hooks/useMessages';
 import { useHubBroadcasts } from '../hooks/useBroadcasts';
@@ -26,9 +27,9 @@ const MessagesPage = () => {
     const { messages, isLoading } = useHubMessages(currentHub?.id);
     const { data: broadcasts = [] } = useHubBroadcasts();
     const { typingUsers, setTyping, clearTyping } = useTyping(currentHub?.id);
-    const { sendMessage, sendMessageAsync, isSending, error: sendError } = useSendMessage();
-    const { deleteMessage, deleteMessageAsync } = useDeleteMessage();
-    const { markAsRead, markAsReadAsync } = useMarkMessageAsRead();
+    const { sendMessageAsync, isSending, error: sendError } = useSendMessage();
+    const { deleteMessageAsync } = useDeleteMessage();
+    const { markAsReadAsync } = useMarkMessageAsRead();
     const [showBroadcastPanel, setShowBroadcastPanel] = useState(false);
     const [showBroadcastHistory, setShowBroadcastHistory] = useState(false);
     const [dismissedBroadcasts, setDismissedBroadcasts] = useState<string[]>([]);
@@ -140,9 +141,9 @@ const MessagesPage = () => {
                 {broadcasts.length > 0 && (
                     <div className="flex-shrink-0 px-4 md:px-6 py-3 space-y-3 bg-white/50 border-b border-gray-200/50">
                         {broadcasts
-                            .filter((b) => !dismissedBroadcasts.includes(b.id))
+                            .filter((b: BroadcastAlertType) => !dismissedBroadcasts.includes(b.id))
                             .slice(0, 3)
-                            .map((broadcast) => (
+                            .map((broadcast: BroadcastAlertType) => (
                                 <BroadcastAlert
                                     key={broadcast.id}
                                     broadcast={broadcast}

@@ -13,10 +13,11 @@ const mockObserver = {
     disconnect: vi.fn(),
 };
 
-global.PerformanceObserver = vi.fn().mockImplementation(() => mockObserver);
+global.PerformanceObserver = vi.fn().mockImplementation(() => mockObserver) as any;
+(Object.assign(global.PerformanceObserver, { supportedEntryTypes: [] }));
 
 // Mock window.gtag
-global.gtag = vi.fn();
+(global as any).gtag = vi.fn();
 
 describe('Performance Monitoring', () => {
     beforeEach(() => {

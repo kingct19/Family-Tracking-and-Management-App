@@ -27,7 +27,6 @@ import {
 } from 'react-icons/fi';
 
 const LocationPage = () => {
-    const { user } = useAuth();
     const { currentHub } = useHubStore();
     const { locations } = useHubLocations(currentHub?.id);
     const {

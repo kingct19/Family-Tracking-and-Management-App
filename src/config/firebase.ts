@@ -47,9 +47,9 @@ export const analytics = typeof window !== 'undefined' && !import.meta.env.DEV
     : null;
 
 // Initialize Messaging (only in browser, and only if supported)
-export const messaging = typeof window !== 'undefined' && isMessagingSupported()
-    ? getMessaging(app)
-    : null;
+// Note: isMessagingSupported() returns a Promise, so we check synchronously
+const canUseMessaging = typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator;
+export const messaging = canUseMessaging ? getMessaging(app) : null;
 
 // Connect to emulators in development
 if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATORS === 'true') {

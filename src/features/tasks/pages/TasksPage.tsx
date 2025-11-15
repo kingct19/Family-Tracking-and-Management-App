@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/Button';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { TaskCardSkeleton } from '@/components/ui/Skeleton';
 import { TaskList, TaskFilter, TaskSort } from '../components/TaskList';
 import { TaskModal, type CreateTaskData } from '../components/TaskModal';
@@ -115,6 +114,7 @@ const TasksPage = () => {
                     deadline: data.deadline ? new Date(data.deadline) : undefined,
                     weight: data.weight,
                     assignedTo: data.assignedTo,
+                    requiresProof: data.requiresProof || false,
                 });
                 toast.success('Task created successfully!');
             }

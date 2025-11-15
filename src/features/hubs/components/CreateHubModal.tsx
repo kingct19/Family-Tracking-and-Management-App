@@ -123,16 +123,21 @@ export const CreateHubModal = ({ isOpen, onClose }: CreateHubModalProps) => {
                         placeholder="e.g., My Family, School Group"
                     />
 
-                    <TextField
-                        label="Description (Optional)"
-                        value={formData.description || ''}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        error={errors.description}
-                        fullWidth
-                        placeholder="Brief description of your hub"
-                        multiline
-                        rows={3}
-                    />
+                    <div className="w-full">
+                        <label className="block text-label-md text-on-surface mb-2">
+                            Description (Optional)
+                        </label>
+                        <textarea
+                            value={formData.description || ''}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            className="w-full px-4 py-3 text-body-md text-on-surface bg-surface border-2 rounded-xl border-outline focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            placeholder="Brief description of your hub"
+                            rows={3}
+                        />
+                        {errors.description && (
+                            <p className="text-label-sm text-error mt-2">{errors.description}</p>
+                        )}
+                    </div>
 
                     <div className="flex gap-3 pt-4">
                         <Button

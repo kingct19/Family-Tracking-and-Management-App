@@ -5,9 +5,9 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { LeaderboardSkeleton } from '@/components/ui/Skeleton';
 import { useHubStore } from '@/lib/store/hub-store';
 import { getLeaderboard } from '@/features/xp/api/xp-api';
-import { FiAward, FiMedal, FiTrendingUp } from 'react-icons/fi';
+import { FiAward, FiTrendingUp } from 'react-icons/fi';
 
-export const LeaderboardPage = () => {
+const LeaderboardPage = () => {
     const { currentHub } = useHubStore();
 
     const { data: leaderboard, isLoading } = useQuery({
@@ -23,6 +23,7 @@ export const LeaderboardPage = () => {
                 xpTotal: entry.totalXP,
                 rank: entry.rank,
                 streak: 0, // TODO: Calculate streak
+                photoURL: (entry as any).photoURL, // Optional photo URL
             }));
         },
         enabled: !!currentHub,
@@ -62,7 +63,7 @@ export const LeaderboardPage = () => {
                         {leaderboard.map((entry, index) => {
                             const getRankIcon = (rank: number) => {
                                 if (rank === 1) return <FiAward className="text-yellow-500" size={24} />;
-                                if (rank === 2) return <FiMedal className="text-gray-400" size={24} />;
+                                if (rank === 2) return <FiAward className="text-gray-400" size={24} />;
                                 if (rank === 3) return <FiAward className="text-orange-500" size={24} />;
                                 return <span className="text-gray-500 font-bold text-lg">#{rank}</span>;
                             };
@@ -137,4 +138,6 @@ export const LeaderboardPage = () => {
         </>
     );
 };
+
+export default LeaderboardPage;
 

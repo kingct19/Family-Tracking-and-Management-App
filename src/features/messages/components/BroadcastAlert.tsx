@@ -17,7 +17,7 @@ export const BroadcastAlert = ({ broadcast, onDismiss }: BroadcastAlertProps) =>
         acknowledgeBroadcast.mutate(broadcast.id);
     };
 
-    const isAcknowledged = user ? broadcast.acknowledgedBy.includes(user.id) : false;
+    const isAcknowledged = user ? (broadcast.acknowledgedBy || broadcast.readBy || []).includes(user.id) : false;
 
     const typeConfig = {
         emergency: {
@@ -46,7 +46,7 @@ export const BroadcastAlert = ({ broadcast, onDismiss }: BroadcastAlertProps) =>
         },
     };
 
-    const config = typeConfig[broadcast.type];
+    const config = typeConfig[broadcast.type as keyof typeof typeConfig] || typeConfig.info;
     const Icon = config.icon;
 
     return (
@@ -102,7 +102,7 @@ export const BroadcastAlert = ({ broadcast, onDismiss }: BroadcastAlertProps) =>
 
                         {/* Acknowledgment Count */}
                         <div className="text-xs opacity-75">
-                            {broadcast.acknowledgedBy.length} acknowledged
+                            {(broadcast.acknowledgedBy || broadcast.readBy || []).length} acknowledged
                         </div>
                     </div>
                 </div>

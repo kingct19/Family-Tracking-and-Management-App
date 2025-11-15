@@ -4,7 +4,7 @@
  * Store and retrieve user preferences in Firestore
  */
 
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import type { ApiResponse } from '@/types';
 

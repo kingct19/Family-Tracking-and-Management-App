@@ -40,10 +40,12 @@ export class PerformanceMonitor {
             try {
                 const fidObserver = new PerformanceObserver((list) => {
                     const entries = list.getEntries();
-                    entries.forEach((entry: PerformanceEventTiming) => {
-                        const fid = entry.processingStart - entry.startTime;
-                        this.metrics.set('FID', fid);
-                        this.checkBudget('FID', fid);
+                    entries.forEach((entry) => {
+                        if (entry.entryType === 'first-input' && 'processingStart' in entry && 'startTime' in entry) {
+                            const fid = (entry as PerformanceEventTiming).processingStart - entry.startTime;
+                            this.metrics.set('FID', fid);
+                            this.checkBudget('FID', fid);
+                        }
                     });
                 });
                 fidObserver.observe({ entryTypes: ['first-input'] });
@@ -218,7 +220,7 @@ export const performanceUtils = {
     // Service worker performance optimization
     optimizeServiceWorker() {
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').then((registration) => {
+            navigator.serviceWorker.register('/sw.js').then(() => {
                 console.log('Service Worker registered for performance optimization');
             });
         }

@@ -4,7 +4,6 @@ import {
     getHubBroadcasts, 
     acknowledgeBroadcast,
     getUnreadBroadcastsCount,
-    type BroadcastAlert,
     type BroadcastPriority,
     type BroadcastType
 } from '../api/broadcast-api';

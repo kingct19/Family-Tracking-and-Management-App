@@ -1,6 +1,6 @@
 import { collection, addDoc, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { db } from '@/config/firebase';
-import type { ApiResponse } from '@/types/api';
+import type { ApiResponse } from '@/types';
 
 export interface XPRecord {
     id: string;
@@ -123,7 +123,7 @@ export const calculateStreak = async (userId: string): Promise<ApiResponse<numbe
         today.setHours(0, 0, 0, 0);
 
         // Check if user earned XP today
-        const todayRecords = records.data.filter((record) => {
+        const todayRecords = records.data.filter((record: XPRecord) => {
             const recordDate = new Date(record.timestamp);
             recordDate.setHours(0, 0, 0, 0);
             return recordDate.getTime() === today.getTime();
@@ -139,7 +139,7 @@ export const calculateStreak = async (userId: string): Promise<ApiResponse<numbe
         currentDate.setDate(currentDate.getDate() - 1);
 
         for (let i = 0; i < 365; i++) {
-            const dayRecords = records.data.filter((record) => {
+            const dayRecords = records.data.filter((record: XPRecord) => {
                 const recordDate = new Date(record.timestamp);
                 recordDate.setHours(0, 0, 0, 0);
                 return recordDate.getTime() === currentDate.getTime();
@@ -201,6 +201,7 @@ export const getLeaderboard = async (
                 userId,
                 userName: data.userName,
                 totalXP: data.totalXP,
+                photoURL: (data as any).photoURL,
                 rank: 0,
             }))
             .sort((a, b) => b.totalXP - a.totalXP)

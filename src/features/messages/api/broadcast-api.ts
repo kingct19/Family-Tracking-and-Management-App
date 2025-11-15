@@ -10,7 +10,7 @@ import {
     updateDoc
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
-import type { ApiResponse } from '@/types/api';
+import type { ApiResponse } from '@/types';
 
 export type BroadcastPriority = 'low' | 'normal' | 'high' | 'urgent';
 export type BroadcastType = 'announcement' | 'emergency' | 'reminder' | 'alert';
@@ -26,6 +26,7 @@ export interface BroadcastAlert {
     type: BroadcastType;
     timestamp: Date;
     readBy: string[]; // Array of user IDs who have acknowledged the alert
+    acknowledgedBy?: string[]; // Alias for readBy (for backwards compatibility)
     expiresAt?: Date; // Optional expiration time
 }
 

@@ -1,6 +1,6 @@
 import { validateInput } from './validation';
 import { sanitizeInput, sanitizeErrorMessage } from './sanitization';
-import { RATE_LIMITS, generateSecureToken } from './security';
+import { RATE_LIMITS, generateSecureToken, generateCSPHeader } from './security';
 
 // Rate limiting store (in production, use Redis or similar)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
@@ -196,7 +196,7 @@ export const secureSession = () => {
         generateCSRFToken: () => generateSecureToken(16),
         validateSession: (sessionId: string): boolean => {
             // In production, validate against session store
-            return sessionId && sessionId.length >= 16;
+            return Boolean(sessionId && sessionId.length >= 16);
         }
     };
 };
@@ -218,8 +218,8 @@ export const secureApiCall = async <T>(
     try {
         // Rate limiting
         if (options.rateLimitKey) {
-            const rateLimit = rateLimit(RATE_LIMITS.api);
-            const rateResult = rateLimit(options.rateLimitKey);
+            const rateLimiter = rateLimit(RATE_LIMITS.api);
+            const rateResult = rateLimiter(options.rateLimitKey);
             if (!rateResult.allowed) {
                 return { success: false, error: 'Rate limit exceeded' };
             }

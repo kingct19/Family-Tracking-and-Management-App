@@ -68,8 +68,8 @@ const VaultPage = () => {
         return () => clearInterval(interval);
     }, [isAuthenticated]);
 
-    const handleAuthenticated = (pin: string) => {
-        setEncryptionKey(pin);
+    const handleAuthenticated = (pin?: string) => {
+        setEncryptionKey(pin || null);
         setIsAuthenticated(true);
     };
 

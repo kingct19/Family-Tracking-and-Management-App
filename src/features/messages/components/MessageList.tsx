@@ -6,7 +6,6 @@
 
 import { useEffect, useRef } from 'react';
 import { MessageBubble } from './MessageBubble';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { MessageBubbleSkeleton } from '@/components/ui/Skeleton';
 import type { Message } from '@/types';
 

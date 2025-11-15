@@ -9,7 +9,6 @@ import {
     doc,
     addDoc,
     updateDoc,
-    deleteDoc,
     getDocs,
     getDoc,
     query,
@@ -26,6 +25,9 @@ import type {
     CreateGeofenceRequest,
     UpdateGeofenceRequest,
 } from '../types';
+
+// Export types for use in hooks
+export type { CreateGeofenceRequest, UpdateGeofenceRequest } from '../types';
 
 // Collection references
 const getGeofencesRef = (hubId: string) =>

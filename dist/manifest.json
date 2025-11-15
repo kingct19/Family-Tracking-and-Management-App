@@ -1,0 +1,76 @@
+{
+    "short_name": "FamilyTracker",
+    "name": "Family Tracking and Management App",
+    "description": "A comprehensive family tracking and management app with real-time location tracking, task management, and digital vault features",
+    "icons": [
+        {
+            "src": "favicon.ico",
+            "sizes": "64x64 32x32 24x24 16x16",
+            "type": "image/x-icon"
+        },
+        {
+            "src": "logo192.png",
+            "type": "image/png",
+            "sizes": "192x192",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "logo512.png",
+            "type": "image/png",
+            "sizes": "512x512",
+            "purpose": "any maskable"
+        }
+    ],
+    "start_url": ".",
+    "display": "standalone",
+    "theme_color": "#2563eb",
+    "background_color": "#ffffff",
+    "orientation": "portrait-primary",
+    "categories": [
+        "family",
+        "productivity",
+        "lifestyle"
+    ],
+    "lang": "en",
+    "dir": "ltr",
+    "scope": "/",
+    "prefer_related_applications": false,
+    "shortcuts": [
+        {
+            "name": "Dashboard",
+            "short_name": "Dashboard",
+            "description": "View family dashboard",
+            "url": "/dashboard",
+            "icons": [
+                {
+                    "src": "logo192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Location",
+            "short_name": "Location",
+            "description": "View family locations",
+            "url": "/location",
+            "icons": [
+                {
+                    "src": "logo192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Tasks",
+            "short_name": "Tasks",
+            "description": "Manage family tasks",
+            "url": "/tasks",
+            "icons": [
+                {
+                    "src": "logo192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ]
+}

@@ -4,7 +4,7 @@
  * React hooks for real-time messaging
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
     sendMessage,

@@ -24,6 +24,7 @@ interface GeofenceMapEditorProps {
         longitude: number;
     };
     geofence?: {
+        id?: string;
         name: string;
         description?: string;
         type: GeofenceType;
@@ -220,6 +221,7 @@ export const GeofenceMapEditor = ({
                                 radius: 100,
                                 alertOnEntry: true,
                                 alertOnExit: true,
+                                alertRecipients: [],
                             };
                         }
                         console.log('[GeofenceMapEditor] Form data center already set, skipping update');

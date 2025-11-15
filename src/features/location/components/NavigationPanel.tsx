@@ -15,7 +15,6 @@ import {
     FiCheckSquare,
     FiMessageCircle,
     FiUsers,
-    FiShield,
     FiSettings,
     FiLock,
     FiHome,

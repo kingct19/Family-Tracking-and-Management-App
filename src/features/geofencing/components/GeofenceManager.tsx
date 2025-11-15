@@ -25,7 +25,7 @@ export const GeofenceManager = ({
     onDeleteGeofence,
     onCreateGeofence,
 }: GeofenceManagerProps) => {
-    const { geofences, isLoading, deleteGeofence } = useGeofences();
+    const { geofences, isLoading } = useGeofences();
     const [expandedGeofence, setExpandedGeofence] = useState<string | null>(null);
 
     // Debug: Log geofences changes

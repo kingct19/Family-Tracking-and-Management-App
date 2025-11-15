@@ -13,7 +13,7 @@ import { storePINHash, getPINHash, createVaultSession, hasPIN } from '@/lib/serv
 import toast from 'react-hot-toast';
 
 interface VaultAuthGateProps {
-    onAuthenticated: () => void;
+    onAuthenticated: (pin?: string) => void;
     onSetupComplete?: () => void;
 }
 

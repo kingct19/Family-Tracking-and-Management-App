@@ -90,15 +90,7 @@ export const MapView = ({
             return;
         }
 
-        // Check if API key is configured
-        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-        if (!apiKey || apiKey === 'your-google-maps-api-key' || apiKey === '') {
-            console.error('Google Maps API key is not configured');
-            setLoadError('Google Maps API key is missing. Please configure VITE_GOOGLE_MAPS_API_KEY in your .env file.');
-            return;
-        }
-
-        // Use shared loader service
+        // Use shared loader service (will fetch from Secret Manager or env)
         googleMapsLoader
             .load()
             .then((google) => {

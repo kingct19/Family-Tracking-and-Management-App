@@ -4,7 +4,7 @@
  * React hook for managing geofences
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useHubStore } from '@/lib/store/hub-store';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -13,10 +13,8 @@ import {
     createGeofence,
     updateGeofence,
     deleteGeofence,
-    type CreateGeofenceRequest,
-    type UpdateGeofenceRequest,
 } from '../api/geofence-api';
-import type { GeofenceZone } from '../types';
+import type { CreateGeofenceRequest, UpdateGeofenceRequest, GeofenceZone } from '../types';
 import toast from 'react-hot-toast';
 
 /**
@@ -43,7 +41,7 @@ export const useGeofences = () => {
             console.log('[useGeofences] Fetching geofences for hub:', currentHub.id);
             const result = await getGeofences(currentHub.id);
             console.log('[useGeofences] Query result:', result);
-            if (result.success) {
+            if (result.success && result.data) {
                 console.log('[useGeofences] Geofences fetched:', result.data.length, 'geofences');
             } else {
                 console.error('[useGeofences] Query failed:', result.error);
@@ -52,7 +50,7 @@ export const useGeofences = () => {
         },
         enabled: !!currentHub?.id,
         select: (data) => {
-            const selected = data.success ? data.data : [];
+            const selected = data.success && data.data ? data.data : [];
             console.log('[useGeofences] Query select - geofences count:', selected.length);
             return selected;
         },

@@ -201,8 +201,7 @@ class NotificationService {
             const notification = payload.notification;
             if (notification) {
                 toast(notification.title || 'New notification', {
-                    description: notification.body,
-                    icon: notification.icon || '🔔',
+                    // Note: react-hot-toast doesn't support description, using title with body
                     duration: 5000,
                 });
             }

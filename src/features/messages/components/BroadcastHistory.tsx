@@ -99,7 +99,7 @@ export const BroadcastHistory = ({ onClose }: BroadcastHistoryProps) => {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {broadcasts.map((broadcast) => {
+                            {broadcasts.map((broadcast: BroadcastAlert) => {
                                 const acknowledged = isAcknowledged(broadcast);
 
                                 return (

@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { FiX, FiCalendar, FiUser, FiAward, FiFileText } from 'react-icons/fi';
+import { FiX, FiCalendar, FiAward, FiFileText, FiUser } from 'react-icons/fi';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -28,6 +28,7 @@ export interface CreateTaskData {
     weight: number;
     assignedTo?: string;
     status: TaskStatus;
+    requiresProof?: boolean;
 }
 
 const initialFormData: CreateTaskData = {

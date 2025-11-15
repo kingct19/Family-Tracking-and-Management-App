@@ -4,7 +4,7 @@
  * Helps set up new users with a default hub
  */
 
-import { createHub, getUserHubs, joinHub } from '@/lib/api/hub-api';
+import { createHub, getUserHubs } from '@/lib/api/hub-api';
 import { useHubStore } from '@/lib/store/hub-store';
 
 /**

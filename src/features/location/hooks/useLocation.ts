@@ -52,7 +52,7 @@ export const useUserLocation = () => {
         if (user) {
             getUserPreferences(user.id).then((result) => {
                 if (result.success && result.data) {
-                    setIsSharing(result.data.isSharingLocation ?? true); // Default true if not set
+                    setIsSharing(result.data.locationSharingEnabled ?? true); // Default true if not set
                 }
             });
         }

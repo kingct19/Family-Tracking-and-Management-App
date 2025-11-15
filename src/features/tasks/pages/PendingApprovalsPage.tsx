@@ -13,7 +13,7 @@ import { FiCheck, FiX, FiImage, FiClock, FiUser } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import type { Task } from '@/types';
 
-export const PendingApprovalsPage = () => {
+const PendingApprovalsPage = () => {
     const { currentHub } = useHubStore();
     const { user } = useAuth();
     const queryClient = useQueryClient();
@@ -40,7 +40,7 @@ export const PendingApprovalsPage = () => {
 
             // Update task status
             await updateTask(currentHub.id, task.id, {
-                status: 'completed',
+                status: 'done',
                 proofStatus: 'approved',
                 proofReviewedBy: user.id,
                 proofReviewedAt: new Date(),
@@ -223,4 +223,6 @@ export const PendingApprovalsPage = () => {
         </>
     );
 };
+
+export default PendingApprovalsPage;
 

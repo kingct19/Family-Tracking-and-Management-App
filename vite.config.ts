@@ -132,14 +132,31 @@ export default defineConfig({
                 'fsevents'
             ],
             output: {
-                manualChunks: {
-                    vendor: ['react', 'react-dom'],
-                    router: ['react-router-dom'],
-                    firebase: ['firebase'],
-                    query: ['@tanstack/react-query'],
-                    state: ['zustand'],
-                    maps: ['@googlemaps/js-api-loader'],
-                    ui: ['framer-motion', 'react-icons']
+                manualChunks: (id) => {
+                    if (id.includes('node_modules')) {
+                        if (id.includes('react') || id.includes('react-dom')) {
+                            return 'vendor';
+                        }
+                        if (id.includes('react-router')) {
+                            return 'router';
+                        }
+                        if (id.includes('firebase') || id.includes('@firebase')) {
+                            return 'firebase';
+                        }
+                        if (id.includes('@tanstack')) {
+                            return 'query';
+                        }
+                        if (id.includes('zustand')) {
+                            return 'state';
+                        }
+                        if (id.includes('@googlemaps')) {
+                            return 'maps';
+                        }
+                        if (id.includes('framer-motion') || id.includes('react-icons')) {
+                            return 'ui';
+                        }
+                        return 'vendor'; // Other node_modules
+                    }
                 }
             }
         }

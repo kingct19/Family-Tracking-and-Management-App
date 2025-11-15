@@ -78,7 +78,11 @@ export const VaultItemModal = ({
     const handleChange = (field: string, value: any) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
         if (errors[field]) {
-            setErrors((prev) => ({ ...prev, [field]: undefined }));
+            setErrors((prev) => {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            });
         }
     };
 

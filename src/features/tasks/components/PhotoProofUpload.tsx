@@ -110,15 +110,18 @@ export const PhotoProofUpload = ({
                 />
             </div>
 
-            <TextField
-                label="Notes (Optional)"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any additional notes about the completion..."
-                multiline
-                rows={3}
-                fullWidth
-            />
+            <div className="w-full">
+                <label className="block text-label-md text-on-surface mb-2">
+                    Notes (Optional)
+                </label>
+                <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="w-full px-4 py-3 text-body-md text-on-surface bg-surface border-2 rounded-xl border-outline focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                    placeholder="Add any additional notes about the completion..."
+                    rows={3}
+                />
+            </div>
 
             <div className="flex gap-3">
                 <Button

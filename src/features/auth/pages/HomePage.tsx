@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/Button';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import {
     FiMapPin,
     FiCheckSquare,
