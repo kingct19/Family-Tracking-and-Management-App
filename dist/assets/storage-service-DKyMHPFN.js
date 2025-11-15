@@ -1,2 +1,0 @@
-import{D as r,E as a,F as o}from"./firebase-BB8Fp3FL.js";import{s}from"./index-XwJoYhXH.js";const e=async(e,t)=>{try{const n=r(s,t),i=await a(n,e);return await o(i.ref)}catch(n){throw console.error("Upload file error:",n),new Error("Failed to upload file")}},t=async(r,a,o)=>{const s=`${Date.now()}_${r.name}`;return e(r,`tasks/${a}/${o}/${s}`)};export{e as a,t as u};
-//# sourceMappingURL=storage-service-DKyMHPFN.js.map
