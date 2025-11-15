@@ -1,29 +1,29 @@
 {
-    "short_name": "FamilyTracker",
-    "name": "Family Tracking and Management App",
-    "description": "A comprehensive family tracking and management app with real-time location tracking, task management, and digital vault features",
+    "short_name": "HaloHub",
+    "name": "HaloHub - Family Safety & Coordination",
+    "description": "Keep your family safe, organized, and connected with real-time location tracking, task management, and secure communication",
     "icons": [
         {
-            "src": "favicon.ico",
-            "sizes": "64x64 32x32 24x24 16x16",
-            "type": "image/x-icon"
+            "src": "halohub.png",
+            "type": "image/png",
+            "sizes": "512x512",
+            "purpose": "any maskable"
         },
         {
-            "src": "logo192.png",
+            "src": "halohub.png",
             "type": "image/png",
             "sizes": "192x192",
             "purpose": "any maskable"
         },
         {
-            "src": "logo512.png",
-            "type": "image/png",
-            "sizes": "512x512",
-            "purpose": "any maskable"
+            "src": "favicon.ico",
+            "sizes": "64x64 32x32 24x24 16x16",
+            "type": "image/x-icon"
         }
     ],
     "start_url": ".",
     "display": "standalone",
-    "theme_color": "#2563eb",
+    "theme_color": "#6750A4",
     "background_color": "#ffffff",
     "orientation": "portrait-primary",
     "categories": [
@@ -43,7 +43,7 @@
             "url": "/dashboard",
             "icons": [
                 {
-                    "src": "logo192.png",
+                    "src": "halohub.png",
                     "sizes": "192x192"
                 }
             ]
@@ -55,7 +55,7 @@
             "url": "/location",
             "icons": [
                 {
-                    "src": "logo192.png",
+                    "src": "halohub.png",
                     "sizes": "192x192"
                 }
             ]
@@ -67,7 +67,7 @@
             "url": "/tasks",
             "icons": [
                 {
-                    "src": "logo192.png",
+                    "src": "halohub.png",
                     "sizes": "192x192"
                 }
             ]

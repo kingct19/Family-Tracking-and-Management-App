@@ -93,10 +93,14 @@ const HomePage = () => {
 
                     <div className="relative max-w-7xl mx-auto px-4 py-24 sm:px-6 lg:px-8">
                         <div className="text-center">
-                            {/* Animated Icon */}
+                            {/* Animated Logo */}
                             <div className="mb-8 animate-bounce">
-                                <div className="inline-flex items-center justify-center w-24 h-24 bg-white/10 backdrop-blur-sm rounded-full shadow-2xl">
-                                    <FiMapPin size={40} className="text-white" />
+                                <div className="inline-flex items-center justify-center w-24 h-24 bg-white/10 backdrop-blur-sm rounded-[20%] shadow-2xl p-4 overflow-hidden">
+                                    <img 
+                                        src="/halohub.png" 
+                                        alt="HaloHub" 
+                                        className="w-full h-full object-contain"
+                                    />
                                 </div>
                             </div>
 
@@ -247,8 +251,12 @@ const HomePage = () => {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
                             <div className="md:col-span-2">
                                 <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                                        <FiMapPin size={24} className="text-white" />
+                                    <div className="w-12 h-12 rounded-[20%] overflow-hidden bg-transparent">
+                                        <img 
+                                            src="/halohub.png" 
+                                            alt="HaloHub" 
+                                            className="w-full h-full object-contain"
+                                        />
                                     </div>
                                     <h3 className="text-2xl font-bold text-white">HaloHub</h3>
                                 </div>

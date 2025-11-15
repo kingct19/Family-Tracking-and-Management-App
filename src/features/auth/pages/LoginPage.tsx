@@ -17,8 +17,12 @@ const LoginPage = () => {
                     <div className="hidden lg:block">
                         <div className="space-y-6">
                             <div className="flex items-center gap-3">
-                                <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl">
-                                    <FiMapPin size={32} className="text-white" />
+                                <div className="w-16 h-16 rounded-[20%] overflow-hidden bg-transparent shadow-xl">
+                                    <img 
+                                        src="/halohub.png" 
+                                        alt="HaloHub" 
+                                        className="w-full h-full object-contain"
+                                    />
                                 </div>
                                 <h2 className="text-4xl font-bold text-gray-900">HaloHub</h2>
                             </div>

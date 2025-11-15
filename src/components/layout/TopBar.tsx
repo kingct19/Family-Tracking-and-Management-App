@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useUIStore } from '@/lib/store/ui-store';
 import { useHubStore } from '@/lib/store/hub-store';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -36,6 +36,20 @@ export const TopBar = () => {
                     >
                         <FiMenu size={20} className="text-gray-700" />
                     </button>
+
+                    {/* Logo */}
+                    <Link to="/map" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                        <div className="h-8 w-8 rounded-[20%] overflow-hidden bg-transparent shadow-sm">
+                            <img 
+                                src="/halohub.png" 
+                                alt="HaloHub" 
+                                className="w-full h-full object-contain"
+                            />
+                        </div>
+                        <span className="hidden sm:block text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                            HaloHub
+                        </span>
+                    </Link>
 
                     {/* Hub Selector */}
                     <HubSelector />

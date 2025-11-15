@@ -47,6 +47,14 @@
             transition-duration: 0.01ms !important;
         }
     }
+
+    /* App logo styling - remove black backgrounds and ensure proper display */
+    img[src*="halohub.png"] {
+        background: transparent !important;
+        border: none !important;
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
 }
 
 /* Component Styles */

@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useHubStore } from '@/lib/store/hub-store';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -82,6 +82,22 @@ export const Sidebar = () => {
 
     return (
         <nav className="h-full flex flex-col py-4">
+            {/* Logo Header */}
+            <div className="px-4 mb-6 pb-4 border-b border-outline-variant">
+                <Link to="/map" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <div className="h-10 w-10 rounded-[20%] overflow-hidden bg-transparent shadow-sm">
+                        <img 
+                            src="/halohub.png" 
+                            alt="HaloHub" 
+                            className="w-full h-full object-contain"
+                        />
+                    </div>
+                    <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                        HaloHub
+                    </span>
+                </Link>
+            </div>
+
             <div className="flex-1 space-y-1 px-2">
                 {visibleNavItems.map((item) => (
                     <NavLink
