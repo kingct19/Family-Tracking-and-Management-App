@@ -62,6 +62,7 @@ export const MapView = ({
     const infoWindowsRef = useRef<Map<string, google.maps.InfoWindow>>(new Map());
     const currentUserMarkerRef = useRef<google.maps.Marker | null>(null);
     const geofenceCirclesRef = useRef<Map<string, google.maps.Circle>>(new Map());
+    const hasCenteredRef = useRef(false); // Use ref to track centering state
 
     const [isMapLoaded, setIsMapLoaded] = useState(false);
     const [loadError, setLoadError] = useState<string | null>(null);
@@ -78,7 +79,7 @@ export const MapView = ({
         return () => clearTimeout(timeout);
     }, [isMapLoaded, loadError]);
 
-    // Initialize Google Map
+    // Initialize Google Map (only once)
     useEffect(() => {
         // Prevent re-initialization if already loaded
         if (isMapLoaded || googleMapRef.current) {
@@ -118,6 +119,23 @@ export const MapView = ({
                 });
 
                 setIsMapLoaded(true);
+                
+                // If we already have location, center immediately
+                if (currentLocation) {
+                    const center = new google.maps.LatLng(
+                        currentLocation.latitude,
+                        currentLocation.longitude
+                    );
+                    googleMapRef.current.setCenter(center);
+                    googleMapRef.current.setZoom(15);
+                    hasCenteredRef.current = true;
+                    console.log('[MapView] Map initialized with user location:', {
+                        lat: currentLocation.latitude,
+                        lng: currentLocation.longitude,
+                    });
+                } else {
+                    console.log('[MapView] Map initialized without location, will center when available');
+                }
             })
             .catch((error) => {
                 console.error('Error loading Google Maps:', error);
@@ -131,14 +149,28 @@ export const MapView = ({
     }, []); // Run once on mount
 
     // Center map on user's current location when it becomes available
+    // This handles the case where location is obtained after map initialization
     useEffect(() => {
-        if (googleMapRef.current && currentLocation && isMapLoaded) {
+        if (!googleMapRef.current || !currentLocation || !isMapLoaded) {
+            return;
+        }
+
+        // Only center once when location first becomes available
+        if (!hasCenteredRef.current) {
             const center = new google.maps.LatLng(
                 currentLocation.latitude,
                 currentLocation.longitude
             );
-            googleMapRef.current.setCenter(center);
-            googleMapRef.current.setZoom(15); // Zoom in closer when user location is found
+            
+            // Smoothly pan to user location
+            googleMapRef.current.panTo(center);
+            googleMapRef.current.setZoom(15);
+            hasCenteredRef.current = true;
+            
+            console.log('[MapView] Centered map on user location (first time):', {
+                lat: currentLocation.latitude,
+                lng: currentLocation.longitude,
+            });
         }
     }, [currentLocation, isMapLoaded]);
 
