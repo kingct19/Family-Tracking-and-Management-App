@@ -603,12 +603,12 @@ export const GeofenceMapEditor = ({
                             if (center) {
         const radius = circleRef.current.getRadius();
                                 const angles = [0, 90, 180, 270];
-                                resizeMarkersRef.current.forEach((marker, index) => {
+                                resizeMarkersRef.current.forEach((marker, _index) => {
                                     if (marker && center) {
                                         const point = google.maps.geometry.spherical.computeOffset(
                                             center,
                                             radius,
-                                            angles[index]
+                                            angles[_index]
                                         );
                                         marker.setPosition(point);
                                     }

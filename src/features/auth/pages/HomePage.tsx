@@ -12,6 +12,8 @@ import {
 } from 'react-icons/fi';
 import { useAuth } from '../hooks/useAuth';
 
+// Icons are used in the component, so this import is needed
+
 const HomePage = () => {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
