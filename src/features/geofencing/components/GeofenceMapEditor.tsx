@@ -914,12 +914,12 @@ export const GeofenceMapEditor = ({
             if (circleCenter) {
                 console.log('[GeofenceMapEditor] Updating resize markers positions');
                 const angles = [0, 90, 180, 270];
-                resizeMarkersRef.current.forEach((marker, index) => {
+                resizeMarkersRef.current.forEach((marker, _index) => {
                     if (marker) {
                         const point = google.maps.geometry.spherical.computeOffset(
                             circleCenter,
                             formData.radius,
-                            angles[index]
+                            angles[_index]
                         );
                         marker.setPosition(point);
                         marker.setIcon({
