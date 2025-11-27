@@ -2,18 +2,26 @@ import { format } from 'date-fns';
 import { Card, CardHeader, CardContent, CardActions } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import {
-    FiCheckCircle,
-    FiUser,
-    FiMoreVertical,
-    FiTrash2,
-    FiEdit2,
-} from 'react-icons/fi';
+    MdCheckCircle,
+    MdPerson,
+    MdMoreVert,
+    MdDelete,
+    MdEdit,
+    MdUpload,
+    MdCheck,
+    MdClose,
+} from 'react-icons/md';
 import type { Task } from '@/types';
 import { cn } from '@/lib/utils/cn';
 
 interface TaskCardProps {
     task: Task;
-    onComplete?: (taskId: string) => void;
+    currentUserId?: string;
+    onAccept?: (taskId: string) => void;
+    onUpload?: (task: Task) => void;
+    onSubmit?: (task: Task) => void;
+    onApprove?: (task: Task) => void;
+    onUnassign?: (taskId: string) => void;
     onEdit?: (task: Task) => void;
     onDelete?: (taskId: string) => void;
     onViewDetails?: (task: Task) => void;
@@ -23,7 +31,12 @@ interface TaskCardProps {
 
 export const TaskCard = ({
     task,
-    onComplete,
+    currentUserId,
+    onAccept,
+    onUpload,
+    onSubmit,
+    onApprove,
+    onUnassign,
     onEdit,
     onDelete,
     onViewDetails,
@@ -32,8 +45,10 @@ export const TaskCard = ({
 }: TaskCardProps) => {
     const isPending = task.status === 'pending';
     const isAssigned = task.status === 'assigned';
+    const isSubmitted = task.status === 'submitted';
     const isDone = task.status === 'done';
     const isOverdue = task.deadline && new Date(task.deadline) < new Date() && !isDone;
+    const isAssignedToMe = currentUserId && task.assignedTo === currentUserId;
 
     const statusConfig = {
         pending: { label: 'Pending', color: 'text-outline' },
@@ -66,7 +81,7 @@ export const TaskCard = ({
                             className="p-2 rounded-full hover:bg-surface-variant"
                             aria-label="Task options"
                         >
-                            <FiMoreVertical size={20} className="text-on-variant" />
+                            <MdMoreVert size={20} className="text-on-variant" />
                         </button>
                     )
                 }
@@ -91,7 +106,7 @@ export const TaskCard = ({
                     {/* Assignee */}
                     {task.assignedTo && (
                         <div className="flex items-center gap-1 text-on-variant">
-                            <FiUser size={16} />
+                            <MdPerson size={16} />
                             <span className="text-label-sm">Assigned</span>
                         </div>
                     )}
@@ -100,52 +115,135 @@ export const TaskCard = ({
 
             {showActions && (
                 <CardActions>
-                    {/* Complete button for assigned tasks */}
-                    {isAssigned && onComplete && !isAdmin && (
-                        <Button
-                            variant="filled"
-                            size="small"
-                            startIcon={<FiCheckCircle size={16} />}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onComplete(task.id);
-                            }}
-                        >
-                            Complete
-                        </Button>
+                    {/* CHILD (Member) Actions */}
+                    {!isAdmin && isAssignedToMe && (
+                        <>
+                            {/* Accept button - moves ASSIGNED to PENDING */}
+                            {isAssigned && onAccept && (
+                                <Button
+                                    variant="filled"
+                                    size="small"
+                                    startIcon={<MdCheckCircle size={16} />}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onAccept(task.id);
+                                    }}
+                                    className="flex-1 sm:flex-initial min-w-0"
+                                >
+                                    <span className="truncate">Accept</span>
+                                </Button>
+                            )}
+
+                            {/* Upload/Submit buttons - for PENDING tasks */}
+                            {isPending && isAssignedToMe && (
+                                <>
+                                    {/* Upload button - when no proof yet */}
+                                    {!task.proofURL && onUpload && (
+                                        <Button
+                                            variant="filled"
+                                            size="small"
+                                            startIcon={<MdUpload size={16} />}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onUpload(task);
+                                            }}
+                                            className="flex-1 sm:flex-initial min-w-0"
+                                        >
+                                            <span className="truncate">Upload</span>
+                                        </Button>
+                                    )}
+
+                                    {/* Submit button - when proof exists */}
+                                    {task.proofURL && onSubmit && (
+                                        <Button
+                                            variant="filled"
+                                            size="small"
+                                            startIcon={<MdCheck size={16} />}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onSubmit(task);
+                                            }}
+                                            className="flex-1 sm:flex-initial min-w-0"
+                                        >
+                                            <span className="truncate">Submit</span>
+                                        </Button>
+                                    )}
+                                </>
+                            )}
+                        </>
                     )}
 
-                    {/* Edit button for admins */}
-                    {isAdmin && onEdit && (
-                        <Button
-                            variant="tonal"
-                            size="small"
-                            startIcon={<FiEdit2 size={16} />}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit(task);
-                            }}
-                        >
-                            Edit
-                        </Button>
-                    )}
+                    {/* PARENT (Admin) Actions */}
+                    {isAdmin && (
+                        <>
+                            {/* Unassign button - for ASSIGNED tasks */}
+                            {isAssigned && onUnassign && (
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    startIcon={<MdClose size={16} />}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (confirm('Are you sure you want to unassign this task?')) {
+                                            onUnassign(task.id);
+                                        }
+                                    }}
+                                    className="flex-1 sm:flex-initial min-w-0"
+                                >
+                                    <span className="truncate">Unassign</span>
+                                </Button>
+                            )}
 
-                    {/* Delete button for admins */}
-                    {isAdmin && onDelete && (isPending || isAssigned) && (
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<FiTrash2 size={16} />}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (confirm('Are you sure you want to delete this task?')) {
-                                    onDelete(task.id);
-                                }
-                            }}
-                            className="ml-auto"
-                        >
-                            Delete
-                        </Button>
+                            {/* Approve button - for SUBMITTED tasks */}
+                            {isSubmitted && onApprove && (
+                                <Button
+                                    variant="filled"
+                                    size="small"
+                                    startIcon={<MdCheck size={16} />}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onApprove(task);
+                                    }}
+                                    className="bg-green-600 hover:bg-green-700 text-white flex-1 sm:flex-initial min-w-0"
+                                >
+                                    <span className="truncate">Approve</span>
+                                </Button>
+                            )}
+
+                            {/* Edit button */}
+                            {onEdit && (
+                                <Button
+                                    variant="tonal"
+                                    size="small"
+                                    startIcon={<MdEdit size={16} />}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEdit(task);
+                                    }}
+                                    className="flex-1 sm:flex-initial min-w-0"
+                                >
+                                    <span className="truncate">Edit</span>
+                                </Button>
+                            )}
+
+                            {/* Delete button - for ASSIGNED tasks */}
+                            {isAssigned && onDelete && (
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    startIcon={<MdDelete size={16} />}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (confirm('Are you sure you want to delete this task?')) {
+                                            onDelete(task.id);
+                                        }
+                                    }}
+                                    className="flex-1 sm:flex-initial min-w-0"
+                                >
+                                    <span className="truncate">Delete</span>
+                                </Button>
+                            )}
+                        </>
                     )}
                 </CardActions>
             )}

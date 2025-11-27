@@ -18,13 +18,13 @@ export const TypingIndicator = ({ typingUsers }: TypingIndicatorProps) => {
     };
 
     return (
-        <div className="px-4 md:px-6 py-2 flex items-center gap-2">
+        <div className="px-3 sm:px-4 md:px-6 py-2 flex items-center gap-2">
             <div className="flex gap-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="w-2 h-2 bg-on-variant rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-2 h-2 bg-on-variant rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-2 h-2 bg-on-variant rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
-            <span className="text-sm text-gray-600 italic">{getTypingText()}</span>
+            <span className="text-label-sm sm:text-body-sm text-on-variant italic">{getTypingText()}</span>
         </div>
     );
 };

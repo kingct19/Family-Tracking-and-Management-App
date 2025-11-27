@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createCheckIn, getUserCheckIns, getHubCheckIns, type CreateCheckInRequest } from '../api/checkin-api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useHubStore } from '@/lib/store/hub-store';
-import { getAddressFromCoordinates } from '@/lib/services/geocoding-service';
+import { geocodingService } from '@/lib/services/geocoding-service';
 import toast from 'react-hot-toast';
 
 /**
@@ -28,10 +28,11 @@ export const useCreateCheckIn = () => {
             // Try to get address from coordinates (optional, won't fail if it doesn't work)
             let address: string | undefined;
             try {
-                address = await getAddressFromCoordinates(
+                const addressResult = await geocodingService.reverseGeocode(
                     data.coordinates.latitude,
                     data.coordinates.longitude
                 );
+                address = addressResult?.formatted;
             } catch (error) {
                 // Address lookup failed - continue without it
                 console.warn('Failed to get address:', error);

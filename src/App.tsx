@@ -30,6 +30,8 @@ const MessagesPage = lazy(() => import('@/features/messages/pages/MessagesPage')
 const VaultPage = lazy(() => import('@/features/vault/pages/VaultPage'));
 const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage'));
 const ProfilePage = lazy(() => import('@/features/profile/pages/ProfilePage'));
+const RewardsPage = lazy(() => import('@/features/rewards/pages/RewardsPage'));
+const RewardsManagementPage = lazy(() => import('@/features/rewards/pages/RewardsManagementPage'));
 const NotFoundPage = lazy(() => import('@/features/auth/pages/NotFoundPage'));
 
 // Layout components
@@ -76,6 +78,8 @@ function App() {
                   <Route path="/vault" element={<VaultPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/rewards" element={<RewardsPage />} />
+                  <Route path="/rewards/manage" element={<RewardsManagementPage />} />
                 </Route>
 
                 {/* 404 Route */}

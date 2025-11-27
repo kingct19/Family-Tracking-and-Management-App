@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { FiX, FiCalendar, FiAward, FiFileText, FiUser } from 'react-icons/fi';
+import { MdClose, MdCalendarToday, MdStar, MdDescription, MdPerson } from 'react-icons/md';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -128,7 +128,7 @@ export const TaskModal = ({ isOpen, onClose, onSave, task, isLoading = false }: 
                         className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                         aria-label="Close"
                     >
-                        <FiX size={24} className="text-gray-600" />
+                        <MdClose size={24} className="text-gray-600" />
                     </button>
                 </div>
 
@@ -143,7 +143,7 @@ export const TaskModal = ({ isOpen, onClose, onSave, task, isLoading = false }: 
                             placeholder="Enter task title"
                             required
                             error={errors.title}
-                            startAdornment={<FiFileText size={20} className="text-gray-400" />}
+                            startAdornment={<MdDescription size={20} className="text-gray-400" />}
                         />
 
                         {/* Description */}
@@ -172,7 +172,7 @@ export const TaskModal = ({ isOpen, onClose, onSave, task, isLoading = false }: 
                         {/* Assign To */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                <FiUser size={16} className="inline mr-1" />
+                                <MdPerson size={16} className="inline mr-1" />
                                 Assign To (Optional)
                             </label>
                             {isLoadingMembers ? (
@@ -213,7 +213,7 @@ export const TaskModal = ({ isOpen, onClose, onSave, task, isLoading = false }: 
                             {/* Deadline */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    <FiCalendar size={16} className="inline mr-1" />
+                                    <MdCalendarToday size={16} className="inline mr-1" />
                                     Deadline
                                 </label>
                                 <input
@@ -237,7 +237,7 @@ export const TaskModal = ({ isOpen, onClose, onSave, task, isLoading = false }: 
                             {/* Weight/XP */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    <FiAward size={16} className="inline mr-1" />
+                                    <MdStar size={16} className="inline mr-1" />
                                     XP Value
                                 </label>
                                 <input

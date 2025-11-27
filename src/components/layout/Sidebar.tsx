@@ -3,14 +3,15 @@ import type { ReactNode } from 'react';
 import { useHubStore } from '@/lib/store/hub-store';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import {
-    FiHome,
-    FiMapPin,
-    FiCheckSquare,
-    FiMessageCircle,
-    FiLock,
-    FiSettings,
-    FiLogOut,
-} from 'react-icons/fi';
+    MdHome,
+    MdLocationOn,
+    MdTaskAlt,
+    MdChat,
+    MdLock,
+    MdSettings,
+    MdLogout,
+    MdEmojiEvents,
+} from 'react-icons/md';
 import { cn } from '@/lib/utils/cn';
 import toast from 'react-hot-toast';
 
@@ -40,36 +41,41 @@ export const Sidebar = () => {
     const navItems: NavItem[] = [
         {
             to: '/map',
-            icon: <FiMapPin size={20} />,
+            icon: <MdLocationOn size={20} />,
             label: 'Map',
             feature: 'location',
         },
         {
+            to: '/dashboard',
+            icon: <MdHome size={20} />,
+            label: 'Dashboard',
+        },
+        {
             to: '/tasks',
-            icon: <FiCheckSquare size={20} />,
+            icon: <MdTaskAlt size={20} />,
             label: 'Tasks',
             feature: 'tasks',
         },
         {
             to: '/messages',
-            icon: <FiMessageCircle size={20} />,
+            icon: <MdChat size={20} />,
             label: 'Messages',
             feature: 'chat',
         },
         {
             to: '/vault',
-            icon: <FiLock size={20} />,
+            icon: <MdLock size={20} />,
             label: 'Vault',
             feature: 'vault',
         },
         {
-            to: '/dashboard',
-            icon: <FiHome size={20} />,
-            label: 'Dashboard',
+            to: '/rewards',
+            icon: <MdEmojiEvents size={20} />,
+            label: 'Rewards',
         },
         {
             to: '/settings',
-            icon: <FiSettings size={20} />,
+            icon: <MdSettings size={20} />,
             label: 'Settings',
         },
     ];
@@ -82,22 +88,6 @@ export const Sidebar = () => {
 
     return (
         <nav className="h-full flex flex-col py-4">
-            {/* Logo Header */}
-            <div className="px-4 mb-6 pb-4 border-b border-outline-variant">
-                <Link to="/map" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                    <div className="h-10 w-10 rounded-[20%] overflow-hidden bg-transparent shadow-sm">
-                        <img 
-                            src="/halohub.png" 
-                            alt="HaloHub" 
-                            className="w-full h-full object-contain"
-                        />
-                    </div>
-                    <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                        HaloHub
-                    </span>
-                </Link>
-            </div>
-
             <div className="flex-1 space-y-1 px-2 overflow-y-auto">
                 {visibleNavItems.map((item) => (
                     <NavLink
@@ -135,7 +125,7 @@ export const Sidebar = () => {
                         }
                     )}
                 >
-                    <FiLogOut size={20} className="flex-shrink-0" />
+                    <MdLogout size={20} className="flex-shrink-0" />
                     <span className="truncate">{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
                 </button>
             </div>

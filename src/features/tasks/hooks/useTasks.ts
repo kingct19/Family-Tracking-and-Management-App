@@ -9,6 +9,9 @@ import {
     deleteTask,
     assignTask,
     completeTask,
+    acceptTask,
+    approveTaskProof,
+    unassignTask,
 } from '../api/task-api';
 import { awardXP } from '@/features/xp/api/xp-api';
 import type { CreateTaskFormData } from '@/lib/validation/task-schemas';
@@ -172,6 +175,89 @@ export const useCompleteTask = () => {
             queryClient.invalidateQueries({ queryKey: ['tasks', 'hub', currentHub?.id] });
             queryClient.invalidateQueries({ queryKey: ['xpRecords'] });
             queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+        },
+    });
+};
+
+/**
+ * Hook to accept a task (moves from ASSIGNED to PENDING)
+ */
+export const useAcceptTask = () => {
+    const queryClient = useQueryClient();
+    const { currentHub } = useHubStore();
+
+    return useMutation({
+        mutationFn: async (taskId: string) => {
+            if (!currentHub) throw new Error('No hub selected');
+            const response = await acceptTask(currentHub.id, taskId);
+            if (!response.success) throw new Error(response.error);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['tasks', 'hub', currentHub?.id] });
+            toast.success('Task accepted!');
+        },
+    });
+};
+
+/**
+ * Hook to approve task proof (moves from SUBMITTED to DONE)
+ */
+export const useApproveTaskProof = () => {
+    const queryClient = useQueryClient();
+    const { currentHub } = useHubStore();
+    const { user } = useAuth();
+
+    return useMutation({
+        mutationFn: async ({ taskId, assignedToUserId }: { taskId: string; assignedToUserId: string }) => {
+            if (!currentHub) throw new Error('No hub selected');
+            if (!user) throw new Error('User not authenticated');
+            
+            const response = await approveTaskProof(currentHub.id, taskId, user.id);
+            if (!response.success) throw new Error(response.error);
+            
+            // Award XP to the user who completed the task
+            const taskResponse = await getHubTasks(currentHub.id);
+            if (taskResponse.success && taskResponse.data) {
+                const task = taskResponse.data.find(t => t.id === taskId);
+                if (task) {
+                    const xpAmount = task.weight * 10; // 10 XP per weight point
+                    await awardXP({
+                        userId: assignedToUserId,
+                        userName: `User ${assignedToUserId.slice(0, 8)}`, // TODO: Get actual user name
+                        amount: xpAmount,
+                        source: 'task_completion',
+                        sourceId: taskId,
+                        description: `Completed task: ${task.title}`,
+                        hubId: currentHub.id,
+                    });
+                }
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['tasks', 'hub', currentHub?.id] });
+            queryClient.invalidateQueries({ queryKey: ['xpRecords'] });
+            queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+            toast.success('Task approved and XP awarded!');
+        },
+    });
+};
+
+/**
+ * Hook to unassign a task
+ */
+export const useUnassignTask = () => {
+    const queryClient = useQueryClient();
+    const { currentHub } = useHubStore();
+
+    return useMutation({
+        mutationFn: async (taskId: string) => {
+            if (!currentHub) throw new Error('No hub selected');
+            const response = await unassignTask(currentHub.id, taskId);
+            if (!response.success) throw new Error(response.error);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['tasks', 'hub', currentHub?.id] });
+            toast.success('Task unassigned');
         },
     });
 };

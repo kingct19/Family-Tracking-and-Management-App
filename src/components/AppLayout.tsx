@@ -24,20 +24,20 @@ const AppLayout = () => {
     return (
         <div className={cn('min-h-screen bg-background flex flex-col', isFullScreenPage && 'relative')}>
             {/* Top Bar - All pages (absolute for full-screen, relative for normal) */}
-            <div className={cn(isFullScreenPage && 'absolute top-0 left-0 right-0 z-50')}>
+            <div className={cn(isFullScreenPage && 'absolute top-0 left-0 right-0 z-50', 'relative z-50')}>
                 <TopBar />
             </div>
 
-            {/* Mobile Sidebar Drawer (for full-screen pages) */}
-            {isFullScreenPage && isSidebarOpen && (
+            {/* Sidebar Drawer - Blurred background overlay for ALL pages */}
+            {isSidebarOpen && (
                 <>
-                    {/* Backdrop */}
+                    {/* Backdrop with blur - Always shown */}
                     <div
                         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]"
                         onClick={() => setSidebarOpen(false)}
                     />
                     
-                    {/* Drawer - Mobile optimized */}
+                    {/* Drawer - Always shown as overlay, never resizes content */}
                     <aside className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-2xl z-[70] transform transition-transform duration-300 animate-in slide-in-from-left safe-top safe-bottom">
                         {/* Header */}
                         <div className="flex items-center justify-between px-4 py-3.5 sm:py-4 border-b border-gray-200 safe-top">
@@ -60,19 +60,6 @@ const AppLayout = () => {
             )}
 
             <div className="flex flex-1 overflow-hidden relative">
-                {/* Sidebar - Desktop (only on non-full-screen pages) */}
-                {!isFullScreenPage && (
-                    <aside
-                        className={cn(
-                            'hidden md:block w-64 bg-surface border-r border-outline-variant transition-transform duration-normal',
-                            isSidebarOpen
-                                ? 'relative z-10'
-                                : 'absolute left-0 top-0 bottom-0 -translate-x-full z-0'
-                        )}
-                    >
-                        <Sidebar />
-                    </aside>
-                )}
 
                 {/* Main Content */}
                 <main

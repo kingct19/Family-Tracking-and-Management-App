@@ -1,109 +1,137 @@
 /**
  * Geocoding Service
  * 
- * Reverse geocoding using Google Maps Geocoding API
- * - Get address from coordinates
- * - Handle errors gracefully
+ * Reverse geocoding to convert coordinates to addresses
+ * Uses Google Maps Geocoding API with caching
  */
 
-import { googleMapsLoader } from './google-maps-loader';
-
-export interface GeocodeResult {
-    address: string;
-    formattedAddress?: string;
-    components?: {
-        street?: string;
-        city?: string;
-        state?: string;
-        country?: string;
-        postalCode?: string;
-    };
+export interface Address {
+    formatted: string;
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
 }
 
-/**
- * Reverse geocode coordinates to get address
- */
-export const reverseGeocode = async (
-    latitude: number,
-    longitude: number
-): Promise<GeocodeResult | null> => {
-    try {
-        // Load Google Maps if not already loaded
-        const google = await googleMapsLoader.load();
+interface GeocodeResult {
+    formatted_address: string;
+    address_components: Array<{
+        long_name: string;
+        short_name: string;
+        types: string[];
+    }>;
+}
 
-        // Create geocoder instance
-        const geocoder = new google.maps.Geocoder();
+class GeocodingService {
+    private cache = new Map<string, Address>();
+    private readonly CACHE_PRECISION = 4; // Decimal places for cache key
 
-        // Perform reverse geocoding
-        return new Promise((resolve, reject) => {
-            geocoder.geocode(
-                {
-                    location: { lat: latitude, lng: longitude },
-                },
-                (results, status) => {
-                    if (status === 'OK' && results && results.length > 0) {
-                        const result = results[0];
-                        const addressComponents = result.address_components || [];
-                        
-                        // Extract address components
-                        const components: GeocodeResult['components'] = {};
-                        
-                        addressComponents.forEach((component) => {
-                            const types = component.types;
-                            if (types.includes('street_number') || types.includes('route')) {
-                                components.street = component.long_name;
-                            } else if (types.includes('locality')) {
-                                components.city = component.long_name;
-                            } else if (types.includes('administrative_area_level_1')) {
-                                components.state = component.short_name;
-                            } else if (types.includes('country')) {
-                                components.country = component.short_name;
-                            } else if (types.includes('postal_code')) {
-                                components.postalCode = component.short_name;
-                            }
-                        });
+    /**
+     * Reverse geocode coordinates to address
+     */
+    async reverseGeocode(lat: number, lng: number): Promise<Address | null> {
+        const cacheKey = `${lat.toFixed(this.CACHE_PRECISION)},${lng.toFixed(this.CACHE_PRECISION)}`;
+        
+        // Check cache first
+        if (this.cache.has(cacheKey)) {
+            return this.cache.get(cacheKey)!;
+        }
 
-                        // Build formatted address
-                        const formattedAddress = result.formatted_address;
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+        if (!apiKey) {
+            console.warn('Google Maps API key not configured');
+            return null;
+        }
 
-                        // Build simple address string
-                        const addressParts: string[] = [];
-                        if (components.street) addressParts.push(components.street);
-                        if (components.city) addressParts.push(components.city);
-                        if (components.state) addressParts.push(components.state);
-                        const address = addressParts.length > 0 
-                            ? addressParts.join(', ') 
-                            : result.formatted_address || `${latitude}, ${longitude}`;
+        try {
+            const response = await fetch(
+                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey as string}`
+            );
 
-                        resolve({
-                            address,
-                            formattedAddress,
-                            components,
-                        });
-                    } else {
-                        // Geocoding failed - return null (not an error)
-                        console.warn('Reverse geocoding failed:', status);
-                        resolve(null);
+            if (!response.ok) {
+                throw new Error(`Geocoding API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.status === 'OK' && data.results && data.results.length > 0) {
+                const result: GeocodeResult = data.results[0];
+                const address = this.parseAddress(result);
+                
+                // Cache the result
+                this.cache.set(cacheKey, address);
+                
+                // Limit cache size (keep last 100)
+                if (this.cache.size > 100) {
+                    const firstKey = this.cache.keys().next().value;
+                    if (firstKey) {
+                        this.cache.delete(firstKey);
                     }
                 }
-            );
-        });
-    } catch (error) {
-        // Geocoding service not available - return null (not an error)
-        console.warn('Geocoding service not available:', error);
-        return null;
+                
+                return address;
+            } else if (data.status === 'ZERO_RESULTS') {
+                return null;
+            } else {
+                console.error('Geocoding error:', data.status, data.error_message);
+                return null;
+            }
+        } catch (error) {
+            console.error('Geocoding service error:', error);
+            return null;
+        }
     }
-};
 
-/**
- * Get a simple address string from coordinates
- * Returns coordinates if geocoding fails
- */
-export const getAddressFromCoordinates = async (
-    latitude: number,
-    longitude: number
-): Promise<string> => {
-    const result = await reverseGeocode(latitude, longitude);
-    return result?.address || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-};
+    /**
+     * Parse Google Geocoding API result into Address object
+     */
+    private parseAddress(result: GeocodeResult): Address {
+        const components = result.address_components || [];
+        
+        const address: Address = {
+            formatted: result.formatted_address,
+        };
 
+        components.forEach((component) => {
+            const types = component.types;
+            
+            if (types.includes('street_number')) {
+                address.street = (address.street || '') + component.long_name + ' ';
+            } else if (types.includes('route')) {
+                address.street = (address.street || '') + component.long_name;
+            } else if (types.includes('locality')) {
+                address.city = component.long_name;
+            } else if (types.includes('administrative_area_level_1')) {
+                address.state = component.long_name;
+            } else if (types.includes('postal_code')) {
+                address.zipCode = component.long_name;
+            } else if (types.includes('country')) {
+                address.country = component.long_name;
+            }
+        });
+
+        // Clean up street (remove trailing space)
+        if (address.street) {
+            address.street = address.street.trim();
+        }
+
+        return address;
+    }
+
+    /**
+     * Clear the cache
+     */
+    clearCache(): void {
+        this.cache.clear();
+    }
+
+    /**
+     * Get cache size
+     */
+    getCacheSize(): number {
+        return this.cache.size;
+    }
+}
+
+export const geocodingService = new GeocodingService();

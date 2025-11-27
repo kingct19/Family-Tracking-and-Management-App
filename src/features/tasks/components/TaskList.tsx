@@ -5,7 +5,12 @@ import { cn } from '@/lib/utils/cn';
 
 interface TaskListProps {
     tasks: Task[];
-    onComplete?: (taskId: string) => void;
+    currentUserId?: string;
+    onAccept?: (taskId: string) => void;
+    onUpload?: (task: Task) => void;
+    onSubmit?: (task: Task) => void;
+    onApprove?: (task: Task) => void;
+    onUnassign?: (taskId: string) => void;
     onEdit?: (task: Task) => void;
     onDelete?: (taskId: string) => void;
     onViewDetails?: (task: Task) => void;
@@ -16,7 +21,12 @@ interface TaskListProps {
 
 export const TaskList = ({
     tasks,
-    onComplete,
+    currentUserId,
+    onAccept,
+    onUpload,
+    onSubmit,
+    onApprove,
+    onUnassign,
     onEdit,
     onDelete,
     onViewDetails,
@@ -62,17 +72,23 @@ export const TaskList = ({
     }
 
     return (
-        <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 w-full min-w-0">
             {sortedTasks.map((task) => (
-                <TaskCard
-                    key={task.id}
-                    task={task}
-                    onComplete={onComplete}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                    onViewDetails={onViewDetails}
-                    isAdmin={isAdmin}
-                />
+                <div key={task.id} className="min-w-0 w-full">
+                    <TaskCard
+                        task={task}
+                        currentUserId={currentUserId}
+                        onAccept={onAccept}
+                        onUpload={onUpload}
+                        onSubmit={onSubmit}
+                        onApprove={onApprove}
+                        onUnassign={onUnassign}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onViewDetails={onViewDetails}
+                        isAdmin={isAdmin}
+                    />
+                </div>
             ))}
         </div>
     );

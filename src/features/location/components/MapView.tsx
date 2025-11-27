@@ -17,6 +17,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { geofenceDetectionService } from '../../geofencing/services/geofence-detection';
 import { alertService } from '../../geofencing/services/alert-service';
+import { LocationHistoryView } from './LocationHistoryView';
 import type { UserLocation } from '../api/location-api';
 
 // Using shared Google Maps loader service
@@ -40,6 +41,8 @@ interface MapViewProps {
     zoom?: number;
     showControls?: boolean;
     onGeofenceClick?: (geofenceId: string) => void;
+    showHistoryForUserId?: string | null;
+    historyHours?: number;
 }
 
 export const MapView = ({
@@ -47,6 +50,8 @@ export const MapView = ({
     zoom = 13,
     showControls = true,
     onGeofenceClick,
+    showHistoryForUserId = null,
+    historyHours = 24,
 }: MapViewProps) => {
     const { currentHub } = useHubStore();
     const { user } = useAuth();
@@ -724,6 +729,15 @@ export const MapView = ({
                         {locations.length} {locations.length === 1 ? 'member' : 'members'} online
                     </p>
                 </div>
+            )}
+
+            {/* Location History Visualization */}
+            {showHistoryForUserId && googleMapRef.current && (
+                <LocationHistoryView
+                    userId={showHistoryForUserId}
+                    map={googleMapRef.current}
+                    hours={historyHours}
+                />
             )}
         </div>
     );

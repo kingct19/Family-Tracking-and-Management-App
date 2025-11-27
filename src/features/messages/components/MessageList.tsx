@@ -4,9 +4,10 @@
  * Scrollable list of messages with auto-scroll to bottom
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { MessageBubble } from './MessageBubble';
 import { MessageBubbleSkeleton } from '@/components/ui/Skeleton';
+import { useHubMembers } from '@/features/tasks/hooks/useHubMembers';
 import type { Message } from '@/types';
 
 interface MessageListProps {
@@ -24,6 +25,16 @@ export const MessageList = ({
 }: MessageListProps) => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const listRef = useRef<HTMLDivElement>(null);
+    const { data: hubMembers = [] } = useHubMembers();
+
+    // Create a map of userId to photoURL for quick lookup
+    const memberPhotoMap = useMemo(() => {
+        const map = new Map<string, string | undefined>();
+        hubMembers.forEach((member) => {
+            map.set(member.userId, member.photoURL);
+        });
+        return map;
+    }, [hubMembers]);
 
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
@@ -33,7 +44,7 @@ export const MessageList = ({
     }, [messages]);
 
     // Group messages by sender (show avatar only for first message from same sender)
-    const groupedMessages: Array<{ message: Message; showAvatar: boolean }> = [];
+    const groupedMessages: Array<{ message: Message; showAvatar: boolean; photoURL?: string }> = [];
     
     messages.forEach((message, index) => {
         const prevMessage = index > 0 ? messages[index - 1] : null;
@@ -42,7 +53,8 @@ export const MessageList = ({
             prevMessage.senderId !== message.senderId ||
             (message.timestamp.getTime() - prevMessage.timestamp.getTime()) > 300000; // 5 minutes gap
 
-        groupedMessages.push({ message, showAvatar });
+        const photoURL = memberPhotoMap.get(message.senderId);
+        groupedMessages.push({ message, showAvatar, photoURL });
     });
 
     if (isLoading && messages.length === 0) {
@@ -60,9 +72,9 @@ export const MessageList = ({
     if (messages.length === 0) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-6 min-h-0">
-                <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center mb-6 shadow-lg">
+                <div className="w-24 h-24 bg-primary-container rounded-full flex items-center justify-center mb-6 shadow-elevation-2">
                     <svg
-                        className="w-12 h-12 text-purple-600"
+                        className="w-12 h-12 text-primary"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -75,10 +87,10 @@ export const MessageList = ({
                         />
                     </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                <h3 className="text-headline-sm font-semibold text-on-surface mb-2">
                     No messages yet
                 </h3>
-                <p className="text-sm text-gray-600 max-w-sm">
+                <p className="text-body-md text-on-variant max-w-sm">
                     Start the conversation by sending a message to your family
                 </p>
             </div>
@@ -88,15 +100,16 @@ export const MessageList = ({
     return (
         <div
             ref={listRef}
-            className="flex-1 overflow-y-auto px-4 md:px-6 py-6 space-y-3"
+            className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 space-y-2 sm:space-y-3"
         >
-            {groupedMessages.map(({ message, showAvatar }) => (
+            {groupedMessages.map(({ message, showAvatar, photoURL }) => (
                 <MessageBubble
                     key={message.id}
                     message={message}
                     isOwnMessage={message.senderId === currentUserId}
                     onDelete={onDeleteMessage}
                     showAvatar={showAvatar}
+                    photoURL={photoURL}
                 />
             ))}
             <div ref={messagesEndRef} />

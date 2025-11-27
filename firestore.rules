@@ -19,17 +19,26 @@ service cloud.firestore {
     
     function isHubAdmin(hubId) {
       return isAuthenticated() && 
+        exists(/databases/$(database)/documents/hubs/$(hubId)/memberships/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/hubs/$(hubId)/memberships/$(request.auth.uid)).data.role == 'admin';
     }
     
     function isHubAdminOrMember(hubId) {
-      let membership = get(/databases/$(database)/documents/hubs/$(hubId)/memberships/$(request.auth.uid)).data;
       return isAuthenticated() && 
-        (membership.role == 'admin' || membership.role == 'member');
+        exists(/databases/$(database)/documents/hubs/$(hubId)/memberships/$(request.auth.uid)) &&
+        (get(/databases/$(database)/documents/hubs/$(hubId)/memberships/$(request.auth.uid)).data.role == 'admin' ||
+         get(/databases/$(database)/documents/hubs/$(hubId)/memberships/$(request.auth.uid)).data.role == 'member');
     }
     
     function isMembershipActive(hubId) {
-      return get(/databases/$(database)/documents/hubs/$(hubId)/memberships/$(request.auth.uid)).data.status == 'active';
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/hubs/$(hubId)/memberships/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/hubs/$(hubId)/memberships/$(request.auth.uid)).data.status == 'active';
+    }
+    
+    function isHubCreator(hubId) {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/hubs/$(hubId)).data.createdBy == request.auth.uid;
     }
     
     // Users collection
@@ -67,13 +76,17 @@ service cloud.firestore {
       // Hub creation is allowed for authenticated users
       allow create: if isAuthenticated();
       
-      // Only the hub creator (admin) can delete (if hub has no other members)
-      allow delete: if isHubAdmin(hubId);
+      // Hub creator or admin can delete the hub
+      allow delete: if isHubCreator(hubId) || isHubAdmin(hubId);
       
       // Memberships subcollection
       match /memberships/{memberUserId} {
-        // Members can read all memberships in their hub
-        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        // Users can read their own membership, hub members can read all memberships, or hub creator can read all
+        allow read: if isAuthenticated() && (
+          isUser(memberUserId) ||
+          (isHubMember(hubId) && isMembershipActive(hubId)) ||
+          isHubCreator(hubId)
+        );
         
         // Allow creating membership if:
         // 1. User is creating their own membership AND they are the hub creator, OR
@@ -150,8 +163,8 @@ service cloud.firestore {
       
       // Locations subcollection
       match /locations/{locationUserId} {
-        // All hub members can read locations
-        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        // All hub members can read locations (relaxed for subscriptions)
+        allow read: if isHubMember(hubId);
         
         // Users can only write their own location
         allow create, update: if isUser(locationUserId) && 
@@ -274,6 +287,45 @@ service cloud.firestore {
         allow delete: if isHubAdmin(hubId);
       }
       
+      // Emergency alerts subcollection
+      match /emergencyAlerts/{alertId} {
+        // All hub members can read emergency alerts
+        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        
+        // Users can create their own emergency alerts
+        allow create: if isHubMember(hubId) && 
+          isMembershipActive(hubId) &&
+          request.resource.data.hubId == hubId &&
+          request.resource.data.userId == request.auth.uid;
+        
+        // Admins can update/resolve emergency alerts
+        allow update: if isHubAdmin(hubId) && 
+          isMembershipActive(hubId) &&
+          request.resource.data.hubId == resource.data.hubId;
+        
+        // Only admins can delete emergency alerts
+        allow delete: if isHubAdmin(hubId);
+      }
+      
+      // Speed alerts subcollection
+      match /speedAlerts/{alertId} {
+        // All hub members can read speed alerts
+        allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+        
+        // System can create speed alerts (via client or Cloud Functions)
+        allow create: if isHubMember(hubId) && 
+          isMembershipActive(hubId) &&
+          request.resource.data.hubId == hubId;
+        
+        // Admins can update/resolve speed alerts
+        allow update: if isHubAdmin(hubId) && 
+          isMembershipActive(hubId) &&
+          request.resource.data.hubId == resource.data.hubId;
+        
+        // Only admins can delete speed alerts
+        allow delete: if isHubAdmin(hubId);
+      }
+      
       // Policies subcollection
       match /policies/{policyId} {
         // All hub members can read policies
@@ -345,6 +397,54 @@ service cloud.firestore {
       
       // Event logs cannot be modified or deleted (audit trail)
       allow update, delete: if false;
+    }
+    
+    // Rewards collection
+    match /rewards/{rewardId} {
+      // Hub members can read rewards for their hub
+      allow read: if isAuthenticated() && 
+        isHubMember(resource.data.hubId) &&
+        isMembershipActive(resource.data.hubId);
+      
+      // Only admins can create/update/delete rewards
+      allow create: if isAuthenticated() && 
+        isHubAdmin(request.resource.data.hubId) &&
+        isMembershipActive(request.resource.data.hubId) &&
+        request.resource.data.createdBy == request.auth.uid;
+      
+      allow update: if isAuthenticated() &&
+        isHubAdmin(resource.data.hubId) &&
+        isMembershipActive(resource.data.hubId);
+      
+      allow delete: if isAuthenticated() &&
+        isHubAdmin(resource.data.hubId) &&
+        isMembershipActive(resource.data.hubId);
+    }
+    
+    // User Rewards collection
+    match /userRewards/{userRewardId} {
+      // Users can read their own rewards
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // System can create user rewards (when threshold is met)
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid &&
+        isHubMember(request.resource.data.hubId) &&
+        isMembershipActive(request.resource.data.hubId);
+      
+      // Users can update their own rewards (to claim them)
+      allow update: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid &&
+        // Only allow updating claimedAt field
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.hubId == resource.data.hubId &&
+        request.resource.data.rewardId == resource.data.rewardId &&
+        request.resource.data.unlockedAt == resource.data.unlockedAt;
+      
+      // Users can delete their own rewards (if needed)
+      allow delete: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid;
     }
     
     // Deny all other access

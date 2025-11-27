@@ -5,7 +5,7 @@ import { TextField } from '@/components/ui/TextField';
 import { useAuth } from '../hooks/useAuth';
 import { registerSchema, type RegisterFormData } from '@/lib/validation/auth-schemas';
 import { toast } from 'react-hot-toast';
-import { FiMail, FiLock, FiUser } from 'react-icons/fi';
+import { MdEmail, MdLock, MdPerson } from 'react-icons/md';
 
 export const RegisterForm = () => {
     const navigate = useNavigate();
@@ -83,7 +83,7 @@ export const RegisterForm = () => {
                 value={formData.displayName}
                 onChange={handleChange('displayName')}
                 error={errors.displayName}
-                startAdornment={<FiUser size={20} />}
+                startAdornment={<MdPerson size={20} />}
                 fullWidth
                 required
                 autoComplete="name"
@@ -96,7 +96,7 @@ export const RegisterForm = () => {
                 value={formData.email}
                 onChange={handleChange('email')}
                 error={errors.email}
-                startAdornment={<FiMail size={20} />}
+                startAdornment={<MdEmail size={20} />}
                 fullWidth
                 required
                 autoComplete="email"
@@ -109,7 +109,7 @@ export const RegisterForm = () => {
                 value={formData.password}
                 onChange={handleChange('password')}
                 error={errors.password}
-                startAdornment={<FiLock size={20} />}
+                startAdornment={<MdLock size={20} />}
                 helperText="At least 8 characters with uppercase, lowercase, and number"
                 fullWidth
                 required
@@ -123,7 +123,7 @@ export const RegisterForm = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange('confirmPassword')}
                 error={errors.confirmPassword}
-                startAdornment={<FiLock size={20} />}
+                startAdornment={<MdLock size={20} />}
                 fullWidth
                 required
                 autoComplete="new-password"

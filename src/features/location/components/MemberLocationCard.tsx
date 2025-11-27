@@ -10,7 +10,9 @@
  */
 
 import { useState } from 'react';
-import { FiBattery, FiClock, FiMapPin, FiNavigation } from 'react-icons/fi';
+import { MdBatteryFull, MdAccessTime, MdLocationOn, MdNavigation } from 'react-icons/md';
+import { ETADisplay } from './ETADisplay';
+import { useUserLocation } from '../hooks/useLocation';
 import type { UserLocation } from '../api/location-api';
 
 interface MemberLocationCardProps {
@@ -29,6 +31,7 @@ export const MemberLocationCard = ({
     isOnline = true
 }: MemberLocationCardProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const { currentLocation } = useUserLocation();
 
     // Format timestamp - handles Date objects, timestamps, and Firestore Timestamps
     const formatTime = (date: Date | number | any) => {
@@ -56,8 +59,8 @@ export const MemberLocationCard = ({
     };
 
     // Get battery icon color
-    const getBatteryColor = (level?: number) => {
-        if (!level) return 'text-gray-400';
+    const getBatteryColor = (level?: number | null) => {
+        if (level === null || level === undefined) return 'text-gray-400';
         if (level < 20) return 'text-red-500';
         if (level < 50) return 'text-yellow-500';
         return 'text-green-500';
@@ -91,25 +94,23 @@ export const MemberLocationCard = ({
 
                     {/* Location & Status */}
                     <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
-                        <FiMapPin size={12} />
+                        <MdLocationOn size={12} className="flex-shrink-0" />
                         <span className="truncate">
-                            {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
+                            {location.address || location.addressDetails?.formatted || 'Fetching address...'}
                         </span>
                     </div>
 
                     {/* Time & Battery */}
                     <div className="flex items-center gap-3 mt-2">
                         <div className="flex items-center gap-1 text-xs text-gray-500">
-                            <FiClock size={12} />
+                            <MdAccessTime size={12} />
                             <span>{formatTime(location.timestamp)}</span>
                         </div>
 
-                        {batteryLevel !== undefined && (
-                            <div className={`flex items-center gap-1 text-xs ${getBatteryColor(batteryLevel)}`}>
-                                <FiBattery size={12} />
-                                <span>{batteryLevel}%</span>
-                            </div>
-                        )}
+                        <div className={`flex items-center gap-1 text-xs ${getBatteryColor(batteryLevel)}`}>
+                            <MdBatteryFull size={12} />
+                            <span>{batteryLevel !== null && batteryLevel !== undefined ? `${batteryLevel}%` : 'N/A'}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -124,6 +125,35 @@ export const MemberLocationCard = ({
             {/* Expanded Content */}
             {isExpanded && (
                 <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                    {/* Address Details */}
+                    {location.addressDetails && (
+                        <div className="text-sm">
+                            <p className="text-xs text-gray-500 mb-1">Address</p>
+                            <p className="font-medium text-gray-900">{location.addressDetails.formatted}</p>
+                            {location.addressDetails.city && location.addressDetails.state && (
+                                <p className="text-xs text-gray-600 mt-1">
+                                    {location.addressDetails.city}, {location.addressDetails.state}
+                                    {location.addressDetails.zipCode && ` ${location.addressDetails.zipCode}`}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* ETA Display */}
+                    {currentLocation && (
+                        <ETADisplay
+                            origin={{
+                                lat: currentLocation.latitude,
+                                lng: currentLocation.longitude,
+                            }}
+                            destination={{
+                                lat: location.latitude,
+                                lng: location.longitude,
+                            }}
+                            memberName={userName}
+                        />
+                    )}
+                    
                     {/* Additional Info */}
                     <div className="grid grid-cols-2 gap-3 text-sm">
                         {location.speed !== null && location.speed !== undefined && (
@@ -146,11 +176,11 @@ export const MemberLocationCard = ({
                     {/* Quick Actions - Mobile optimized */}
                     <div className="flex gap-2">
                         <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 sm:py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 active:bg-purple-300 transition-colors text-sm font-medium touch-target">
-                            <FiNavigation size={16} className="sm:w-3.5 sm:h-3.5" />
+                            <MdNavigation size={16} className="sm:w-3.5 sm:h-3.5" />
                             <span>Directions</span>
                         </button>
                         <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 sm:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 active:bg-gray-300 transition-colors text-sm font-medium touch-target">
-                            <FiMapPin size={16} className="sm:w-3.5 sm:h-3.5" />
+                            <MdLocationOn size={16} className="sm:w-3.5 sm:h-3.5" />
                             <span>Details</span>
                         </button>
                     </div>

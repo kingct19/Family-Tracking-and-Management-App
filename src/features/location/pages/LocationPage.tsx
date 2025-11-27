@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { MapView } from '../components/MapView';
 import { MemberLocationCard } from '../components/MemberLocationCard';
@@ -18,8 +18,8 @@ import { GeofenceManager } from '../../geofencing/components/GeofenceManager';
 import { GeofenceMapEditor } from '../../geofencing/components/GeofenceMapEditor';
 import { GeofenceDetailsModal } from '../../geofencing/components/GeofenceDetailsModal';
 import { GeofenceAlertToast } from '../../geofencing/components/GeofenceAlertToast';
-import { NavigationPanel } from '../components/NavigationPanel';
-import { HubSelector } from '../components/HubSelector';
+import { useUIStore } from '@/lib/store/ui-store';
+import { createEmergencyAlert } from '@/features/safety/api/emergency-api';
 import { useUserLocation, useHubLocations, useHubDeviceStatus } from '../hooks/useLocation';
 import { useDeviceStatus } from '../hooks/useDeviceStatus';
 import { useCreateCheckIn } from '../hooks/useCheckIn';
@@ -27,21 +27,26 @@ import { useGeofences } from '../../geofencing/hooks/useGeofences';
 import { useHubStore } from '@/lib/store/hub-store';
 import { useAuth, useUserProfile } from '@/features/auth/hooks/useAuth';
 import { useHubMembers } from '@/features/tasks/hooks/useHubMembers';
+import { geocodingService } from '@/lib/services/geocoding-service';
 import {
-    FiNavigation,
-    FiMapPin,
-    FiCheckCircle,
-    FiSettings,
-    FiShield,
-    FiX,
-    FiMenu,
-    FiUsers,
-} from 'react-icons/fi';
+    MdNavigation,
+    MdLocationOn,
+    MdCheckCircle,
+    MdSecurity,
+    MdClose,
+    MdPeople,
+    MdWarning,
+    MdAccessTime,
+    MdBatteryFull,
+} from 'react-icons/md';
 import type { GeofenceZone, CreateGeofenceRequest, UpdateGeofenceRequest } from '../../geofencing/types';
 import toast from 'react-hot-toast';
 
 const LocationPage = () => {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const focusedMemberId = searchParams.get('focus');
+    
     const { user } = useAuth();
     const { currentHub } = useHubStore();
     const { locations } = useHubLocations(currentHub?.id);
@@ -78,16 +83,29 @@ const LocationPage = () => {
                   latitude: currentLocation.latitude,
                   longitude: currentLocation.longitude,
                   accuracy: currentLocation.accuracy,
-                  timestamp: new Date(currentLocation.timestamp),
+                  timestamp: (() => {
+                      // Ensure we have a valid timestamp
+                      if (typeof currentLocation.timestamp === 'number' && currentLocation.timestamp > 0) {
+                          // If it's in seconds, convert to milliseconds
+                          const ts = currentLocation.timestamp < 10000000000 
+                              ? currentLocation.timestamp * 1000 
+                              : currentLocation.timestamp;
+                          return new Date(ts);
+                      }
+                      // Default to current time if timestamp is invalid
+                      return new Date();
+                  })(),
                   isSharing: true,
-                  lastUpdated: Date.now(), // Use timestamp instead of Date object
+                  lastUpdated: Date.now(),
               },
           ]
         : otherLocations;
 
     const [showMemberList, setShowMemberList] = useState(true);
     const [hasRequestedPermission, setHasRequestedPermission] = useState(false);
-    const [showNavigationPanel, setShowNavigationPanel] = useState(false);
+    
+    // Address cache for locations without addresses
+    const [addressCache, setAddressCache] = useState<Map<string, string>>(new Map());
     
     // Geofence management state
     const [showGeofenceManager, setShowGeofenceManager] = useState(false);
@@ -96,6 +114,42 @@ const LocationPage = () => {
     const [editingGeofence, setEditingGeofence] = useState<GeofenceZone | null>(null);
     const [selectedGeofence, setSelectedGeofence] = useState<GeofenceZone | null>(null);
     const { geofences } = useGeofences();
+
+    // Fetch missing addresses
+    useEffect(() => {
+        const fetchMissingAddresses = async () => {
+            const locationsNeedingAddress = allLocations.filter(
+                (loc) => loc && !loc.address && !addressCache.has(`${loc.latitude},${loc.longitude}`)
+            );
+
+            if (locationsNeedingAddress.length === 0) return;
+
+            // Fetch addresses for locations without them
+            const addressPromises = locationsNeedingAddress.map(async (location) => {
+                try {
+                    const addressResult = await geocodingService.reverseGeocode(
+                        location.latitude,
+                        location.longitude
+                    );
+                    if (addressResult) {
+                        const cacheKey = `${location.latitude},${location.longitude}`;
+                        setAddressCache((prev) => {
+                            const newCache = new Map(prev);
+                            newCache.set(cacheKey, addressResult.formatted);
+                            return newCache;
+                        });
+                    }
+                } catch (error) {
+                    console.warn('Failed to fetch address for location:', error);
+                }
+            });
+
+            await Promise.all(addressPromises);
+        };
+
+        fetchMissingAddresses();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [allLocations]);
 
     // Debug: Log state changes
     useEffect(() => {
@@ -121,6 +175,24 @@ const LocationPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id, currentHub?.id]); // Only depend on IDs to prevent re-runs
 
+    // Handle focus on specific member from dashboard
+    useEffect(() => {
+        if (focusedMemberId && allLocations.length > 0) {
+            const focusedLocation = allLocations.find(loc => loc.userId === focusedMemberId);
+            if (focusedLocation) {
+                const member = members.find(m => m.userId === focusedMemberId);
+                const isCurrentUser = focusedMemberId === user?.id;
+                const name = isCurrentUser ? 'your location' : (member?.displayName?.split(' ')[0] || 'member');
+                toast.success(`Viewing ${name}`, { icon: '📍', duration: 2000 });
+                
+                // Expand member list to show the focused member
+                setShowMemberList(true);
+            }
+            // Clear the focus parameter from URL after handling
+            setSearchParams({}, { replace: true });
+        }
+    }, [focusedMemberId, allLocations, members, user?.id, setSearchParams]);
+
     return (
         <>
             <Helmet>
@@ -128,40 +200,8 @@ const LocationPage = () => {
                 <meta name="description" content="Real-time family location map" />
             </Helmet>
 
-            {/* Full screen container */}
-            <div className="fixed inset-0 flex flex-col bg-gray-50">
-                {/* Top Header Bar */}
-                <div className="absolute top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-200">
-                    <div className="flex items-center justify-between p-4 safe-top">
-                        {/* Left: Menu & Hub Selector */}
-                        <div className="flex items-center gap-3">
-                            {/* Hamburger Menu Button */}
-                            <button
-                                onClick={() => setShowNavigationPanel(true)}
-                                className="w-10 h-10 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center"
-                                aria-label="Open menu"
-                            >
-                                <FiMenu size={20} className="text-gray-700" />
-                            </button>
-
-                            {/* Hub Selector */}
-                            <HubSelector />
-                        </div>
-
-                        {/* Right: Action Buttons */}
-                        <div className="flex items-center gap-2">
-                            {/* Settings Button */}
-                            <button
-                                onClick={() => navigate('/settings')}
-                                className="w-10 h-10 bg-white rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center"
-                                aria-label="Settings"
-                            >
-                                <FiSettings size={20} className="text-gray-700" />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
+            {/* Full screen container - TopBar is handled by AppLayout */}
+            <div className="fixed inset-0 flex flex-col bg-background pt-14 sm:pt-16 md:pt-20 safe-top">
                 {/* Map - Always render, even without location */}
                 <div className="flex-1 relative">
                     {/* Always render map - it will show default location if user location not available */}
@@ -180,14 +220,14 @@ const LocationPage = () => {
 
                     {/* Location loading overlay - only show if no location and no error */}
                     {!currentLocation && !error && (
-                        <div className="absolute top-24 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur-md rounded-xl shadow-lg px-6 py-4 z-20">
+                        <div className="absolute top-24 left-1/2 transform -translate-x-1/2 bg-surface/95 backdrop-blur-md rounded-card shadow-halo-map-card px-6 py-4 z-20">
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center animate-pulse">
-                                    <FiMapPin size={16} className="text-white" />
+                                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center animate-pulse">
+                                    <MdLocationOn size={16} className="text-white" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-semibold text-gray-900">Finding your location...</p>
-                                    <p className="text-xs text-gray-600">Please allow location access</p>
+                                    <p className="text-body-sm font-semibold text-on-surface">Finding your location...</p>
+                                    <p className="text-body-xs text-on-variant">Please allow location access</p>
                                 </div>
                             </div>
                         </div>
@@ -195,12 +235,12 @@ const LocationPage = () => {
 
                     {/* Error message overlay */}
                     {error && (
-                        <div className="absolute top-24 left-1/2 transform -translate-x-1/2 bg-red-50 border border-red-200 rounded-xl shadow-lg px-6 py-4 z-20 max-w-md">
-                            <p className="text-sm text-red-700 font-semibold mb-2">Location Error</p>
-                            <p className="text-xs text-red-600 mb-3">{error}</p>
+                        <div className="absolute top-24 left-1/2 transform -translate-x-1/2 bg-error-container border border-error rounded-card shadow-halo-map-card px-6 py-4 z-20 max-w-md">
+                            <p className="text-body-sm text-on-error-container font-semibold mb-2">Location Error</p>
+                            <p className="text-body-xs text-on-error-container mb-3">{error}</p>
                             <button
                                 onClick={startTracking}
-                                className="text-xs font-semibold text-red-700 underline hover:no-underline"
+                                className="text-body-xs font-semibold text-error underline hover:no-underline transition-colors"
                             >
                                 Try Again
                             </button>
@@ -213,18 +253,18 @@ const LocationPage = () => {
                             <div className="group relative">
                                 <button
                                     onClick={toggleSharing}
-                                    className={`w-14 h-14 sm:w-14 sm:h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 touch-target ${isSharing
-                                        ? 'bg-green-500 hover:bg-green-600 text-white shadow-green-200'
-                                        : 'bg-white hover:bg-gray-50 text-gray-700'
+                                    className={`w-14 h-14 sm:w-14 sm:h-14 rounded-full shadow-halo-button flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 touch-target ${isSharing
+                                        ? 'bg-primary hover:bg-primary/90 text-white'
+                                        : 'bg-surface hover:bg-surface-variant text-on-surface'
                                         }`}
                                     aria-label={isSharing ? 'Stop sharing location' : 'Start sharing location'}
                                 >
-                                    <FiMapPin size={24} className="sm:w-6 sm:h-6" />
+                                    <MdLocationOn size={24} className="sm:w-6 sm:h-6" />
                                 </button>
-                                {/* Tooltip - hidden on mobile, shown on hover for desktop */}
-                                <div className="hidden sm:block absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                {/* Tooltip - visible on mobile and desktop */}
+                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-primary text-white text-label-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                                     {isSharing ? 'Sharing Location' : 'Share Location'}
-                                    <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
+                                    <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-primary"></div>
                                 </div>
                             </div>
 
@@ -236,15 +276,15 @@ const LocationPage = () => {
                                             startTracking();
                                         }
                                     }}
-                                    className="w-14 h-14 sm:w-14 sm:h-14 bg-purple-600 hover:bg-purple-700 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-purple-200 touch-target"
+                                    className="w-14 h-14 sm:w-14 sm:h-14 bg-primary hover:bg-primary/90 rounded-full shadow-halo-button flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 touch-target"
                                     aria-label="Center map on my current location"
                                 >
-                                    <FiNavigation size={24} className="sm:w-6 sm:h-6" />
+                                    <MdNavigation size={24} className="sm:w-6 sm:h-6" />
                                 </button>
-                                {/* Tooltip - hidden on mobile */}
-                                <div className="hidden sm:block absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                {/* Tooltip - visible on mobile and desktop */}
+                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-primary text-white text-label-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                                     Center on Me
-                                    <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
+                                    <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-primary"></div>
                                 </div>
                             </div>
 
@@ -257,15 +297,15 @@ const LocationPage = () => {
                                         setShowGeofenceManager(true);
                                         console.log('[Geofence] State updated - showGeofenceManager set to true');
                                     }}
-                                    className="w-14 h-14 sm:w-14 sm:h-14 bg-white hover:bg-gray-50 active:bg-gray-100 rounded-full shadow-lg flex items-center justify-center text-gray-700 transition-all duration-200 hover:scale-110 active:scale-95 touch-target"
+                                    className="w-14 h-14 sm:w-14 sm:h-14 bg-primary hover:bg-primary/90 rounded-full shadow-halo-button flex items-center justify-center text-white transition-all duration-200 hover:scale-110 active:scale-95 touch-target"
                                     aria-label="Open geofence management"
                                 >
-                                    <FiShield size={24} className="sm:w-6 sm:h-6" />
+                                    <MdSecurity size={24} className="sm:w-6 sm:h-6" />
                                 </button>
-                                {/* Tooltip - hidden on mobile */}
-                                <div className="hidden sm:block absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                {/* Tooltip - visible on mobile and desktop */}
+                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-primary text-white text-label-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                                     Geofences
-                                    <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
+                                    <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-primary"></div>
                                 </div>
                             </div>
 
@@ -295,10 +335,10 @@ const LocationPage = () => {
                                         });
                                     }}
                                     disabled={!currentLocation || isCheckingIn}
-                                    className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${
+                                    className={`w-14 h-14 rounded-full shadow-halo-button flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 touch-target ${
                                         !currentLocation || isCheckingIn
-                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                            : 'bg-blue-500 hover:bg-blue-600 text-white shadow-blue-200'
+                                            ? 'bg-surface-variant text-on-variant cursor-not-allowed'
+                                            : 'bg-primary hover:bg-primary/90 text-white'
                                     }`}
                                     aria-label="Check in at current location"
                                     title={!currentLocation ? 'Waiting for location...' : 'Check in at current location'}
@@ -306,53 +346,135 @@ const LocationPage = () => {
                                     {isCheckingIn ? (
                                         <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                     ) : (
-                                        <FiCheckCircle size={24} />
+                                        <MdCheckCircle size={24} />
                                     )}
                                 </button>
-                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                {/* Tooltip - visible on mobile and desktop */}
+                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-primary text-white text-label-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                                     {isCheckingIn ? 'Checking in...' : 'Check In'}
-                                    <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
+                                    <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-primary"></div>
                                 </div>
                             </div>
+
+                            {/* SOS Emergency Button */}
+                            {currentLocation && currentHub && user && (
+                                <div className="group relative">
+                                    <button
+                                        onClick={async () => {
+                                            if (!currentLocation) {
+                                                toast.error('Location not available. Please enable location sharing.');
+                                                return;
+                                            }
+
+                                            if (
+                                                confirm(
+                                                    'Send emergency SOS alert to your family?\n\nThis will notify all members of your hub with your current location.'
+                                                )
+                                            ) {
+                                                try {
+                                                    const response = await createEmergencyAlert({
+                                                        hubId: currentHub.id,
+                                                        userId: user.id,
+                                                        location: {
+                                                            latitude: currentLocation.latitude,
+                                                            longitude: currentLocation.longitude,
+                                                            address: undefined,
+                                                        },
+                                                        type: 'sos',
+                                                    });
+
+                                                    if (response.success) {
+                                                        toast.success('Emergency alert sent to your family!', {
+                                                            duration: 5000,
+                                                            icon: '🚨',
+                                                        });
+                                                    } else {
+                                                        toast.error(`Failed to send emergency alert: ${response.error}`);
+                                                    }
+                                                } catch (error: any) {
+                                                    console.error('Emergency alert error:', error);
+                                                    toast.error(`Failed to send emergency alert: ${error.message}`);
+                                                }
+                                            }
+                                        }}
+                                        className="w-14 h-14 rounded-full shadow-halo-button flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 touch-target bg-error hover:bg-error/90 text-white"
+                                        aria-label="Emergency SOS - Send alert to family"
+                                    >
+                                        <MdWarning size={24} className="sm:w-6 sm:h-6" />
+                                    </button>
+                                    {/* Tooltip - visible on mobile and desktop */}
+                                    <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-error text-white text-label-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                                        Emergency SOS
+                                        <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-error"></div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                 </div>
 
-                {/* Bottom Member List Panel - Always show */}
+                {/* Bottom Member List Panel - Life360 Style */}
                 <div
-                        className={`absolute left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm shadow-2xl rounded-t-3xl transition-all duration-300 z-10 bottom-0 ${
-                            showMemberList ? 'translate-y-0' : 'translate-y-full'
-                        }`}
-                    >
-                        {/* Drag Handle */}
+                    className={`absolute left-0 right-0 bg-surface rounded-t-card shadow-halo-map-card transition-all duration-300 z-10 bottom-0 ${
+                        showMemberList ? 'translate-y-0' : 'translate-y-[calc(100%-80px)]'
+                    }`}
+                    style={{ 
+                        maxHeight: showMemberList ? '80vh' : '80px',
+                        minHeight: showMemberList ? 'auto' : '80px',
+                        height: showMemberList ? 'auto' : '80px',
+                        backgroundColor: '#FFFFFF', // Ensure solid white background
+                    }}
+                >
+                    {/* Drag Handle - Always visible */}
+                    <div className="w-full h-full flex flex-col">
                         <button
                             onClick={() => setShowMemberList(!showMemberList)}
-                            className="w-full py-4 flex justify-center hover:bg-gray-50/50 transition-colors rounded-t-3xl"
-                            aria-label={showMemberList ? 'Hide member list' : 'Show member list'}
+                            className="w-full flex-1 py-3 flex flex-col items-center justify-center hover:bg-surface-variant/50 transition-colors touch-target rounded-t-card"
+                            aria-label={showMemberList ? 'Collapse member list' : 'Expand member list'}
+                            style={{ minHeight: '80px' }}
                         >
-                            <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
-                        </button>
-
-                        {/* Header */}
-                        <div className="px-6 pb-4">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-2xl font-bold text-gray-900">
-                                    Family Members
-                                </h2>
-                                <div className="px-4 py-1.5 bg-purple-100 rounded-full">
-                                    <span className="text-sm font-bold text-purple-700">
-                                        {allLocations.length} online
+                            <div className="w-12 h-1.5 bg-outline-variant rounded-full mb-2"></div>
+                            {!showMemberList && (
+                                <div className="flex items-center gap-2 px-4 pb-safe">
+                                    <MdPeople size={16} className="text-on-variant" />
+                                    <span className="text-label-md text-on-variant">
+                                        {allLocations.length} {allLocations.length === 1 ? 'member' : 'members'}
                                     </span>
                                 </div>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* Header - Only visible when expanded */}
+                    {showMemberList && (
+                        <div className="px-4 sm:px-6 py-3 border-b border-outline-variant">
+                            <div className="flex items-center justify-between mb-3">
+                                <div>
+                                    <h2 className="text-headline-sm font-semibold text-on-surface">
+                                        {currentHub?.name || 'Family Members'}
+                                </h2>
+                                    <p className="text-body-sm text-on-variant mt-0.5">
+                                        {allLocations.length} {allLocations.length === 1 ? 'member' : 'members'} online
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => navigate('/settings')}
+                                    className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-full font-semibold text-label-md shadow-halo-button transition-all duration-200 hover:scale-105 active:scale-95 touch-target flex items-center gap-2"
+                                >
+                                    <MdPeople size={18} />
+                                    <span>Invite</span>
+                                </button>
                             </div>
                         </div>
+                    )}
 
-                        {/* Member Cards - Horizontal Scroll - Mobile optimized */}
-                        <div className="px-4 sm:px-6 pb-safe">
+                    {/* Member List - Vertical scrollable (Life360 style) */}
+                    {showMemberList && (
+                        <div className="overflow-y-auto pb-safe" style={{ maxHeight: 'calc(80vh - 120px)' }}>
                             {allLocations.length > 0 ? (
-                                <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 sm:pb-6 hide-scrollbar -mx-4 sm:-mx-6 px-4 sm:px-6">
+                                <div className="divide-y divide-outline-variant">
                                     {allLocations
-                                        .filter((location) => location && location.userId) // Filter out invalid entries
+                                        .filter((location) => location && location.userId)
                                         .map((location) => {
                                             // Get device status for this user
                                             const isCurrentUser = location.userId === user?.id;
@@ -369,45 +491,197 @@ const LocationPage = () => {
                                                 ? (currentUserProfile?.displayName || user?.displayName || `${user?.email?.split('@')[0] || 'You'} (You)`)
                                                 : (member?.displayName || `User ${location.userId.slice(0, 8)}`);
                                             
+                                            // Format timestamp
+                                            const formatTime = (date: Date | number | any) => {
+                                                if (!date) return 'Just now';
+                                                
+                                                const now = new Date();
+                                                let timestamp: number;
+                                                
+                                                try {
+                                                    // Handle Firestore Timestamp
+                                                    if (date && typeof date.toMillis === 'function') {
+                                                        timestamp = date.toMillis();
+                                                    }
+                                                    // Handle Date object
+                                                    else if (date && typeof date.getTime === 'function') {
+                                                        timestamp = date.getTime();
+                                                    }
+                                                    // Handle number (milliseconds)
+                                                    else if (typeof date === 'number') {
+                                                        // Reject negative numbers immediately
+                                                        if (date < 0) {
+                                                            return 'Just now';
+                                                        }
+                                                        // Check if it's seconds (Unix timestamp) or milliseconds
+                                                        timestamp = date < 10000000000 ? date * 1000 : date;
+                                                    }
+                                                    // Handle string
+                                                    else if (typeof date === 'string') {
+                                                        const parsed = new Date(date).getTime();
+                                                        if (isNaN(parsed) || parsed < 0) {
+                                                            return 'Just now';
+                                                        }
+                                                        timestamp = parsed;
+                                                    }
+                                                    else {
+                                                        return 'Just now';
+                                                    }
+                                                    
+                                                    // Validate timestamp is reasonable (not negative, not before 2000, not future beyond 2100)
+                                                    if (timestamp < 0 || timestamp < 946684800000 || timestamp > 4102444800000) {
+                                                        // Don't log warnings for obviously invalid data, just return a safe default
+                                                        return 'Just now';
+                                                    }
+                                                    
+                                                    const diff = Math.floor((now.getTime() - timestamp) / 1000);
+                                                    
+                                                    // Handle negative diff (future dates) or very large diffs
+                                                    if (diff < 0 || diff > 31536000000) { // More than 1 year
+                                                        return 'Just now';
+                                                    }
+                                                    
+                                                    if (diff < 60) return 'Just now';
+                                                    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+                                                    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+                                                    if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+                                                    
+                                                    // For older dates, show formatted date
+                                                    return new Date(timestamp).toLocaleDateString('en-US', {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        hour: 'numeric',
+                                                        minute: 'numeric'
+                                                    });
+                                                } catch (error) {
+                                                    // If anything goes wrong, return a safe default
+                                                    return 'Just now';
+                                                }
+                                            };
+
+                                            const getBatteryColor = (level?: number | null) => {
+                                                if (level === null || level === undefined) return 'text-on-variant';
+                                                if (level < 20) return 'text-error';
+                                                if (level < 50) return 'text-secondary';
+                                                return 'text-primary';
+                                            };
+                                            
                                             return (
-                                                <div key={location.userId} className="flex-shrink-0 w-[280px] sm:w-80">
-                                                    <MemberLocationCard
-                                                        location={location}
-                                                        userName={userName}
-                                                        userPhoto={userPhoto}
-                                                        batteryLevel={deviceStatus?.batteryLevel ?? undefined}
-                                                        isOnline={deviceStatus?.isOnline ?? true}
-                                                    />
+                                                <div
+                                                    key={location.userId}
+                                                    className="px-4 sm:px-6 py-4 hover:bg-surface-variant/50 transition-colors cursor-pointer active:bg-surface-variant"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        {/* Avatar with status */}
+                                                        <div className="relative flex-shrink-0">
+                                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white font-semibold text-title-md overflow-hidden">
+                                                                {userPhoto ? (
+                                                                    <img src={userPhoto} alt={userName} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    userName.charAt(0).toUpperCase()
+                                                                )}
+                                                            </div>
+                                                            {/* Online status indicator */}
+                                                            {deviceStatus?.isOnline && (
+                                                                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full border-2 border-surface"></div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Member Info */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <h3 className="text-title-md font-semibold text-on-surface truncate">
+                                                                    {userName}
+                                                                </h3>
+                                                                {isCurrentUser && (
+                                                                    <span className="px-2 py-0.5 bg-primary-container text-primary text-label-sm font-medium rounded-full">
+                                                                        You
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            
+                                                            {/* Location Address */}
+                                                            <div className="flex items-center gap-1.5 mb-1.5">
+                                                                <MdLocationOn size={14} className="text-on-variant flex-shrink-0" />
+                                                                <p className="text-body-sm text-on-variant truncate">
+                                                                    {location.address || 
+                                                                     addressCache.get(`${location.latitude},${location.longitude}`) || 
+                                                                     'Fetching address...'}
+                                                                </p>
+                                                            </div>
+
+                                                            {/* Time & Battery Row */}
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="flex items-center gap-1 text-body-sm text-on-variant">
+                                                                    <MdAccessTime size={12} />
+                                                                    <span>{formatTime(location.timestamp)}</span>
+                                                                </div>
+                                                                <div className={`flex items-center gap-1 text-body-sm ${getBatteryColor(deviceStatus?.batteryLevel)}`}>
+                                                                    <MdBatteryFull size={12} />
+                                                                    <span>
+                                                                        {deviceStatus?.batteryLevel !== null && deviceStatus?.batteryLevel !== undefined
+                                                                            ? `${deviceStatus.batteryLevel}%` 
+                                                                            : 'N/A'}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Quick Actions */}
+                                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    // TODO: Center map on member when MapView exposes map instance
+                                                                    toast.success(`Viewing ${userName} on map`);
+                                                                }}
+                                                                className="p-2 text-primary hover:bg-primary-container rounded-full transition-colors touch-target"
+                                                                aria-label={`View ${userName} on map`}
+                                                            >
+                                                                <MdNavigation size={20} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             );
                                         })}
                                 </div>
                             ) : (
-                                <div className="text-center py-8 sm:py-12 pb-safe">
-                                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <FiUsers size={36} className="text-gray-400" />
+                                <div className="text-center py-12 sm:py-16 px-4">
+                                    <div className="w-20 h-20 bg-gradient-to-br from-primary-container to-primary-container/50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-elevation-2">
+                                        <MdPeople size={36} className="text-primary" />
                                     </div>
-                                    <p className="text-gray-700 font-semibold text-lg">No members sharing location</p>
-                                    <p className="text-sm text-gray-500 mt-2">
-                                        Invite family members to start tracking
+                                    <h3 className="text-title-lg font-semibold text-on-surface mb-2">
+                                        No members sharing location
+                                    </h3>
+                                    <p className="text-body-md text-on-variant max-w-md mx-auto mb-6">
+                                        Invite family members to start tracking their location and stay connected.
                                     </p>
+                                    <button
+                                        onClick={() => navigate('/settings')}
+                                        className="px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-full font-semibold text-label-lg shadow-halo-button transition-all duration-200 hover:scale-105 active:scale-95 touch-target"
+                                    >
+                                        Invite Family Members
+                                    </button>
                                 </div>
                             )}
                         </div>
+                    )}
                     </div>
             </div>
 
             {/* Geofence Manager Modal */}
             {showGeofenceManager && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                            <h2 className="text-2xl font-bold text-gray-900">Geofence Management</h2>
+                    <div className="bg-surface rounded-card shadow-halo-map-card w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between p-6 border-b border-outline-variant">
+                            <h2 className="text-headline-md font-semibold text-on-surface">Geofence Management</h2>
                             <button
                                 onClick={() => setShowGeofenceManager(false)}
-                                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                                className="p-2 text-on-variant hover:text-on-surface hover:bg-surface-variant rounded-lg transition-colors touch-target"
+                                aria-label="Close"
                             >
-                                <FiX size={20} />
+                                <MdClose size={20} />
                             </button>
                         </div>
                 <GeofenceManager
@@ -533,11 +807,6 @@ const LocationPage = () => {
             {/* Geofence Alert Toast */}
             <GeofenceAlertToast />
 
-            {/* Navigation Panel */}
-            <NavigationPanel
-                isOpen={showNavigationPanel}
-                onClose={() => setShowNavigationPanel(false)}
-            />
 
             {/* Custom Styles */}
             <style>{`

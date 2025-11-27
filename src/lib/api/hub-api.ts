@@ -371,7 +371,7 @@ export const leaveHub = async (
         if (isOnlyAdmin) {
             return {
                 success: false,
-                error: 'Cannot leave hub as the only admin. Please assign another admin first.',
+                error: 'Cannot leave hub as the only admin. Please assign another admin first or delete the hub.',
             };
         }
 
@@ -381,6 +381,70 @@ export const leaveHub = async (
         return {
             success: false,
             error: 'Failed to leave hub',
+        };
+    }
+};
+
+/**
+ * Delete hub (admin only - deletes hub and all memberships)
+ */
+export const deleteHub = async (
+    hubId: string,
+    userId: string
+): Promise<ApiResponse<void>> => {
+    try {
+        // First check if user is the hub creator (doesn't require membership check)
+        const hubResponse = await getHubById(hubId);
+        if (!hubResponse.success || !hubResponse.data) {
+            return {
+                success: false,
+                error: 'Hub not found',
+            };
+        }
+
+        const isCreator = hubResponse.data.createdBy === userId;
+        
+        // If not creator, verify user is admin
+        if (!isCreator) {
+            const membershipResponse = await getUserMembership(hubId, userId);
+            if (!membershipResponse.success || membershipResponse.data.role !== 'admin') {
+                return {
+                    success: false,
+                    error: 'Only admins can delete hubs',
+                };
+            }
+        }
+
+        // Get all memberships to clean up user's hub arrays
+        const membersResponse = await getHubMembers(hubId);
+        if (!membersResponse.success || !membersResponse.data) {
+            throw new Error('Failed to fetch members');
+        }
+
+        // Delete all memberships
+        const membershipPromises = membersResponse.data.map((membership) =>
+            deleteDoc(doc(db, 'hubs', hubId, 'memberships', membership.userId))
+        );
+        await Promise.all(membershipPromises);
+
+        // Remove hub from all users' hubs arrays
+        const userUpdatePromises = membersResponse.data.map((membership) => {
+            const userRef = doc(db, 'users', membership.userId);
+            return updateDoc(userRef, {
+                hubs: arrayRemove(hubId),
+            });
+        });
+        await Promise.all(userUpdatePromises);
+
+        // Delete the hub document
+        await deleteDoc(doc(db, 'hubs', hubId));
+
+        return { success: true };
+    } catch (error: any) {
+        console.error('Delete hub error:', error);
+        return {
+            success: false,
+            error: 'Failed to delete hub',
         };
     }
 };

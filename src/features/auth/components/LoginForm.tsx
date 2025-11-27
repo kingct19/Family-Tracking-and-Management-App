@@ -5,7 +5,7 @@ import { TextField } from '@/components/ui/TextField';
 import { useAuth } from '../hooks/useAuth';
 import { loginSchema, type LoginFormData } from '@/lib/validation/auth-schemas';
 import { toast } from 'react-hot-toast';
-import { FiMail, FiLock } from 'react-icons/fi';
+import { MdEmail, MdLock } from 'react-icons/md';
 
 export const LoginForm = () => {
     const navigate = useNavigate();
@@ -81,7 +81,7 @@ export const LoginForm = () => {
                 value={formData.email}
                 onChange={handleChange('email')}
                 error={errors.email}
-                startAdornment={<FiMail size={20} />}
+                startAdornment={<MdEmail size={20} />}
                 fullWidth
                 required
                 autoComplete="email"
@@ -94,7 +94,7 @@ export const LoginForm = () => {
                 value={formData.password}
                 onChange={handleChange('password')}
                 error={errors.password}
-                startAdornment={<FiLock size={20} />}
+                startAdornment={<MdLock size={20} />}
                 fullWidth
                 required
                 autoComplete="current-password"

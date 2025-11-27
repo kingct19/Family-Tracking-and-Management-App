@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { FiCamera, FiX, FiUpload, FiCheck } from 'react-icons/fi';
+import { MdCameraAlt, MdClose, MdUpload, MdCheck } from 'react-icons/md';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import toast from 'react-hot-toast';
@@ -9,6 +9,8 @@ interface PhotoProofUploadProps {
     onCancel: () => void;
     isLoading?: boolean;
     existingProof?: string;
+    onSubmit?: () => Promise<void>;
+    showSubmit?: boolean;
 }
 
 export const PhotoProofUpload = ({
@@ -16,6 +18,8 @@ export const PhotoProofUpload = ({
     onCancel,
     isLoading = false,
     existingProof,
+    onSubmit,
+    showSubmit = false,
 }: PhotoProofUploadProps) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(existingProof || null);
@@ -88,7 +92,7 @@ export const PhotoProofUpload = ({
                             className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
                             aria-label="Remove photo"
                         >
-                            <FiX size={18} />
+                            <MdClose size={18} />
                         </button>
                     </div>
                 ) : (
@@ -96,7 +100,7 @@ export const PhotoProofUpload = ({
                         onClick={() => fileInputRef.current?.click()}
                         className="w-full h-64 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-colors"
                     >
-                        <FiCamera size={48} className="text-gray-400 mb-2" />
+                        <MdCameraAlt size={48} className="text-gray-400 mb-2" />
                         <p className="text-gray-600 font-medium">Click to upload photo</p>
                         <p className="text-sm text-gray-500 mt-1">JPEG, PNG, or WebP (max 5MB)</p>
                     </div>
@@ -132,16 +136,29 @@ export const PhotoProofUpload = ({
                 >
                     Cancel
                 </Button>
+                {showSubmit && onSubmit ? (
+                    <Button
+                        variant="filled"
+                        onClick={onSubmit}
+                        loading={isLoading}
+                        disabled={isLoading}
+                        startIcon={<MdCheck size={18} />}
+                        fullWidth
+                    >
+                        Submit
+                    </Button>
+                ) : (
                 <Button
                     variant="filled"
                     onClick={handleSubmit}
                     loading={isLoading}
                     disabled={isLoading || (!selectedFile && !existingProof)}
-                    startIcon={<FiUpload size={18} />}
+                    startIcon={<MdUpload size={18} />}
                     fullWidth
                 >
-                    {existingProof ? 'Update Proof' : 'Submit Proof'}
+                        {existingProof ? 'Update Proof' : 'Upload Photo'}
                 </Button>
+                )}
             </div>
         </div>
     );

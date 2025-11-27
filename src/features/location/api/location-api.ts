@@ -21,6 +21,7 @@ import {
     deleteDoc,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
+import { geocodingService } from '@/lib/services/geocoding-service';
 import type { LocationCoordinates } from '../services/location-service';
 import type { ApiResponse } from '@/types';
 
@@ -34,6 +35,15 @@ export interface UserLocation {
     heading?: number | null;
     timestamp: Date;
     isSharing: boolean;
+    address?: string;
+    addressDetails?: {
+        formatted: string;
+        street?: string;
+        city?: string;
+        state?: string;
+        zipCode?: string;
+        country?: string;
+    };
 }
 
 export interface LocationUpdate {
@@ -52,6 +62,31 @@ export const updateUserLocation = async (
     try {
         const { hubId, userId, coordinates, isSharing } = update;
 
+        // Get address (non-blocking - don't fail if geocoding fails)
+        let address: string | undefined;
+        let addressDetails: UserLocation['addressDetails'] | undefined;
+        
+        try {
+            const geocodeResult = await geocodingService.reverseGeocode(
+                coordinates.latitude,
+                coordinates.longitude
+            );
+            if (geocodeResult) {
+                address = geocodeResult.formatted;
+                addressDetails = {
+                    formatted: geocodeResult.formatted,
+                    street: geocodeResult.street,
+                    city: geocodeResult.city,
+                    state: geocodeResult.state,
+                    zipCode: geocodeResult.zipCode,
+                    country: geocodeResult.country,
+                };
+            }
+        } catch (geocodeError) {
+            // Don't fail location update if geocoding fails
+            console.warn('Geocoding failed, continuing without address:', geocodeError);
+        }
+
         // Store in current location collection
         const locationRef = doc(db, 'hubs', hubId, 'locations', userId);
         await setDoc(locationRef, {
@@ -64,6 +99,8 @@ export const updateUserLocation = async (
             heading: coordinates.heading,
             timestamp: Timestamp.fromMillis(coordinates.timestamp),
             isSharing,
+            address: address || null,
+            addressDetails: addressDetails || null,
             updatedAt: Timestamp.now(),
         });
 
@@ -117,6 +154,8 @@ export const getHubLocations = async (
                 heading: data.heading,
                 timestamp: data.timestamp?.toDate() || new Date(),
                 isSharing: data.isSharing,
+                address: data.address,
+                addressDetails: data.addressDetails,
             });
         });
 
@@ -202,6 +241,8 @@ export const subscribeToHubLocations = (
                     heading: data.heading,
                     timestamp: data.timestamp?.toDate() || new Date(),
                     isSharing: data.isSharing,
+                    address: data.address,
+                    addressDetails: data.addressDetails,
                 });
             });
             onUpdate(locations);

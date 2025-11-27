@@ -23,11 +23,16 @@ service firebase.storage {
       allow read: if isAuthenticated();
     }
     
-    // Vault files (encrypted)
-    match /vault/{userId}/{vaultId} {
-      // Only owner can read/write their vault files
-      allow read, write: if isOwner(userId)
-        && request.resource.size < 10 * 1024 * 1024;  // Max 10MB
+    // Vault files (encrypted documents)
+    match /vault/{userId}/{itemId}/{fileName} {
+      // Only owner can read their vault files
+      allow read: if isOwner(userId);
+      
+      // Only owner can write their vault files with size and type restrictions
+      allow write: if isOwner(userId)
+        && request.resource.size < 10 * 1024 * 1024  // Max 10MB
+        && (request.resource.contentType.matches('image/.*') 
+            || request.resource.contentType == 'application/pdf');
     }
     
     // Profile pictures

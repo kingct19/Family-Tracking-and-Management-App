@@ -6,18 +6,21 @@ import { TaskCardSkeleton } from '@/components/ui/Skeleton';
 import { TaskList, TaskFilter, TaskSort } from '../components/TaskList';
 import { TaskModal, type CreateTaskData } from '../components/TaskModal';
 import { TaskCompletionModal } from '../components/TaskCompletionModal';
-import { useHubTasks, useCompleteTask, useDeleteTask, useCreateTask, useUpdateTask } from '../hooks/useTasks';
-import { useHasRole } from '@/features/auth/hooks/useAuth';
+import { useHubTasks, useAcceptTask, useApproveTaskProof, useUnassignTask, useDeleteTask, useCreateTask, useUpdateTask } from '../hooks/useTasks';
+import { useHasRole, useAuth } from '@/features/auth/hooks/useAuth';
 import { useHubStore } from '@/lib/store/hub-store';
-import { FiPlus, FiCheckSquare } from 'react-icons/fi';
+import { MdAdd, MdTask } from 'react-icons/md';
 import { toast } from 'react-hot-toast';
 import type { TaskStatus, Task } from '@/types';
 
 const TasksPage = () => {
     const queryClient = useQueryClient();
     const { currentHub } = useHubStore();
+    const { user } = useAuth();
     const { data: tasks, isLoading, error } = useHubTasks();
-    const completeTaskMutation = useCompleteTask();
+    const acceptTaskMutation = useAcceptTask();
+    const approveTaskMutation = useApproveTaskProof();
+    const unassignTaskMutation = useUnassignTask();
     const deleteTaskMutation = useDeleteTask();
     const createTaskMutation = useCreateTask();
     const updateTaskMutation = useUpdateTask();
@@ -28,7 +31,8 @@ const TasksPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
-    const [completingTask, setCompletingTask] = useState<Task | null>(null);
+    const [uploadingTask, setUploadingTask] = useState<Task | null>(null);
+    const [uploadMode, setUploadMode] = useState<'upload' | 'submit'>('upload');
 
     // Calculate filter counts
     const filterCounts = useMemo(() => {
@@ -43,26 +47,47 @@ const TasksPage = () => {
         return counts as Record<TaskStatus | 'all', number>;
     }, [tasks]);
 
-    const handleComplete = async (taskId: string) => {
-        const task = tasks?.find(t => t.id === taskId);
-        if (!task) {
-            toast.error('Task not found');
+    const handleAccept = async (taskId: string) => {
+        try {
+            await acceptTaskMutation.mutateAsync(taskId);
+        } catch (error) {
+            toast.error('Failed to accept task');
+        }
+    };
+
+    const handleUpload = (task: Task) => {
+        setUploadingTask(task);
+        // If task already has proof, use submit mode, otherwise upload mode
+        setUploadMode(task.proofURL ? 'submit' : 'upload');
+        setIsCompletionModalOpen(true);
+    };
+
+    const handleSubmit = (task: Task) => {
+        setUploadingTask(task);
+        setUploadMode('submit');
+        setIsCompletionModalOpen(true);
+    };
+
+    const handleApprove = async (task: Task) => {
+        if (!task.assignedTo) {
+            toast.error('Task has no assignee');
             return;
         }
-
-        // Check if task requires proof
-        // For now, we'll always show proof upload for assigned tasks
-        if (task.status === 'assigned' || task.status === 'pending') {
-            setCompletingTask(task);
-            setIsCompletionModalOpen(true);
-        } else {
-            // Complete without proof (for tasks that don't require it)
             try {
-                await completeTaskMutation.mutateAsync({ taskId, task });
-                toast.success('Task completed!');
+            await approveTaskMutation.mutateAsync({
+                taskId: task.id,
+                assignedToUserId: task.assignedTo,
+            });
             } catch (error) {
-                toast.error('Failed to complete task');
+            toast.error('Failed to approve task');
             }
+    };
+
+    const handleUnassign = async (taskId: string) => {
+        try {
+            await unassignTaskMutation.mutateAsync(taskId);
+        } catch (error) {
+            toast.error('Failed to unassign task');
         }
     };
 
@@ -135,25 +160,25 @@ const TasksPage = () => {
         return (
             <>
                 <Helmet>
-                    <title>Tasks - Family Safety App</title>
+                    <title>Tasks - HaloHub</title>
                 </Helmet>
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                     {/* Header Skeleton */}
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-gray-200 rounded-2xl animate-pulse" />
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-surface-variant rounded-lg animate-pulse" />
                             <div>
-                                <div className="h-8 w-32 bg-gray-200 rounded animate-pulse mb-2" />
-                                <div className="h-4 w-48 bg-gray-200 rounded animate-pulse" />
+                                <div className="h-6 w-24 bg-surface-variant rounded animate-pulse mb-2" />
+                                <div className="h-4 w-40 bg-surface-variant rounded animate-pulse" />
                             </div>
                         </div>
-                        <div className="h-11 w-32 bg-gray-200 rounded-xl animate-pulse" />
+                        <div className="h-10 w-28 bg-surface-variant rounded-full animate-pulse" />
                     </div>
 
                     {/* Filter Tabs Skeleton */}
                     <div className="flex gap-2 overflow-x-auto">
                         {[...Array(5)].map((_, i) => (
-                            <div key={i} className="h-10 w-24 bg-gray-200 rounded-xl animate-pulse" />
+                            <div key={i} className="h-9 w-20 bg-surface-variant rounded-full animate-pulse" />
                         ))}
                     </div>
 
@@ -182,7 +207,7 @@ const TasksPage = () => {
     return (
         <>
             <Helmet>
-                <title>Tasks - Family Safety App</title>
+                <title>Tasks - HaloHub</title>
                 <meta name="description" content="Manage and track your family tasks" />
             </Helmet>
 
@@ -190,17 +215,24 @@ const TasksPage = () => {
                 {/* Header - Mobile optimized */}
                 <div className="flex items-start sm:items-center justify-between flex-wrap gap-3 sm:gap-4">
                     <div className="min-w-0 flex-1">
-                        <h1 className="text-headline-sm sm:text-headline-md text-on-background">Tasks</h1>
-                        <p className="text-body-sm sm:text-body-md text-on-variant mt-1">
-                            Manage and track tasks for your team
-                        </p>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 bg-primary-container rounded-lg">
+                                <MdTask size={24} className="text-primary" />
+                            </div>
+                            <div>
+                                <h1 className="text-title-lg sm:text-headline-sm font-semibold text-on-surface">Tasks</h1>
+                                <p className="text-body-sm text-on-variant mt-0.5">
+                                    Manage and track tasks for your team
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     {isAdmin && (
                         <Button
                             variant="filled"
                             size="medium"
-                            startIcon={<FiPlus size={20} />}
+                            startIcon={<MdAdd size={20} />}
                             onClick={handleCreateTask}
                         >
                             Create task
@@ -222,21 +254,26 @@ const TasksPage = () => {
                 {tasks && tasks.length > 0 ? (
                     <TaskList
                         tasks={tasks}
+                        currentUserId={user?.id}
                         filter={filter}
                         sortBy={sortBy}
-                        onComplete={handleComplete}
+                        onAccept={handleAccept}
+                        onUpload={handleUpload}
+                        onSubmit={handleSubmit}
+                        onApprove={handleApprove}
+                        onUnassign={handleUnassign}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
                         onViewDetails={handleViewDetails}
                         isAdmin={isAdmin}
                     />
                 ) : (
-                    <div className="flex flex-col items-center justify-center py-16 px-4">
-                        <div className="w-24 h-24 bg-gradient-to-br from-primary-container to-purple-100 rounded-full flex items-center justify-center mb-6 shadow-elevation-2">
-                            <FiCheckSquare size={48} className="text-primary" />
+                    <div className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-primary-container to-primary-container/50 rounded-full flex items-center justify-center mb-5 shadow-elevation-2">
+                            <MdTask size={40} className="text-primary" />
                         </div>
-                        <h3 className="text-headline-md font-normal text-on-surface mb-3">No tasks yet</h3>
-                        <p className="text-body-lg text-on-variant text-center mb-8 max-w-md">
+                        <h3 className="text-title-lg sm:text-headline-sm font-semibold text-on-surface mb-2">No tasks yet</h3>
+                        <p className="text-body-md text-on-variant text-center mb-6 max-w-md">
                             {isAdmin
                                 ? 'Create your first task to get started with task management'
                                 : 'No tasks have been assigned yet. Check back later!'}
@@ -245,8 +282,7 @@ const TasksPage = () => {
                             <Button 
                                 variant="filled" 
                                 onClick={handleCreateTask} 
-                                startIcon={<FiPlus size={20} />}
-                                className="btn-base bg-primary text-on-primary hover:bg-primary/90 shadow-elevation-2"
+                                startIcon={<MdAdd size={20} />}
                             >
                                 Create Your First Task
                             </Button>
@@ -265,17 +301,19 @@ const TasksPage = () => {
             />
 
             {/* Task Completion Modal */}
-            {completingTask && (
+            {uploadingTask && (
                 <TaskCompletionModal
                     isOpen={isCompletionModalOpen}
                     onClose={() => {
                         setIsCompletionModalOpen(false);
-                        setCompletingTask(null);
+                        setUploadingTask(null);
                     }}
-                    task={completingTask}
+                    task={uploadingTask}
+                    mode={uploadMode}
                     onSuccess={() => {
                         // Refresh tasks
                         queryClient.invalidateQueries({ queryKey: ['tasks', 'hub', currentHub?.id] });
+                        setUploadingTask(null);
                     }}
                 />
             )}

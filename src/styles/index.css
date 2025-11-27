@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
@@ -12,12 +13,12 @@
     }
 
     body {
-        font-family: 'Roboto Flex', 'Inter', system-ui, sans-serif;
-        font-size: 14px;
-        line-height: 20px;
+        font-family: 'Inter', 'Roboto Flex', system-ui, sans-serif;
+        font-size: 16px;
+        line-height: 24px;
         font-weight: 400;
-        color: #1C1B1F; /* on-surface */
-        background-color: #FEF7FF; /* background */
+        color: #1E1A2B; /* on-surface */
+        background-color: #F2EFFE; /* background */
         font-feature-settings: 'kern' 1, 'liga' 1;
     }
 
@@ -26,9 +27,9 @@
         letter-spacing: -0.01em;
     }
 
-    /* Focus styles for accessibility */
+    /* Focus styles for accessibility (HaloHub) */
     *:focus-visible {
-        outline: 2px solid #6750A4; /* primary */
+        outline: 2px solid #7A3BFF; /* primary */
         outline-offset: 2px;
     }
 
@@ -120,21 +121,21 @@
         @apply text-[11px] leading-[16px] font-semibold;
     }
 
-    /* Card Styles */
+    /* Card Styles (HaloHub Experience) */
     .card {
-        background-color: #FEF7FF; /* surface */
-        border-radius: 0.75rem; /* rounded-xl */
-        border: 1px solid #CAC4D0; /* outline-variant */
+        background-color: #FFFFFF; /* surface */
+        border-radius: 24px; /* card radius */
+        border: 1px solid #E7E0FF; /* outline-variant */
         box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15); /* elevation-1 */
-        transition: all 200ms; /* duration-normal */
+        transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
     }
 
     .card-interactive {
-        background-color: #FEF7FF; /* surface */
-        border-radius: 0.75rem; /* rounded-xl */
-        border: 1px solid #CAC4D0; /* outline-variant */
+        background-color: #FFFFFF; /* surface */
+        border-radius: 24px; /* card radius */
+        border: 1px solid #E7E0FF; /* outline-variant */
         box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15); /* elevation-1 */
-        transition: all 200ms; /* duration-normal */
+        transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
         cursor: pointer;
     }
 
@@ -145,64 +146,87 @@
 
     .card-interactive:active {
         box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15); /* elevation-1 */
-        transform: translateY(0);
+        transform: translateY(1px);
     }
 
     .card-interactive:focus-visible {
-        outline: 2px solid #6750A4; /* primary */
+        outline: 2px solid #7A3BFF; /* primary */
         outline-offset: 2px;
     }
 
-    /* Surface Variants */
+    /* Surface Variants (HaloHub) */
     .surface-elevated {
         background-color: #FFFFFF;
         box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15); /* elevation-2 */
     }
 
     .surface-filled {
-        background-color: #E7E0EC; /* surface-variant */
+        background-color: #F7F7FA; /* surface-variant */
     }
 
-    /* Button Base Styles */
+    /* Button Base Styles (HaloHub Experience) */
     .btn-base {
-        min-height: 44px;
+        min-height: 48px; /* touch target min */
         padding: 0.75rem 1.5rem; /* px-6 py-3 */
-        border-radius: 9999px; /* rounded-full */
+        border-radius: 9999px; /* button radius - full pill */
         font-weight: 600; /* font-semibold */
-        font-size: 14px; /* label-lg */
-        line-height: 20px;
-        transition: all 120ms; /* duration-fast */
+        font-size: 16px; /* body */
+        line-height: 24px;
+        transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
     }
 
     .btn-base:focus-visible {
-        outline: 2px solid #6750A4; /* primary */
+        outline: 2px solid #7A3BFF; /* primary */
         outline-offset: 2px;
     }
 
     .btn-base:disabled {
-        opacity: 0.5;
+        opacity: 0.4;
         cursor: not-allowed;
     }
 
-    /* Input Base Styles */
+    /* CTA Button Styles */
+    .btn-cta-filled {
+        background-color: #7A3BFF;
+        color: #FFFFFF;
+        box-shadow: 0 8px 20px rgba(122, 59, 255, 0.35);
+    }
+
+    .btn-cta-filled:hover {
+        background-color: #944BFF;
+        box-shadow: 0 8px 24px rgba(122, 59, 255, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .btn-cta-tonal {
+        background-color: #F2EFFE;
+        color: #7A3BFF;
+        border: 1px solid #CDB7FF;
+    }
+
+    .btn-cta-tonal:hover {
+        background-color: #E7E0FF;
+    }
+
+    /* Input Base Styles (HaloHub Experience) */
     .input-base {
         width: 100%;
         padding: 0.75rem 1rem; /* px-4 py-3 */
-        border-radius: 0.75rem; /* rounded-xl */
-        border: 2px solid #CAC4D0; /* outline-variant */
-        background-color: #FEF7FF; /* surface */
-        color: #1C1B1F; /* on-surface */
-        transition: all 120ms; /* duration-fast */
+        border-radius: 12px; /* input radius */
+        border: 2px solid #E7E0FF; /* outline-variant */
+        background-color: #FFFFFF; /* surface */
+        color: #1E1A2B; /* on-surface */
+        transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
     }
 
     .input-base:focus {
         outline: none;
-        box-shadow: 0 0 0 2px #6750A4; /* ring-primary */
-        border-color: #6750A4; /* primary */
+        box-shadow: 0 0 0 2px #7A3BFF; /* ring-primary */
+        border-color: #7A3BFF; /* primary */
     }
 
     .input-base::placeholder {
-        color: #49454F; /* on-variant */
+        color: #C9C5D5; /* neutral gray-300 */
     }
 
     /* Section Spacing */
@@ -215,7 +239,7 @@
     }
 }
 
-/* Animations */
+/* Animations (HaloHub Experience) */
 @keyframes slide-up {
     from {
         opacity: 0;
@@ -247,20 +271,55 @@
     }
 }
 
+@keyframes fade-slide {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .animate-slide-up {
-    animation: slide-up 0.3s ease-out;
+    animation: fade-slide 200ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .animate-fade-in {
-    animation: fade-in 0.2s ease-out;
+    animation: fade-in 200ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .animate-scale-in {
-    animation: scale-in 0.2s ease-out;
+    animation: scale-in 200ms cubic-bezier(0.3, 0, 0, 1);
+}
+
+.animate-fade-slide {
+    animation: fade-slide 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .animate-slide-up,
+    .animate-fade-in,
+    .animate-scale-in,
+    .animate-fade-slide {
+        animation: fade-in 0.01ms;
+    }
 }
 
 /* Utility Classes */
 @layer utilities {
+    /* HaloHub Gradients */
+    .gradient-iris-glow {
+        background: linear-gradient(180deg, #7A3BFF 0%, #B682FF 60%, #FFE5FF 100%);
+    }
+
+    .gradient-iris-glow-horizontal {
+        background: linear-gradient(90deg, #7A3BFF 0%, #B682FF 60%, #FFE5FF 100%);
+    }
+
+    /* Text utilities */
     .text-balance {
         text-wrap: balance;
     }
@@ -350,5 +409,105 @@
         .mobile-padding {
             @apply px-8 py-8;
         }
+    }
+
+    /* HaloHub Grid System */
+    .grid-halohub-mobile {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        padding: 0 24px;
+    }
+
+    .grid-halohub-tablet {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 24px;
+        padding: 0 32px;
+    }
+
+    .grid-halohub-desktop {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 32px;
+        padding: 0 80px;
+    }
+
+    @media (min-width: 600px) {
+        .grid-halohub-mobile {
+            grid-template-columns: repeat(8, 1fr);
+            gap: 24px;
+            padding: 0 32px;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .grid-halohub-mobile {
+            grid-template-columns: repeat(12, 1fr);
+            gap: 32px;
+            padding: 0 80px;
+        }
+    }
+
+    /* Map Card Styles (HaloHub) */
+    .map-card {
+        background: #FFFFFF;
+        border-radius: 24px;
+        box-shadow: 0 0 30px -4px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Selection List (Segmented Radio) */
+    .selection-list-item {
+        min-height: 56px;
+        padding: 16px;
+        border-radius: 12px;
+        transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
+        cursor: pointer;
+    }
+
+    .selection-list-item:hover {
+        background-color: #F2EFFE;
+        transform: translateY(-2px);
+    }
+
+    .selection-list-item:active {
+        transform: translateY(1px);
+    }
+
+    /* Upload Card Styles */
+    .upload-card {
+        background: #FFFFFF;
+        border-radius: 24px;
+        padding: 24px;
+        border: 1px solid #E7E0FF;
+        box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+    }
+
+    /* State Badges */
+    .badge-pending {
+        background-color: #FFF4E6;
+        color: #1E1A2B;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .badge-approved {
+        background-color: #E7F5E7;
+        color: #1E1A2B;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .badge-rejected {
+        background-color: #FFE5E5;
+        color: #1E1A2B;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-size: 14px;
+        font-weight: 600;
     }
 }

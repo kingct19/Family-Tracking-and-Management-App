@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { FiLock, FiPlus, FiShield, FiSearch, FiFilter } from 'react-icons/fi';
+import { MdLock, MdAdd, MdSecurity, MdSearch, MdFilterList } from 'react-icons/md';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -174,90 +174,102 @@ const VaultPage = () => {
     return (
         <>
             <Helmet>
-                <title>Vault - Family Safety App</title>
+                <title>Vault - HaloHub</title>
                 <meta name="description" content="Securely store sensitive information" />
             </Helmet>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8">
-                    <div>
-                        <div className="flex items-center gap-3 mb-3 flex-wrap">
-                            <h1 className="text-headline-lg md:text-display-sm font-normal text-on-surface">Digital Vault</h1>
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
-                                <FiShield size={14} className="text-green-600" />
-                                <span className="text-label-sm font-semibold text-green-700">Encrypted</span>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2 sm:mb-3 flex-wrap">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-primary-container rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <MdLock size={24} className="text-primary" />
+                                </div>
+                                <h1 className="text-title-lg sm:text-headline-sm font-semibold text-on-surface">Digital Vault</h1>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-container border border-primary/20 rounded-full">
+                                <MdSecurity size={14} className="text-primary" />
+                                <span className="text-label-sm font-semibold text-on-primary-container">Encrypted</span>
                             </div>
                         </div>
-                        <p className="text-body-lg text-on-variant">
+                        <p className="text-body-sm sm:text-body-md text-on-variant">
                             Secure storage for passwords and sensitive information
                         </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                         <Button
                             variant="outlined"
                             onClick={handleLogout}
-                            startIcon={<FiLock size={18} />}
-                            className="btn-base border-2 border-outline-variant text-on-surface hover:bg-surface-variant"
+                            startIcon={<MdLock size={18} />}
+                            size="medium"
+                            className="touch-target"
                         >
-                            Lock Vault
+                            <span className="hidden sm:inline">Lock Vault</span>
+                            <span className="sm:hidden">Lock</span>
                         </Button>
                         <Button
                             variant="filled"
                             onClick={handleCreateItem}
-                            startIcon={<FiPlus size={18} />}
-                            className="btn-base bg-primary text-on-primary hover:bg-primary/90 shadow-elevation-2"
+                            startIcon={<MdAdd size={18} />}
+                            size="medium"
+                            className="touch-target"
                         >
-                            Add Item
+                            <span className="hidden sm:inline">Add Item</span>
+                            <span className="sm:hidden">Add</span>
                         </Button>
                     </div>
                 </div>
 
                 {/* Search and Filter */}
                 {vaultItems.length > 0 && (
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                        <div className="flex-1 min-w-0">
                             <TextField
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Search vault items..."
-                                startAdornment={<FiSearch size={18} className="text-gray-400" />}
+                                startAdornment={<MdSearch size={18} className="text-on-variant" />}
                                 fullWidth
                             />
                         </div>
                         <div className="sm:w-48">
-                            <select
-                                value={filterType}
-                                onChange={(e) => setFilterType(e.target.value as VaultItem['type'] | 'all')}
-                                className="input-base"
-                            >
-                                <option value="all">All Types</option>
-                                <option value="password">Passwords</option>
-                                <option value="note">Notes</option>
-                                <option value="card">Cards</option>
-                                <option value="identity">Identity</option>
-                                <option value="document">Documents</option>
-                            </select>
+                            <div className="relative">
+                                <MdFilterList size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-variant pointer-events-none" />
+                                <select
+                                    value={filterType}
+                                    onChange={(e) => setFilterType(e.target.value as VaultItem['type'] | 'all')}
+                                    className="w-full pl-10 pr-4 py-3 bg-surface-variant border border-outline-variant rounded-input text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all touch-target"
+                                >
+                                    <option value="all">All Types</option>
+                                    <option value="password">Passwords</option>
+                                    <option value="note">Notes</option>
+                                    <option value="card">Cards</option>
+                                    <option value="identity">Identity</option>
+                                    <option value="document">Documents</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 )}
 
                 {/* Vault Items Grid */}
                 {isLoading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         {[...Array(6)].map((_, i) => (
                             <VaultItemSkeleton key={i} />
                         ))}
                     </div>
                 ) : filteredItems.length === 0 ? (
-                    <div className="card p-12 text-center">
-                        <div className="w-20 h-20 bg-primary-container rounded-full flex items-center justify-center mx-auto mb-6 shadow-elevation-2">
-                            <FiLock size={32} className="text-primary" />
+                    <div className="card p-8 sm:p-12 text-center">
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-primary-container rounded-full flex items-center justify-center mx-auto mb-6 shadow-elevation-2">
+                            <MdLock size={32} className="sm:w-10 sm:h-10 text-primary" />
                         </div>
-                        <h3 className="text-headline-md font-normal text-on-surface mb-3">
+                        <h3 className="text-headline-sm sm:text-headline-md font-semibold text-on-surface mb-2 sm:mb-3">
                             {vaultItems.length === 0 ? 'Your vault is empty' : 'No items found'}
                         </h3>
-                        <p className="text-body-lg text-on-variant mb-8 max-w-md mx-auto">
+                        <p className="text-body-md sm:text-body-lg text-on-variant mb-6 sm:mb-8 max-w-md mx-auto">
                             {vaultItems.length === 0
                                 ? 'Start by adding your first secure item'
                                 : 'Try adjusting your search or filter'}
@@ -266,15 +278,16 @@ const VaultPage = () => {
                             <Button
                                 variant="filled"
                                 onClick={handleCreateItem}
-                                startIcon={<FiPlus size={18} />}
-                                className="btn-base bg-primary text-on-primary hover:bg-primary/90 shadow-elevation-2"
+                                startIcon={<MdAdd size={18} />}
+                                size="medium"
+                                className="touch-target"
                             >
                                 Add Your First Item
                             </Button>
                         )}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         {filteredItems.map((item) => (
                             <VaultItemCard
                                 key={item.id}

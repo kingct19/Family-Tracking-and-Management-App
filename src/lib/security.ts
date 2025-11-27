@@ -6,6 +6,7 @@ export const CSP_DIRECTIVES = {
         "'unsafe-inline'", // Required for Vite in development
         "'unsafe-eval'", // Required for Vite in development
         'https://www.gstatic.com',
+        'https://*.gstatic.com',
         'https://www.google.com',
         'https://maps.googleapis.com',
         'https://maps.gstatic.com',
@@ -28,6 +29,8 @@ export const CSP_DIRECTIVES = {
         'https://maps.googleapis.com',
         'https://maps.gstatic.com',
         'https://*.googleusercontent.com',
+        'https://images.unsplash.com',
+        'https://i.pravatar.cc',
     ],
     'connect-src': [
         "'self'",
@@ -38,8 +41,19 @@ export const CSP_DIRECTIVES = {
         'https://firebaseapp.com',
         'https://*.firebaseapp.com',
         'https://*.googleapis.com',
+        'https://www.gstatic.com',
+        'https://*.gstatic.com',
+        'https://prod.spline.design',
+        'https://*.spline.design',
+        'https://app.spline.design',
         'ws://localhost:*', // For development
         'wss://*.firebaseapp.com',
+    ],
+    'worker-src': [
+        "'self'",
+        'blob:',
+        'https://www.gstatic.com',
+        'https://*.gstatic.com',
     ],
     'media-src': [
         "'self'",

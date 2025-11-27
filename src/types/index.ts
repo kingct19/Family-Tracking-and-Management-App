@@ -141,6 +141,15 @@ export interface Location {
     timestamp: Date;
     batteryLevel?: number;
     isOnline: boolean;
+    address?: string;
+    addressDetails?: {
+        formatted: string;
+        street?: string;
+        city?: string;
+        state?: string;
+        zipCode?: string;
+        country?: string;
+    };
 }
 
 export interface Geofence {
@@ -175,6 +184,9 @@ export interface VaultMetadata {
     category?: string;
     tags: string[];
     favorite: boolean;
+    fileURL?: string; // URL to uploaded document/image
+    fileName?: string; // Original file name
+    fileType?: string; // MIME type of uploaded file
 }
 
 // Invite types
@@ -226,6 +238,32 @@ export interface AuthUser {
 export interface CustomClaims {
     hubs: Record<string, UserRole>; // { hubId: role }
     currentHub?: string;
+}
+
+// Reward types
+export type RewardType = 'xp' | 'tasks' | 'streak';
+
+export interface Reward {
+    id: string;
+    hubId: string;
+    title: string;
+    description: string;
+    icon: string; // emoji
+    type: RewardType;
+    threshold: number; // XP amount, task count, or streak days
+    createdBy: string; // admin userId
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface UserReward {
+    id: string;
+    hubId: string;
+    userId: string;
+    rewardId: string;
+    unlockedAt: Date;
+    claimedAt?: Date;
 }
 
 // API Response types

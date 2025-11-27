@@ -5,9 +5,23 @@ import { useHasRole } from '@/features/auth/hooks/useAuth';
 import { useHubTasks } from '@/features/tasks/hooks/useTasks';
 import { useHubMessages } from '@/features/messages/hooks/useMessages';
 import { useHubBroadcasts } from '@/features/messages/hooks/useBroadcasts';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { DashboardStatsSkeleton, DashboardQuickActionsSkeleton, CardSkeleton, ListItemSkeleton } from '@/components/ui/Skeleton';
-import { FiMapPin, FiCheckSquare, FiMessageCircle, FiUsers, FiAward, FiClock, FiTrendingUp, FiCheckCircle, FiAlertCircle, FiUser } from 'react-icons/fi';
+import { MiniMapPreview } from '../components/MiniMapPreview';
+import { LeaderboardWidget } from '../components/LeaderboardWidget';
+import { RewardsWidget } from '@/features/rewards/components/RewardsWidget';
+import {
+    MdTaskAlt,
+    MdChat,
+    MdLock,
+    MdEmojiEvents,
+    MdCheckCircle,
+    MdNotificationsActive,
+    MdArrowOutward,
+    MdShield,
+    MdAdd,
+    MdVerified,
+    MdLocationOn,
+    MdPeople,
+} from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
 
@@ -16,413 +30,336 @@ const DashboardPage = () => {
     const { currentHub } = useHubStore();
     const isAdmin = useHasRole('admin');
     const navigate = useNavigate();
-    
-    // Fetch real data
-    const { data: tasks = [], isLoading: isLoadingTasks } = useHubTasks();
-    const { messages = [], isLoading: isLoadingMessages } = useHubMessages(currentHub?.id);
-    const { data: broadcasts = [] } = useHubBroadcasts();
-    
-    const isLoading = isLoadingTasks || isLoadingMessages;
 
-    // Calculate task statistics
+    const { data: tasks = [] } = useHubTasks();
+    const { messages = [] } = useHubMessages(currentHub?.id);
+    const { data: broadcasts = [] } = useHubBroadcasts();
+
     const taskStats = useMemo(() => {
         const activeTasks = tasks.filter(t => t.status === 'pending' || t.status === 'assigned').length;
         const completedTasks = tasks.filter(t => t.status === 'done' || t.status === 'approved').length;
         const pendingApprovals = tasks.filter(t => t.proofStatus === 'pending').length;
         const assignedToMe = tasks.filter(t => t.assignedTo === user?.id && (t.status === 'pending' || t.status === 'assigned')).length;
-        
+
         return {
             active: activeTasks,
             completed: completedTasks,
             pendingApprovals,
             assignedToMe,
             total: tasks.length,
+            completionRate: tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0,
         };
     }, [tasks, user?.id]);
 
-    // Create activity feed from tasks, messages, and broadcasts
     const recentActivity = useMemo(() => {
         const activities: Array<{
             id: string;
-            type: 'task' | 'message' | 'broadcast';
             title: string;
             description: string;
             timestamp: Date;
             icon: React.ReactNode;
-            color: string;
         }> = [];
 
-        // Add recent tasks (created, completed, assigned)
-        tasks.slice(0, 5).forEach(task => {
+        tasks.slice(0, 3).forEach(task => {
             if (task.status === 'done' || task.status === 'approved') {
                 activities.push({
                     id: `task-${task.id}`,
-                    type: 'task',
                     title: 'Task completed',
-                    description: `${task.title} was completed`,
+                    description: task.title,
                     timestamp: task.completedAt || task.updatedAt,
-                    icon: <FiCheckCircle size={16} />,
-                    color: 'text-green-600',
-                });
-            } else if (task.assignedTo && task.status === 'assigned') {
-                activities.push({
-                    id: `task-assigned-${task.id}`,
-                    type: 'task',
-                    title: 'Task assigned',
-                    description: `${task.title} was assigned`,
-                    timestamp: task.updatedAt,
-                    icon: <FiUser size={16} />,
-                    color: 'text-blue-600',
-                });
-            } else if (task.status === 'pending') {
-                activities.push({
-                    id: `task-created-${task.id}`,
-                    type: 'task',
-                    title: 'New task',
-                    description: `${task.title} was created`,
-                    timestamp: task.createdAt,
-                    icon: <FiCheckSquare size={16} />,
-                    color: 'text-purple-600',
+                    icon: <MdCheckCircle size={16} />,
                 });
             }
         });
 
-        // Add recent messages
-        messages.slice(-5).forEach(message => {
+        messages.slice(-3).forEach(message => {
             activities.push({
                 id: `message-${message.id}`,
-                type: 'message',
-                title: 'New message',
-                description: `${message.senderName}: ${message.text.substring(0, 50)}${message.text.length > 50 ? '...' : ''}`,
+                title: message.senderName,
+                description: message.text.substring(0, 40) + (message.text.length > 40 ? '...' : ''),
                 timestamp: message.timestamp,
-                icon: <FiMessageCircle size={16} />,
-                color: 'text-purple-600',
+                icon: <MdChat size={16} />,
             });
         });
 
-        // Add recent broadcasts
-        broadcasts.slice(0, 3).forEach(broadcast => {
+        broadcasts.slice(0, 2).forEach(broadcast => {
             activities.push({
                 id: `broadcast-${broadcast.id}`,
-                type: 'broadcast',
                 title: broadcast.title,
-                description: broadcast.message,
+                description: broadcast.message.substring(0, 40),
                 timestamp: broadcast.timestamp,
-                icon: <FiAlertCircle size={16} />,
-                color: broadcast.priority === 'high' ? 'text-red-600' : 'text-orange-600',
+                icon: <MdNotificationsActive size={16} />,
             });
         });
 
-        // Sort by timestamp (newest first) and limit to 10
-        return activities
-            .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-            .slice(0, 10);
+        return activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 4);
     }, [tasks, messages, broadcasts]);
 
-    const quickActions = [
-        {
-            icon: <FiCheckSquare size={28} />,
-            title: 'Tasks',
-            description: 'View and manage tasks',
-            action: () => navigate('/tasks'),
-            color: 'from-blue-500 to-blue-600',
-            bgColor: 'bg-blue-50',
-            textColor: 'text-blue-600',
-        },
-        {
-            icon: <FiMapPin size={28} />,
-            title: 'Location',
-            description: 'Track family members',
-            action: () => navigate('/location'),
-            color: 'from-green-500 to-green-600',
-            bgColor: 'bg-green-50',
-            textColor: 'text-green-600',
-        },
-        {
-            icon: <FiMessageCircle size={28} />,
-            title: 'Messages',
-            description: 'Chat with your team',
-            action: () => navigate('/messages'),
-            color: 'from-purple-500 to-purple-600',
-            bgColor: 'bg-purple-50',
-            textColor: 'text-purple-600',
-        },
-        {
-            icon: <FiUsers size={28} />,
-            title: 'Members',
-            description: 'Manage hub members',
-            action: () => navigate('/settings'),
-            color: 'from-indigo-500 to-indigo-600',
-            bgColor: 'bg-indigo-50',
-            textColor: 'text-indigo-600',
-        },
-    ];
+    const getTimeGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 6) return '🌙';
+        if (hour < 12) return '☀️';
+        if (hour < 18) return '🌤️';
+        return '🌙';
+    };
+
+    // Progress ring component
+    const ProgressRing = ({ progress, size = 72, stroke = 6 }: { progress: number; size?: number; stroke?: number }) => {
+        const radius = (size - stroke) / 2;
+        const circumference = radius * 2 * Math.PI;
+        const offset = circumference - (progress / 100) * circumference;
+
+        return (
+            <svg width={size} height={size} className="transform -rotate-90">
+                <circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={stroke}
+                    className="text-outline-variant/30"
+                />
+                <circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    fill="none"
+                    stroke="#7C5CFC"
+                    strokeWidth={stroke}
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offset}
+                    className="transition-all duration-700 ease-out"
+                />
+            </svg>
+        );
+    };
 
     return (
         <>
             <Helmet>
-                <title>Dashboard - Family Safety App</title>
-                <meta name="description" content="Your family safety dashboard" />
+                <title>Dashboard - HaloHub</title>
             </Helmet>
 
-            <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-                {/* Welcome Header - Mobile optimized */}
-                <div className="bg-gradient-to-br from-primary via-purple-600 to-indigo-600 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 text-on-primary shadow-elevation-3 overflow-hidden relative">
-                    {/* Decorative background pattern */}
-                    <div className="absolute inset-0 opacity-10">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
-                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full blur-3xl"></div>
+            <div className="space-y-6">
+                {/* Header */}
+                <header className="flex items-start justify-between gap-4">
+                    <div>
+                        <p className="text-body-sm text-on-variant mb-1 flex items-center gap-1.5">
+                            {getTimeGreeting()} {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                        </p>
+                        <h1 className="text-headline-lg font-bold text-on-surface">
+                            Hey, {user?.displayName?.split(' ')[0] || 'there'}
+                        </h1>
                     </div>
-                    <div className="relative z-10">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                            <div>
-                                <h1 className="text-headline-lg md:text-display-sm font-normal mb-3 text-balance">
-                                    Welcome back, {user?.displayName || 'User'}!
-                                </h1>
-                                <p className="text-body-lg text-on-primary/90">
-                                    {currentHub ? `Current hub: ${currentHub.name}` : 'No hub selected'}
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <div className="bg-white/15 backdrop-blur-md rounded-2xl px-6 py-4 border border-white/20 shadow-elevation-2">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                                            <FiAward size={24} className="text-white" />
-                                        </div>
-                                        <div>
-                                            <div className="text-label-sm text-on-primary/80 mb-1">Total XP</div>
-                                            <div className="text-headline-sm font-semibold text-white">{user?.xpTotal || 0}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div>
-                    <h2 className="text-headline-md font-normal text-on-surface mb-6">Quick actions</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {quickActions.map((action, index) => (
-                            <button
-                                key={index}
-                                onClick={action.action}
-                                disabled={!currentHub}
-                                className={`group card-interactive p-6 text-left ${
-                                    !currentHub ? 'opacity-50 cursor-not-allowed' : ''
-                                }`}
-                            >
-                                <div className={`w-14 h-14 bg-gradient-to-br ${action.color} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-normal shadow-elevation-2`}>
-                                    <div className="text-white">
-                                        {action.icon}
-                                    </div>
-                                </div>
-                                <h3 className="text-title-md text-on-surface mb-2">
-                                    {action.title}
-                                </h3>
-                                <p className="text-body-md text-on-variant">
-                                    {action.description}
-                                </p>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Stats Summary */}
-                <div>
-                    <h2 className="text-headline-md font-normal text-on-surface mb-6">Overview</h2>
-                    {isLoading ? (
-                        <DashboardStatsSkeleton />
+                    {user?.photoURL ? (
+                        <img src={user.photoURL} alt="" className="w-11 h-11 rounded-xl object-cover ring-2 ring-outline-variant" />
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <div className="card p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center border border-blue-100">
-                                        <FiCheckSquare size={24} className="text-blue-600" />
-                                    </div>
-                                    {taskStats.active > 0 && <FiTrendingUp className="text-green-600" size={20} />}
-                                </div>
-                                {isLoadingTasks ? (
-                                    <LoadingSpinner size="small" />
-                                ) : (
-                                    <>
-                                        <div className="text-display-sm font-normal text-on-surface mb-1">{taskStats.active}</div>
-                                        <div className="text-body-md text-on-variant">Active Tasks</div>
-                                        {taskStats.assignedToMe > 0 && (
-                                            <div className="text-label-sm text-blue-600 mt-2">
-                                                {taskStats.assignedToMe} assigned to you
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-                            </div>
-
-                            <div className="card p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center border border-purple-100">
-                                        <FiUsers size={24} className="text-purple-600" />
-                                    </div>
-                                    <FiTrendingUp className="text-green-600" size={20} />
-                                </div>
-                                <div className="text-display-sm font-normal text-on-surface mb-1">
-                                    {currentHub?.members.length || 0}
-                                </div>
-                                <div className="text-body-md text-on-variant">Hub Members</div>
-                            </div>
-
-                            <div className="card p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center border border-green-100">
-                                        <FiCheckCircle size={24} className="text-green-600" />
-                                    </div>
-                                    {taskStats.completed > 0 && <FiTrendingUp className="text-green-600" size={20} />}
-                                </div>
-                                {isLoadingTasks ? (
-                                    <LoadingSpinner size="small" />
-                                ) : (
-                                    <>
-                                        <div className="text-display-sm font-normal text-on-surface mb-1">{taskStats.completed}</div>
-                                        <div className="text-body-md text-on-variant">Completed Tasks</div>
-                                    </>
-                                )}
-                            </div>
-
-                            <div className="card p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center border border-orange-100">
-                                        <FiClock size={24} className="text-orange-600" />
-                                    </div>
-                                    {recentActivity.length > 0 && <FiTrendingUp className="text-green-600" size={20} />}
-                                </div>
-                                <div className="text-display-sm font-normal text-on-surface mb-1">{recentActivity.length}</div>
-                                <div className="text-body-md text-on-variant">Recent Activity</div>
-                                {isAdmin && taskStats.pendingApprovals > 0 && (
-                                    <div className="text-label-sm text-orange-600 mt-2">
-                                        {taskStats.pendingApprovals} pending approvals
-                                    </div>
-                                )}
-                            </div>
+                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
+                            {user?.displayName?.[0] || 'U'}
                         </div>
                     )}
-                </div>
+                </header>
 
-                {/* Admin Quick Actions */}
-                {isAdmin && currentHub && (
-                    <div>
-                        <h2 className="text-headline-md font-normal text-on-surface mb-6">Admin Actions</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <button
-                                onClick={() => navigate('/tasks/pending-approvals')}
-                                className="group card-interactive p-6 text-left relative"
+                {currentHub ? (
+                    <>
+                        {/* Main Bento Grid - Clean Layout */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            
+                            {/* Hub Status Card with Interactive Mini Map */}
+                            <div 
+                                className="col-span-2 row-span-2 relative overflow-hidden rounded-2xl"
+                                style={{ minHeight: '280px' }}
                             >
-                                {taskStats.pendingApprovals > 0 && (
-                                    <div className="absolute top-4 right-4 bg-orange-500 text-white text-label-sm font-semibold rounded-full w-7 h-7 flex items-center justify-center shadow-elevation-2">
-                                        {taskStats.pendingApprovals}
+                                <MiniMapPreview className="absolute inset-0" />
+                            </div>
+
+                            {/* Tasks Card */}
+                            <div 
+                                onClick={() => navigate('/tasks')}
+                                className="col-span-1 relative overflow-hidden rounded-2xl bg-violet-50 p-4 cursor-pointer group hover:bg-violet-100 transition-colors"
+                                style={{ minHeight: '130px' }}
+                            >
+                                <MdTaskAlt size={56} className="absolute -bottom-1 -right-1 text-violet-200" />
+                                <div className="relative z-10 h-full flex flex-col">
+                                    <span className="text-label-sm text-primary font-semibold">Tasks</span>
+                                    <p className="text-display-sm font-black text-slate-900 mt-auto">{taskStats.active}</p>
+                                    {taskStats.assignedToMe > 0 && (
+                                        <span className="inline-block mt-1 bg-primary text-white text-label-sm font-medium px-2 py-0.5 rounded-full w-fit">
+                                            {taskStats.assignedToMe} yours
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Chat Card */}
+                            <div 
+                                onClick={() => navigate('/messages')}
+                                className="col-span-1 relative overflow-hidden rounded-2xl bg-orange-50 p-4 cursor-pointer group hover:bg-orange-100 transition-colors"
+                                style={{ minHeight: '130px' }}
+                            >
+                                <MdChat size={56} className="absolute -bottom-1 -right-1 text-orange-200" />
+                                <div className="relative z-10 h-full flex flex-col">
+                                    <span className="text-label-sm text-orange-600 font-semibold">Chat</span>
+                                    <p className="text-display-sm font-black text-slate-900 mt-auto">{messages.length}</p>
+                                </div>
+                            </div>
+
+                            {/* Location Card */}
+                            <div 
+                                onClick={() => navigate('/map')}
+                                className="col-span-1 relative overflow-hidden rounded-2xl bg-emerald-50 p-4 cursor-pointer group hover:bg-emerald-100 transition-colors"
+                                style={{ minHeight: '130px' }}
+                            >
+                                <MdLocationOn size={56} className="absolute -bottom-1 -right-1 text-emerald-200" />
+                                <div className="relative z-10 h-full flex flex-col">
+                                    <span className="text-label-sm text-emerald-600 font-semibold">Location</span>
+                                    <p className="text-display-sm font-black text-slate-900 mt-auto">{currentHub.members.length}</p>
+                                </div>
+                            </div>
+
+                            {/* Vault Card */}
+                            <div 
+                                onClick={() => navigate('/vault')}
+                                className="col-span-1 relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 p-4 cursor-pointer group hover:from-amber-500 hover:to-orange-600 transition-all"
+                                style={{ minHeight: '130px' }}
+                            >
+                                <MdLock size={56} className="absolute -bottom-1 -right-1 text-white/20" />
+                                <div className="relative z-10 h-full flex flex-col">
+                                    <MdShield size={20} className="text-white/80" />
+                                    <div className="mt-auto">
+                                        <p className="text-white font-bold text-title-md">Vault</p>
+                                        <p className="text-white/70 text-body-sm">Secure</p>
                                     </div>
-                                )}
-                                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-normal shadow-elevation-2">
-                                    <FiCheckCircle size={28} className="text-white" />
                                 </div>
-                                <h3 className="text-title-md text-on-surface mb-2">
-                                    Pending Approvals
-                                </h3>
-                                <p className="text-body-md text-on-variant">
-                                    Review task completion proof
-                                </p>
-                                {taskStats.pendingApprovals > 0 && (
-                                    <p className="text-label-sm text-orange-600 mt-3">
-                                        {taskStats.pendingApprovals} {taskStats.pendingApprovals === 1 ? 'task' : 'tasks'} awaiting review
-                                    </p>
-                                )}
-                            </button>
-
-                            <button
-                                onClick={() => navigate('/leaderboard')}
-                                className="group card-interactive p-6 text-left"
-                            >
-                                <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-normal shadow-elevation-2">
-                                    <FiAward size={28} className="text-white" />
-                                </div>
-                                <h3 className="text-title-md text-on-surface mb-2">
-                                    Leaderboard
-                                </h3>
-                                <p className="text-body-md text-on-variant">
-                                    View XP rankings
-                                </p>
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Getting Started */}
-                {!currentHub && (
-                    <div className="bg-gradient-to-br from-primary-container to-purple-50 rounded-3xl p-8 md:p-12 border-2 border-primary/20 shadow-elevation-2">
-                        <div className="max-w-2xl">
-                            <h2 className="text-headline-md font-normal text-on-container mb-4">
-                                Get Started with Your First Hub
-                            </h2>
-                            <p className="text-body-lg text-on-container/80 mb-8">
-                                You're not part of any hub yet. Create a new hub for your group or join an existing one with an invite code.
-                            </p>
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <button className="btn-base bg-primary text-on-primary hover:bg-primary/90 shadow-elevation-2">
-                                    Create Hub
-                                </button>
-                                <button className="btn-base bg-surface border-2 border-primary text-primary hover:bg-primary-container transition-colors">
-                                    Join Hub
-                                </button>
                             </div>
                         </div>
-                    </div>
-                )}
 
-                {/* Recent Activity */}
-                {currentHub && (
-                    <div>
-                        <h2 className="text-headline-md font-normal text-on-surface mb-6">Recent Activity</h2>
-                        <div className="card p-6">
-                            {isLoadingTasks || isLoadingMessages ? (
-                                <div className="flex items-center justify-center py-12">
-                                    <LoadingSpinner size="medium" />
+                        {/* Stats Row */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {/* XP Card */}
+                            <div className="col-span-1 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 p-4">
+                                <MdEmojiEvents size={24} className="text-amber-300 mb-2" />
+                                <p className="text-white/70 text-label-sm">Total XP</p>
+                                <p className="text-white font-black text-headline-sm">{user?.xpTotal?.toLocaleString() || 0}</p>
+                            </div>
+
+                            {/* Progress Card */}
+                            <div className="col-span-1 rounded-2xl bg-white border border-outline-variant/50 p-4 flex items-center gap-3">
+                                <div className="relative flex-shrink-0">
+                                    <ProgressRing progress={taskStats.completionRate} size={56} stroke={5} />
+                                    <span className="absolute inset-0 flex items-center justify-center text-label-md font-bold text-on-surface">
+                                        {taskStats.completionRate}%
+                                    </span>
                                 </div>
-                            ) : recentActivity.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <div className="w-16 h-16 bg-surface-variant rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <FiClock size={32} className="text-on-variant" />
+                                <div>
+                                    <p className="text-label-sm text-on-variant">Completed</p>
+                                    <p className="text-title-md font-bold text-on-surface">{taskStats.completed}/{taskStats.total}</p>
+                                </div>
+                            </div>
+
+                            {/* Admin: Pending Approvals */}
+                            {isAdmin && (
+                                <div 
+                                    onClick={() => navigate('/tasks/pending-approvals')}
+                                    className="col-span-2 rounded-2xl bg-emerald-50 p-4 cursor-pointer hover:bg-emerald-100 transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                                            <MdVerified size={20} className="text-white" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-title-sm font-bold text-slate-900">Approvals</p>
+                                                {taskStats.pendingApprovals > 0 && (
+                                                    <span className="bg-orange-500 text-white text-label-sm font-bold px-1.5 py-0.5 rounded-full">
+                                                        {taskStats.pendingApprovals}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-body-sm text-slate-500">Review submissions</p>
+                                        </div>
+                                        <MdArrowOutward size={18} className="text-emerald-400" />
                                     </div>
-                                    <h3 className="text-title-lg text-on-surface mb-2">No recent activity</h3>
-                                    <p className="text-body-md text-on-variant">Activity from your hub will appear here</p>
                                 </div>
-                            ) : (
-                                <div className="space-y-3">
+                            )}
+
+                            {/* If not admin, show placeholder cards */}
+                            {!isAdmin && (
+                                <div key="non-admin-stats" className="col-span-2 grid grid-cols-2 gap-3">
+                                    <div className="rounded-2xl bg-slate-50 p-4">
+                                        <p className="text-label-sm text-on-variant">Active</p>
+                                        <p className="text-headline-sm font-bold text-on-surface">{taskStats.active}</p>
+                                    </div>
+                                    <div className="rounded-2xl bg-slate-50 p-4">
+                                        <p className="text-label-sm text-on-variant">Done</p>
+                                        <p className="text-headline-sm font-bold text-on-surface">{taskStats.completed}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Leaderboard & Rewards */}
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <LeaderboardWidget />
+                            <RewardsWidget />
+                        </div>
+
+                        {/* Activity Feed */}
+                        {recentActivity.length > 0 && (
+                            <div>
+                                <h2 className="text-title-md font-bold text-on-surface mb-3">Recent Activity</h2>
+                                <div className="rounded-2xl bg-white border border-outline-variant/50 divide-y divide-outline-variant/50">
                                     {recentActivity.map((activity) => (
-                                        <div
-                                            key={activity.id}
-                                            className="flex items-start gap-4 p-4 rounded-xl hover:bg-surface-variant/50 transition-colors duration-fast group"
-                                        >
-                                            <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors duration-fast ${
-                                                activity.color === 'text-green-600' ? 'bg-green-50 border-green-100' :
-                                                activity.color === 'text-blue-600' ? 'bg-blue-50 border-blue-100' :
-                                                activity.color === 'text-purple-600' ? 'bg-purple-50 border-purple-100' :
-                                                activity.color === 'text-red-600' ? 'bg-red-50 border-red-100' :
-                                                'bg-surface-variant border-outline-variant'
-                                            }`}>
-                                                <div className={activity.color}>
-                                                    {activity.icon}
-                                                </div>
+                                        <div key={activity.id} className="flex items-center gap-3 p-3">
+                                            <div className="w-8 h-8 rounded-lg bg-surface-variant flex items-center justify-center text-on-variant flex-shrink-0">
+                                                {activity.icon}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h4 className="text-title-sm text-on-surface mb-1">{activity.title}</h4>
-                                                <p className="text-body-sm text-on-variant mb-2 line-clamp-2">{activity.description}</p>
-                                                <p className="text-label-sm text-on-variant/70">
-                                                    {formatTimeAgo(activity.timestamp)}
-                                                </p>
+                                                <p className="text-body-sm font-medium text-on-surface truncate">{activity.title}</p>
+                                                <p className="text-label-sm text-on-variant truncate">{activity.description}</p>
                                             </div>
+                                            <span className="text-label-sm text-on-variant/50 flex-shrink-0">
+                                                {formatTimeAgo(activity.timestamp)}
+                                            </span>
                                         </div>
                                     ))}
                                 </div>
-                            )}
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    /* No Hub State */
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <div className="relative mb-6">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-32 h-32 border-2 border-primary/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
+                            </div>
+                            <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                                <MdShield size={36} className="text-white" />
+                            </div>
+                        </div>
+                        
+                        <h2 className="text-headline-sm font-bold text-on-surface mb-2">Create Your Hub</h2>
+                        <p className="text-body-md text-on-variant max-w-sm mb-6">
+                            Create a hub for your family or join one with an invite code.
+                        </p>
+                        
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => navigate('/settings')}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary font-semibold rounded-xl hover:bg-primary/90 transition-colors"
+                            >
+                                <MdAdd size={20} />
+                                Create Hub
+                            </button>
+                            <button
+                                onClick={() => navigate('/settings')}
+                                className="px-5 py-2.5 bg-surface-variant text-on-surface font-semibold rounded-xl hover:bg-surface-variant/80 transition-colors"
+                            >
+                                Join Hub
+                            </button>
                         </div>
                     </div>
                 )}
@@ -431,17 +368,14 @@ const DashboardPage = () => {
     );
 };
 
-// Helper function to format time ago
 const formatTimeAgo = (date: Date): string => {
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
-    if (diffInSeconds < 60) return 'Just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-    
-    return date.toLocaleDateString();
+
+    if (diffInSeconds < 60) return 'now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`;
+    return `${Math.floor(diffInSeconds / 86400)}d`;
 };
 
 export default DashboardPage;

@@ -305,7 +305,30 @@ export const completeTask = async (
 };
 
 /**
- * Submit task proof with photo
+ * Accept a task (moves from ASSIGNED to PENDING)
+ */
+export const acceptTask = async (
+    hubId: string,
+    taskId: string
+): Promise<ApiResponse<void>> => {
+    try {
+        await updateDoc(doc(db, 'hubs', hubId, 'tasks', taskId), {
+            status: 'pending',
+            updatedAt: serverTimestamp(),
+        });
+
+        return { success: true };
+    } catch (error: any) {
+        console.error('Accept task error:', error);
+        return {
+            success: false,
+            error: 'Failed to accept task',
+        };
+    }
+};
+
+/**
+ * Submit task proof with photo (moves from PENDING to SUBMITTED)
  */
 export const submitTaskProof = async (
     hubId: string,
@@ -328,6 +351,58 @@ export const submitTaskProof = async (
         return {
             success: false,
             error: 'Failed to submit task proof',
+        };
+    }
+};
+
+/**
+ * Approve task proof (moves from SUBMITTED to DONE)
+ */
+export const approveTaskProof = async (
+    hubId: string,
+    taskId: string,
+    reviewedBy: string
+): Promise<ApiResponse<void>> => {
+    try {
+        await updateDoc(doc(db, 'hubs', hubId, 'tasks', taskId), {
+            status: 'done',
+            proofStatus: 'approved',
+            proofReviewedBy: reviewedBy,
+            proofReviewedAt: serverTimestamp(),
+            completedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        });
+
+        return { success: true };
+    } catch (error: any) {
+        console.error('Approve task proof error:', error);
+        return {
+            success: false,
+            error: 'Failed to approve task proof',
+        };
+    }
+};
+
+/**
+ * Unassign a task (removes assignedTo and moves back to pending)
+ */
+export const unassignTask = async (
+    hubId: string,
+    taskId: string
+): Promise<ApiResponse<void>> => {
+    try {
+        await updateDoc(doc(db, 'hubs', hubId, 'tasks', taskId), {
+            assignedTo: null,
+            status: 'pending',
+            updatedAt: serverTimestamp(),
+        });
+
+        return { success: true };
+    } catch (error: any) {
+        console.error('Unassign task error:', error);
+        return {
+            success: false,
+            error: 'Failed to unassign task',
         };
     }
 };

@@ -114,6 +114,33 @@ export const useUserLocation = () => {
                 // Update Firestore every time location changes (throttled by service)
                 if (isSharing && user && currentHub) {
                     updateMutation.mutate(location);
+
+                    // Check for speed alerts (if speed is available)
+                    if (location.speed && location.speed > 0) {
+                        // Convert m/s to km/h
+                        const speedKmh = location.speed * 3.6;
+                        
+                        // Import dynamically to avoid circular dependencies
+                        import('@/features/safety/services/speed-monitor').then(({ speedMonitorService }) => {
+                            import('@/features/safety/api/speed-alert-api').then(({ createSpeedAlert }) => {
+                                speedMonitorService
+                                    .checkSpeed(user.id, speedKmh, {
+                                        lat: location.latitude,
+                                        lng: location.longitude,
+                                    })
+                                    .then((alert) => {
+                                        if (alert) {
+                                            // Create speed alert in Firestore
+                                            createSpeedAlert(currentHub.id, alert);
+                                            // Note: Push notifications handled by Cloud Function
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        console.error('Speed monitoring error:', error);
+                                    });
+                            });
+                        });
+                    }
                 }
             },
             (error) => {
@@ -152,14 +179,9 @@ export const useUserLocation = () => {
         }
     }, [isSharing, user, currentHub]);
 
-    // Cleanup on unmount
-    useEffect(() => {
-        return () => {
-            if (isWatching) {
-                locationService.stopWatching();
-            }
-        };
-    }, [isWatching]);
+    // NOTE: We intentionally do NOT stop watching on unmount
+    // Location tracking should persist globally across page navigation
+    // The singleton locationService maintains the watch state
 
     return {
         currentLocation,

@@ -4,7 +4,7 @@ import { TextField } from '@/components/ui/TextField';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '@/config/firebase';
 import { toast } from 'react-hot-toast';
-import { FiMail } from 'react-icons/fi';
+import { MdEmail } from 'react-icons/md';
 
 export const ForgotPasswordForm = () => {
     const [email, setEmail] = useState('');
@@ -46,7 +46,7 @@ export const ForgotPasswordForm = () => {
             <div className="space-y-6">
                 <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <FiMail size={32} className="text-green-600" />
+                        <MdEmail size={32} className="text-green-600" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
                         Check your email
@@ -83,7 +83,7 @@ export const ForgotPasswordForm = () => {
                     setError(null);
                 }}
                 error={error || undefined}
-                startAdornment={<FiMail size={20} />}
+                startAdornment={<MdEmail size={20} />}
                 fullWidth
                 required
                 autoComplete="email"

@@ -50,17 +50,34 @@ export const createVaultItem = async (
 
         const vaultRef = doc(collection(db, 'vault', userId, 'items'));
 
+        // Build metadata object, only including defined values (Firestore doesn't allow undefined)
+        const metadata: any = {
+            tags: data.metadata?.tags || [],
+            favorite: data.metadata?.favorite || false,
+        };
+        
+        if (data.metadata?.icon) {
+            metadata.icon = data.metadata.icon;
+        }
+        if (data.metadata?.category) {
+            metadata.category = data.metadata.category;
+        }
+        if (data.metadata?.fileURL) {
+            metadata.fileURL = data.metadata.fileURL;
+        }
+        if (data.metadata?.fileName) {
+            metadata.fileName = data.metadata.fileName;
+        }
+        if (data.metadata?.fileType) {
+            metadata.fileType = data.metadata.fileType;
+        }
+
         const vaultItem: Omit<VaultItem, 'id' | 'createdAt' | 'updatedAt'> = {
             userId,
             type: data.type,
             title: data.title,
             ciphertext,
-            metadata: {
-                icon: data.metadata?.icon,
-                category: data.metadata?.category,
-                tags: data.metadata?.tags || [],
-                favorite: data.metadata?.favorite || false,
-            },
+            metadata,
         };
 
         // Store salt and iv separately (needed for decryption)
@@ -257,23 +274,74 @@ export const updateVaultItem = async (
 
         if (updates.content !== undefined) {
             const salt = existingMetadata.salt;
-            const iv = existingMetadata.iv;
 
-            // Re-encrypt with new content (reuse salt/iv for same item)
-            const { ciphertext } = await encrypt(updates.content, encryptionKey, 
+            // Re-encrypt with new content (reuse salt but generate new IV for security)
+            const encryptResult = await encrypt(updates.content, encryptionKey, 
                 Uint8Array.from(atob(salt), (c) => c.charCodeAt(0))
             );
-            updateData.ciphertext = ciphertext;
+            updateData.ciphertext = encryptResult.ciphertext;
+            // IMPORTANT: iv is stored at document level, not inside metadata
+            updateData.iv = encryptResult.iv;
         }
 
         if (updates.metadata !== undefined) {
-            updateData.metadata = {
-                ...existingItem.metadata,
-                ...updates.metadata,
-                // Preserve salt/iv
-                salt: existingMetadata.salt,
-                iv: existingMetadata.iv,
-            } as any;
+            // Build metadata object, only including defined values (Firestore doesn't allow undefined)
+            // NOTE: salt and iv are stored at document level, NOT in metadata
+            const newMetadata: any = {
+                // Preserve existing optional fields if they exist
+                ...(existingItem.metadata.icon && { icon: existingItem.metadata.icon }),
+                ...(existingItem.metadata.category && { category: existingItem.metadata.category }),
+                ...(existingItem.metadata.fileURL && { fileURL: existingItem.metadata.fileURL }),
+                ...(existingItem.metadata.fileName && { fileName: existingItem.metadata.fileName }),
+                ...(existingItem.metadata.fileType && { fileType: existingItem.metadata.fileType }),
+                // Preserve tags and favorite
+                tags: existingItem.metadata.tags || [],
+                favorite: existingItem.metadata.favorite || false,
+            };
+            
+            // Only include fields that are actually provided (not undefined)
+            if (updates.metadata.icon !== undefined && updates.metadata.icon !== null) {
+                newMetadata.icon = updates.metadata.icon;
+            } else if (updates.metadata.icon === null) {
+                // Explicitly remove icon if set to null
+                delete newMetadata.icon;
+            }
+            
+            if (updates.metadata.category !== undefined && updates.metadata.category !== null) {
+                newMetadata.category = updates.metadata.category;
+            } else if (updates.metadata.category === null) {
+                // Explicitly remove category if set to null
+                delete newMetadata.category;
+            }
+            
+            // Handle file URL fields
+            if (updates.metadata.fileURL !== undefined && updates.metadata.fileURL !== null) {
+                newMetadata.fileURL = updates.metadata.fileURL;
+            } else if (updates.metadata.fileURL === null) {
+                delete newMetadata.fileURL;
+            }
+            
+            if (updates.metadata.fileName !== undefined && updates.metadata.fileName !== null) {
+                newMetadata.fileName = updates.metadata.fileName;
+            } else if (updates.metadata.fileName === null) {
+                delete newMetadata.fileName;
+            }
+            
+            if (updates.metadata.fileType !== undefined && updates.metadata.fileType !== null) {
+                newMetadata.fileType = updates.metadata.fileType;
+            } else if (updates.metadata.fileType === null) {
+                delete newMetadata.fileType;
+            }
+            
+            if (updates.metadata.tags !== undefined) {
+                newMetadata.tags = updates.metadata.tags;
+            }
+            
+            if (updates.metadata.favorite !== undefined) {
+                newMetadata.favorite = updates.metadata.favorite;
+            }
+            
+            updateData.metadata = newMetadata;
         }
 
         await updateDoc(doc(db, 'vault', userId, 'items', itemId), updateData);
@@ -335,6 +403,10 @@ export const decryptVaultItem = async (
         throw new Error('Missing encryption parameters');
     }
     
-    return decrypt(item.ciphertext, encryptionKey, salt, iv);
+    if (!item.ciphertext) {
+        return ''; // Return empty string for items with no encrypted content
+    }
+    
+    return await decrypt(item.ciphertext, encryptionKey, salt, iv);
 };
 

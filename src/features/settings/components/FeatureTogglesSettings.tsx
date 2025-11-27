@@ -9,55 +9,56 @@ import { featureTogglesSchema } from '@/lib/validation/hub-schemas';
 import type { FeatureToggles } from '@/types';
 import toast from 'react-hot-toast';
 import {
-    FiMapPin,
-    FiCheckSquare,
-    FiMessageCircle,
-    FiLock,
-    FiAward,
-    FiShield,
-    FiSmartphone,
-} from 'react-icons/fi';
+    MdLocationOn,
+    MdTask,
+    MdMessage,
+    MdLock,
+    MdStar,
+    MdEmojiEvents,
+    MdSecurity,
+    MdPhoneAndroid,
+} from 'react-icons/md';
 
 const featureLabels: Record<keyof FeatureToggles, { label: string; description: string; icon: React.ReactNode }> = {
     location: {
         label: 'Location Tracking',
         description: 'Track and share member locations',
-        icon: <FiMapPin size={20} />,
+        icon: <MdLocationOn size={20} />,
     },
     tasks: {
         label: 'Tasks',
         description: 'Assign and manage tasks',
-        icon: <FiCheckSquare size={20} />,
+        icon: <MdTask size={20} />,
     },
     chat: {
         label: 'Messages',
         description: 'Group messaging and communication',
-        icon: <FiMessageCircle size={20} />,
+        icon: <MdMessage size={20} />,
     },
     vault: {
         label: 'Vault',
         description: 'Secure storage for sensitive information',
-        icon: <FiLock size={20} />,
+        icon: <MdLock size={20} />,
     },
     xp: {
         label: 'XP System',
         description: 'Earn points for completing tasks',
-        icon: <FiAward size={20} />,
+        icon: <MdStar size={20} />,
     },
     leaderboard: {
         label: 'Leaderboard',
         description: 'Rank members by XP (requires XP enabled)',
-        icon: <FiAward size={20} />,
+        icon: <MdEmojiEvents size={20} />,
     },
     geofencing: {
         label: 'Geofencing',
         description: 'Location-based alerts (requires location enabled)',
-        icon: <FiShield size={20} />,
+        icon: <MdSecurity size={20} />,
     },
     deviceMonitoring: {
         label: 'Device Monitoring',
         description: 'Monitor battery and device status',
-        icon: <FiSmartphone size={20} />,
+        icon: <MdPhoneAndroid size={20} />,
     },
 };
 
@@ -126,11 +127,11 @@ export const FeatureTogglesSettings = () => {
         <Card elevation={1}>
             <CardHeader title="Feature Toggles" />
             <CardContent>
-                <p className="text-body-sm text-on-variant mb-6">
+                <p className="text-body-sm text-on-variant mb-5">
                     Enable or disable features for this hub. Some features depend on others.
                 </p>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                     {(Object.keys(featureLabels) as Array<keyof FeatureToggles>).map((feature) => {
                         const { label, description, icon } = featureLabels[feature];
                         const isEnabled = localToggles[feature];
@@ -141,30 +142,38 @@ export const FeatureTogglesSettings = () => {
                         return (
                             <div
                                 key={feature}
-                                className={`flex items-start justify-between p-4 rounded-lg border transition-colors ${
+                                className={`flex items-start justify-between p-4 rounded-xl border-2 transition-all ${
                                     isDisabled && !isEnabled
-                                        ? 'bg-gray-50 border-gray-200 opacity-60'
-                                        : 'bg-white border-gray-200 hover:border-purple-300'
+                                        ? 'bg-surface-variant border-outline-variant opacity-60'
+                                        : isEnabled
+                                        ? 'bg-primary-container/30 border-primary/30 hover:border-primary/50'
+                                        : 'bg-surface border-outline-variant hover:border-primary/30'
                                 }`}
                             >
-                                <div className="flex items-start gap-3 flex-1">
-                                    <div className={`mt-1 ${isDisabled && !isEnabled ? 'text-gray-400' : 'text-purple-600'}`}>
+                                <div className="flex items-start gap-3 flex-1 min-w-0">
+                                    <div className={`p-2 rounded-lg flex-shrink-0 ${
+                                        isDisabled && !isEnabled
+                                            ? 'bg-surface-variant text-on-variant'
+                                            : isEnabled
+                                            ? 'bg-primary text-white'
+                                            : 'bg-surface-variant text-on-variant'
+                                    }`}>
                                         {icon}
                                     </div>
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="font-semibold text-gray-900">{label}</h3>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <h3 className="text-title-sm font-semibold text-on-surface">{label}</h3>
                                             {isDisabled && !isEnabled && (
-                                                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                                                <span className="text-label-sm text-on-variant bg-surface-variant px-2 py-0.5 rounded-full">
                                                     Requires dependency
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-sm text-gray-600 mt-1">{description}</p>
+                                        <p className="text-body-sm text-on-variant mt-1">{description}</p>
                                     </div>
                                 </div>
 
-                                <label className="relative inline-flex items-center cursor-pointer ml-4">
+                                <label className="relative inline-flex items-center cursor-pointer ml-4 flex-shrink-0">
                                     <input
                                         type="checkbox"
                                         checked={isEnabled}
@@ -172,7 +181,7 @@ export const FeatureTogglesSettings = () => {
                                         disabled={isDisabled && !isEnabled}
                                         className="sr-only peer"
                                     />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"></div>
+                                    <div className="w-11 h-6 bg-outline-variant peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-outline after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"></div>
                                 </label>
                             </div>
                         );
@@ -180,11 +189,12 @@ export const FeatureTogglesSettings = () => {
                 </div>
 
                 {hasChanges && (
-                    <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
+                    <div className="flex gap-3 mt-5 pt-5 border-t border-outline-variant">
                         <Button
                             variant="outlined"
                             onClick={() => setLocalToggles(featureToggles || localToggles)}
                             disabled={updateMutation.isPending}
+                            className="flex-1"
                         >
                             Cancel
                         </Button>
@@ -193,6 +203,7 @@ export const FeatureTogglesSettings = () => {
                             onClick={handleSave}
                             loading={updateMutation.isPending}
                             disabled={updateMutation.isPending}
+                            className="flex-1"
                         >
                             Save Changes
                         </Button>

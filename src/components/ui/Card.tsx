@@ -23,6 +23,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     const cardStyles = cn(
       // Base styles - Material Design 3
       'rounded-xl bg-surface border border-outline-variant transition-all duration-normal',
+      'w-full min-w-0 max-w-full overflow-hidden',
       
       // Elevation shadows
       {
@@ -115,7 +116,7 @@ export const CardActions = forwardRef<
   return (
     <div
       ref={ref}
-      className={cn('flex items-center gap-2 p-4 pt-0', className)}
+      className={cn('flex items-center flex-wrap gap-2 p-4 pt-0 min-w-0 w-full', className)}
       {...props}
     />
   );

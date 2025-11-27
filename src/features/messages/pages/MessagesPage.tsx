@@ -18,7 +18,7 @@ import { useHubBroadcasts } from '../hooks/useBroadcasts';
 import { useTyping } from '../hooks/useTyping';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useHubStore } from '@/lib/store/hub-store';
-import { FiUsers, FiRadio } from 'react-icons/fi';
+import { MdPeople, MdRadio, MdHistory } from 'react-icons/md';
 import toast from 'react-hot-toast';
 
 const MessagesPage = () => {
@@ -80,16 +80,16 @@ const MessagesPage = () => {
         return (
             <>
                 <Helmet>
-                    <title>Messages - Family Safety App</title>
+                    <title>Messages - HaloHub</title>
                 </Helmet>
                 <div className="flex flex-col items-center justify-center h-full text-center px-6">
-                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <FiUsers size={36} className="text-gray-400" />
+                    <div className="w-24 h-24 bg-primary-container rounded-full flex items-center justify-center mb-6 shadow-elevation-2">
+                        <MdPeople size={48} className="text-primary" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <h3 className="text-headline-sm font-semibold text-on-surface mb-2">
                         No hub selected
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-body-md text-on-variant">
                         Please select a hub to start messaging
                     </p>
                 </div>
@@ -100,37 +100,37 @@ const MessagesPage = () => {
     return (
         <>
             <Helmet>
-                <title>Messages - {currentHub.name} - Family Safety App</title>
+                <title>Messages - {currentHub.name} - HaloHub</title>
                 <meta name="description" content="Chat with your family" />
             </Helmet>
 
             {/* Full screen container - TopBar is handled by AppLayout */}
-            <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 pt-16 sm:pt-20 z-10 safe-top">
+            <div className="fixed inset-0 flex flex-col bg-background pt-14 sm:pt-16 md:pt-20 z-10 safe-top">
                 {/* Hub Info Bar - Below TopBar - Mobile optimized */}
-                <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b border-gray-200/50 bg-white/80 backdrop-blur-md shadow-sm safe-top">
-                    <div className="flex items-center justify-between gap-2 sm:gap-4">
+                <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 border-b border-outline-variant bg-surface/95 backdrop-blur-md shadow-elevation-1 safe-top">
+                    <div className="flex items-center justify-between gap-2 sm:gap-3 md:gap-4">
                         <div className="flex-1 min-w-0">
-                            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
+                            <h1 className="text-title-md sm:text-title-lg md:text-headline-sm font-semibold text-on-surface truncate">
                                 {currentHub.name}
                             </h1>
-                            <p className="text-xs sm:text-sm text-gray-600 mt-0.5">
+                            <p className="text-label-sm sm:text-body-sm text-on-variant mt-0.5">
                                 {messages.length} {messages.length === 1 ? 'message' : 'messages'}
                             </p>
                         </div>
                         {/* Action Buttons - Mobile optimized */}
-                        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
                             <button
                                 onClick={() => setShowBroadcastHistory(true)}
-                                className="flex-shrink-0 px-3 py-2 sm:px-4 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-all shadow-sm flex items-center gap-1.5 sm:gap-2 font-semibold text-xs sm:text-sm touch-target"
+                                className="flex-shrink-0 px-2.5 py-2 sm:px-3 md:px-4 bg-surface-variant border border-outline-variant text-on-surface rounded-full hover:bg-outline-variant active:bg-outline-variant transition-all shadow-elevation-1 flex items-center gap-1.5 sm:gap-2 font-medium text-label-sm sm:text-label-md touch-target"
                             >
-                                <FiRadio size={18} className="sm:w-[18px] sm:h-[18px]" />
+                                <MdHistory size={18} className="sm:w-5 sm:h-5 flex-shrink-0" />
                                 <span className="hidden md:inline">History</span>
                             </button>
                             <button
                                 onClick={() => setShowBroadcastPanel(true)}
-                                className="flex-shrink-0 px-3 py-2 sm:px-4 bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 active:from-purple-800 active:to-purple-900 transition-all shadow-md flex items-center gap-1.5 sm:gap-2 font-semibold text-xs sm:text-sm touch-target"
+                                className="flex-shrink-0 px-2.5 py-2 sm:px-3 md:px-4 bg-primary text-on-primary rounded-full hover:bg-primary/90 active:bg-primary/80 transition-all shadow-halo-button flex items-center gap-1.5 sm:gap-2 font-medium text-label-sm sm:text-label-md touch-target"
                             >
-                                <FiRadio size={18} className="sm:w-[18px] sm:h-[18px]" />
+                                <MdRadio size={18} className="sm:w-5 sm:h-5 flex-shrink-0" />
                                 <span className="hidden sm:inline">Broadcast</span>
                             </button>
                         </div>
@@ -139,7 +139,7 @@ const MessagesPage = () => {
 
                 {/* Active Broadcasts - Mobile optimized */}
                 {broadcasts.length > 0 && (
-                    <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-3 space-y-2 sm:space-y-3 bg-white/50 border-b border-gray-200/50">
+                    <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4 space-y-2 sm:space-y-3 bg-surface-variant/50 border-b border-outline-variant">
                         {broadcasts
                             .filter((b: BroadcastAlertType) => !dismissedBroadcasts.includes(b.id))
                             .slice(0, 3)
