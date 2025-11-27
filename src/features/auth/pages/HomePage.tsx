@@ -28,7 +28,7 @@ const Spline = lazy(() => import('@splinetool/react-spline'));
 // Wrapper component to handle Spline errors
 const SplineComponent = ({ onError }: { onError: () => void }) => {
     return (
-        <div className="absolute inset-0 w-full h-full">
+        <div className="absolute inset-0 w-full h-full pointer-events-none">
             <Spline
                 scene="https://prod.spline.design/ifcw0o9odoIFHkcx/scene.splinecode"
                 onError={(error) => {
@@ -45,7 +45,8 @@ const SplineComponent = ({ onError }: { onError: () => void }) => {
                     top: 0,
                     left: 0,
                     right: 0,
-                    bottom: 0
+                    bottom: 0,
+                    pointerEvents: 'none'
                 }}
             />
         </div>
@@ -88,9 +89,9 @@ const HomePage = () => {
                 />
             </Helmet>
 
-            <div className="min-h-screen bg-white">
+            <div className="min-h-screen bg-gradient-to-b from-amber-50/30 via-white to-purple-50/20">
                 {/* Navigation Bar */}
-                <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+                <nav className="bg-white/80 backdrop-blur-md border-b border-amber-100/50 sticky top-0 z-50 shadow-sm">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center justify-between h-14 sm:h-16">
                             {/* Left: Logo */}
@@ -106,7 +107,7 @@ const HomePage = () => {
                                             className="w-full h-full object-contain"
                                         />
                                     </div>
-                                <span className="text-title-md sm:text-title-lg font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                                <span className="text-title-md sm:text-title-lg font-bold bg-gradient-to-r from-amber-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                                     HaloHub
                                 </span>
                             </button>
@@ -238,16 +239,16 @@ const HomePage = () => {
 
                 {/* Hero Section - Split Layout */}
                 <section className="min-h-[calc(100vh-64px)] flex flex-col lg:flex-row">
-                    {/* Left Side - Light Lavender Background */}
-                    <div className="flex-1 bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-50 flex items-center px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16 lg:py-0">
+                    {/* Left Side - Warm Gradient Background */}
+                    <div className="flex-1 bg-gradient-to-br from-amber-50 via-purple-50/80 to-pink-50 flex items-center px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16 lg:py-0">
                         <div className="max-w-2xl w-full mx-auto lg:mx-0">
                             {/* Headline - Material Design Typography - Responsive */}
-                            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold text-purple-900 mb-4 sm:mb-6 leading-tight tracking-tight">
+                            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold bg-gradient-to-r from-purple-800 via-amber-700 to-pink-700 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight tracking-tight">
                                 HaloHub: The #1 family locator app & safety membership.
                             </h1>
 
                             {/* Description - Better line height and spacing - Responsive */}
-                            <p className="text-base sm:text-lg md:text-xl lg:text-xl text-purple-800 mb-6 sm:mb-8 md:mb-10 leading-relaxed max-w-xl">
+                            <p className="text-base sm:text-lg md:text-xl lg:text-xl text-gray-700 mb-6 sm:mb-8 md:mb-10 leading-relaxed max-w-xl">
                                 Protect and connect your loved ones, pets, & important stuff with HaloHub's advanced location, task management, & digital safety features. Plus, track tasks, manage rewards, and stay connected with real-time messaging.
                             </p>
 
@@ -261,11 +262,11 @@ const HomePage = () => {
                             </button>
 
                             {/* Sign In Link - Better typography - Responsive */}
-                            <p className="text-sm sm:text-base text-purple-700">
+                            <p className="text-sm sm:text-base text-gray-600">
                                 Already a member?{' '}
                                 <button
                                     onClick={() => navigate('/login')}
-                                    className="text-primary hover:text-purple-800 underline font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-purple-50 rounded px-1"
+                                    className="text-primary hover:text-purple-700 underline font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-amber-50 rounded px-1 transition-colors"
                                     aria-label="Sign in to your account"
                                 >
                                     Sign in here.
@@ -274,15 +275,16 @@ const HomePage = () => {
                         </div>
                     </div>
 
-                    {/* Right Side - Darker Purple Background with Spline 3D Scene */}
-                    <div className="flex-1 bg-gradient-to-br from-purple-600 via-indigo-700 to-purple-600 relative overflow-hidden min-h-[400px] sm:min-h-[500px] md:min-h-[600px] lg:min-h-0">
-                        {/* Decorative Elements - Subtle and refined - Responsive */}
-                        <div className="absolute top-4 right-4 sm:top-10 sm:right-10 w-16 h-16 sm:w-32 sm:h-32 bg-white/10 rounded-full blur-3xl opacity-50 z-0"></div>
-                        <div className="absolute bottom-4 left-4 sm:bottom-10 sm:left-10 w-20 h-20 sm:w-40 sm:h-40 bg-white/10 rounded-full blur-3xl opacity-50 z-0"></div>
-                        <div className="absolute top-1/2 right-1/4 w-12 h-12 sm:w-24 sm:h-24 bg-white/5 rounded-full blur-2xl opacity-30 z-0"></div>
+                    {/* Right Side - Warm Purple Background with Spline 3D Scene */}
+                    <div className="flex-1 bg-gradient-to-br from-purple-600 via-pink-600 to-amber-600 relative overflow-hidden min-h-[400px] sm:min-h-[500px] md:min-h-[600px] lg:min-h-0">
+                        {/* Decorative Elements - Warmer, more inviting - Responsive */}
+                        <div className="absolute top-4 right-4 sm:top-10 sm:right-10 w-16 h-16 sm:w-32 sm:h-32 bg-amber-300/20 rounded-full blur-3xl opacity-60 z-0"></div>
+                        <div className="absolute bottom-4 left-4 sm:bottom-10 sm:left-10 w-20 h-20 sm:w-40 sm:h-40 bg-pink-300/20 rounded-full blur-3xl opacity-60 z-0"></div>
+                        <div className="absolute top-1/2 right-1/4 w-12 h-12 sm:w-24 sm:h-24 bg-white/10 rounded-full blur-2xl opacity-40 z-0"></div>
+                        <div className="absolute top-1/4 left-1/4 w-16 h-16 sm:w-28 sm:h-28 bg-purple-300/15 rounded-full blur-2xl opacity-50 z-0"></div>
 
-                        {/* Spline 3D Scene with Fallback - Fills entire container */}
-                        <div className="absolute inset-0 z-10">
+                        {/* Spline 3D Scene with Fallback - Fills entire container, non-interactive */}
+                        <div className="absolute inset-0 z-10 pointer-events-none">
                             <ErrorBoundary
                                 fallback={
                                     // Fallback to phone mockup if Spline fails - Responsive
@@ -326,11 +328,11 @@ const HomePage = () => {
                 </section>
 
                 {/* About Section */}
-                <section id="about" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-white">
+                <section id="about" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-b from-white to-amber-50/30">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 items-center">
                             <div className="order-2 lg:order-1">
-                                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-purple-900 mb-4 sm:mb-6">
+                                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold bg-gradient-to-r from-purple-800 to-amber-700 bg-clip-text text-transparent mb-4 sm:mb-6">
                                     Built for families, by families
                                 </h2>
                                 <p className="text-base sm:text-lg md:text-xl text-gray-700 leading-relaxed mb-4 sm:mb-6">
@@ -349,21 +351,21 @@ const HomePage = () => {
                                     <div className="flex items-center gap-2 text-purple-700">
                                         <MdCheckCircle size={18} className="sm:w-5 sm:h-5 text-primary flex-shrink-0" />
                                         <span className="text-sm sm:text-base font-medium">99.9% Uptime</span>
-                                    </div>
+                                            </div>
                                     <div className="flex items-center gap-2 text-purple-700">
                                         <MdCheckCircle size={18} className="sm:w-5 sm:h-5 text-primary flex-shrink-0" />
                                         <span className="text-sm sm:text-base font-medium">24/7 Support</span>
-                                    </div>
+                                        </div>
                                 </div>
                             </div>
                             <div className="relative order-1 lg:order-2">
-                                <img 
-                                    src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800&h=600&fit=crop&q=80" 
+                                    <img 
+                                        src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800&h=600&fit=crop&q=80" 
                                     alt="Happy family using HaloHub together" 
                                     className="rounded-2xl shadow-xl w-full h-auto"
-                                    loading="lazy"
-                                />
-                                <div className="absolute -bottom-4 -right-4 sm:-bottom-6 sm:-right-6 bg-purple-600 text-white p-4 sm:p-6 rounded-xl shadow-xl max-w-[180px] sm:max-w-[200px]">
+                                        loading="lazy"
+                                    />
+                                <div className="absolute -bottom-4 -right-4 sm:-bottom-6 sm:-right-6 bg-gradient-to-br from-purple-600 to-pink-600 text-white p-4 sm:p-6 rounded-xl shadow-xl max-w-[180px] sm:max-w-[200px]">
                                     <p className="text-xs sm:text-sm font-semibold mb-1">Trusted by families worldwide</p>
                                     <p className="text-xs sm:text-sm opacity-90">Join thousands of families who trust HaloHub</p>
                                 </div>
@@ -373,10 +375,10 @@ const HomePage = () => {
                 </section>
 
                 {/* Features Section */}
-                <section id="features" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-purple-50">
+                <section id="features" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-b from-purple-50/80 via-amber-50/50 to-pink-50/60">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-8 sm:mb-10 md:mb-12">
-                            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-purple-900 mb-3 sm:mb-4">
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold bg-gradient-to-r from-purple-800 via-amber-700 to-pink-700 bg-clip-text text-transparent mb-3 sm:mb-4">
                                 Everything your family needs, in one place
                             </h2>
                             <p className="text-base sm:text-lg md:text-xl text-gray-700 max-w-2xl mx-auto px-4">
@@ -384,8 +386,8 @@ const HomePage = () => {
                             </p>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow group">
-                                <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
+                            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 group border border-purple-100/50 hover:border-purple-200">
+                                <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl flex items-center justify-center mb-4 group-hover:from-purple-200 group-hover:to-pink-200 transition-all duration-300">
                                     <MdLocationOn size={28} className="text-purple-600" />
                                     </div>
                                 <h3 className="text-title-md font-semibold text-purple-900 mb-3">Real-time Location</h3>
@@ -399,8 +401,8 @@ const HomePage = () => {
                                             loading="lazy"
                                         />
                                         </div>
-                            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow group">
-                                <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
+                            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 group border border-purple-100/50 hover:border-purple-200">
+                                <div className="w-14 h-14 bg-gradient-to-br from-amber-100 to-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:from-amber-200 group-hover:to-purple-200 transition-all duration-300">
                                     <MdTaskAlt size={28} className="text-purple-600" />
                                 </div>
                                 <h3 className="text-title-md font-semibold text-purple-900 mb-3">Task Management</h3>
@@ -414,8 +416,8 @@ const HomePage = () => {
                                     loading="lazy"
                                 />
                         </div>
-                            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow group">
-                                <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
+                            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 group border border-purple-100/50 hover:border-purple-200">
+                                <div className="w-14 h-14 bg-gradient-to-br from-pink-100 to-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:from-pink-200 group-hover:to-purple-200 transition-all duration-300">
                                     <MdMessage size={28} className="text-purple-600" />
                     </div>
                                 <h3 className="text-title-md font-semibold text-purple-900 mb-3">Secure Messaging</h3>
@@ -429,8 +431,8 @@ const HomePage = () => {
                                     loading="lazy"
                                 />
                         </div>
-                            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow group">
-                                <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
+                            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 group border border-purple-100/50 hover:border-purple-200">
+                                <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-amber-100 rounded-xl flex items-center justify-center mb-4 group-hover:from-purple-200 group-hover:to-amber-200 transition-all duration-300">
                                     <MdSecurity size={28} className="text-purple-600" />
                                 </div>
                                 <h3 className="text-title-md font-semibold text-purple-900 mb-3">Digital Vault</h3>
@@ -444,8 +446,8 @@ const HomePage = () => {
                                     loading="lazy"
                                 />
                             </div>
-                            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow group">
-                                <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
+                            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 group border border-purple-100/50 hover:border-purple-200">
+                                <div className="w-14 h-14 bg-gradient-to-br from-pink-100 to-amber-100 rounded-xl flex items-center justify-center mb-4 group-hover:from-pink-200 group-hover:to-amber-200 transition-all duration-300">
                                     <MdPeople size={28} className="text-purple-600" />
                                 </div>
                                 <h3 className="text-title-md font-semibold text-purple-900 mb-3">Multi-Hub Support</h3>
@@ -459,8 +461,8 @@ const HomePage = () => {
                                     loading="lazy"
                                 />
                             </div>
-                            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow group">
-                                <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
+                            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 group border border-purple-100/50 hover:border-purple-200">
+                                <div className="w-14 h-14 bg-gradient-to-br from-amber-100 to-pink-100 rounded-xl flex items-center justify-center mb-4 group-hover:from-amber-200 group-hover:to-pink-200 transition-all duration-300">
                                     <MdStar size={28} className="text-purple-600" />
                                 </div>
                                 <h3 className="text-title-md font-semibold text-purple-900 mb-3">Rewards & Gamification</h3>
@@ -479,13 +481,13 @@ const HomePage = () => {
                 </section>
 
                 {/* Plans & Pricing Section */}
-                <section id="pricing" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-white">
+                <section id="pricing" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-b from-white to-purple-50/40">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-purple-900 mb-8 sm:mb-10 md:mb-12 text-center">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold bg-gradient-to-r from-purple-800 to-amber-700 bg-clip-text text-transparent mb-8 sm:mb-10 md:mb-12 text-center">
                             Plans & Pricing
                                 </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
-                            <div className="bg-purple-50 rounded-lg p-8 border-2 border-purple-200">
+                            <div className="bg-gradient-to-br from-purple-50 to-amber-50/50 rounded-lg p-8 border-2 border-purple-200/60 hover:border-purple-300 transition-all duration-300 shadow-sm hover:shadow-lg">
                                 <h3 className="text-title-lg font-semibold text-purple-900 mb-2">Free</h3>
                                 <p className="text-headline-md font-bold text-purple-900 mb-4">$0<span className="text-body-lg font-normal">/month</span></p>
                                 <ul className="space-y-3 mb-6">
@@ -500,7 +502,7 @@ const HomePage = () => {
                                     Get Started
                                 </button>
                             </div>
-                            <div className="bg-purple-600 rounded-lg p-8 border-2 border-purple-700 text-white">
+                            <div className="bg-gradient-to-br from-purple-600 via-pink-600 to-amber-600 rounded-lg p-8 border-2 border-purple-700/50 text-white shadow-lg hover:shadow-xl transition-all duration-300">
                                 <h3 className="text-title-lg font-semibold mb-2">Premium</h3>
                                 <p className="text-headline-md font-bold mb-4">$9.99<span className="text-body-lg font-normal">/month</span></p>
                                 <ul className="space-y-3 mb-6">
@@ -521,25 +523,25 @@ const HomePage = () => {
                 </section>
 
                 {/* Resources Section */}
-                <section id="resources" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-purple-50">
+                <section id="resources" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-b from-purple-50/60 via-amber-50/40 to-pink-50/50">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-purple-900 mb-8 sm:mb-10 md:mb-12 text-center">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold bg-gradient-to-r from-purple-800 to-amber-700 bg-clip-text text-transparent mb-8 sm:mb-10 md:mb-12 text-center">
                             Resources
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                            <a href="#" className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+                            <a href="#" className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-purple-100/50 hover:border-purple-200">
                                 <h3 className="text-title-md font-semibold text-purple-900 mb-2">Help Center</h3>
                                 <p className="text-body-sm text-gray-600">Get answers to common questions</p>
                             </a>
-                            <a href="#" className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+                            <a href="#" className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-purple-100/50 hover:border-purple-200">
                                 <h3 className="text-title-md font-semibold text-purple-900 mb-2">Safety Tips</h3>
                                 <p className="text-body-sm text-gray-600">Learn how to stay safe</p>
                             </a>
-                            <a href="#" className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+                            <a href="#" className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-purple-100/50 hover:border-purple-200">
                                 <h3 className="text-title-md font-semibold text-purple-900 mb-2">Blog</h3>
                                 <p className="text-body-sm text-gray-600">Read our latest articles</p>
                             </a>
-                            <a href="#" className="bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+                            <a href="#" className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-purple-100/50 hover:border-purple-200">
                                 <h3 className="text-title-md font-semibold text-purple-900 mb-2">Contact</h3>
                                 <p className="text-body-sm text-gray-600">Get in touch with us</p>
                             </a>
@@ -548,10 +550,10 @@ const HomePage = () => {
                 </section>
 
                 {/* Reviews Section */}
-                <section id="reviews" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-white">
+                <section id="reviews" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-b from-white to-amber-50/20">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-8 sm:mb-10 md:mb-12">
-                            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-purple-900 mb-3 sm:mb-4">
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold bg-gradient-to-r from-purple-800 via-amber-700 to-pink-700 bg-clip-text text-transparent mb-3 sm:mb-4">
                                 Loved by thousands of families
                             </h2>
                             <p className="text-base sm:text-lg md:text-xl text-gray-700 max-w-2xl mx-auto px-4">
@@ -559,7 +561,7 @@ const HomePage = () => {
                             </p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                            <div className="bg-purple-50 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="bg-gradient-to-br from-purple-50/80 to-amber-50/60 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-purple-100/50 hover:border-purple-200/70">
                                 <div className="flex items-center gap-1 mb-4">
                                     {[...Array(5)].map((_, i) => (
                                         <MdStar key={i} size={20} className="text-yellow-400 fill-yellow-400" />
@@ -581,7 +583,7 @@ const HomePage = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-purple-50 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="bg-gradient-to-br from-purple-50/80 to-amber-50/60 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-purple-100/50 hover:border-purple-200/70">
                                 <div className="flex items-center gap-1 mb-4">
                                     {[...Array(5)].map((_, i) => (
                                         <MdStar key={i} size={20} className="text-yellow-400 fill-yellow-400" />
@@ -603,7 +605,7 @@ const HomePage = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-purple-50 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="bg-gradient-to-br from-purple-50/80 to-amber-50/60 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-purple-100/50 hover:border-purple-200/70">
                                 <div className="flex items-center gap-1 mb-4">
                                     {[...Array(5)].map((_, i) => (
                                         <MdStar key={i} size={20} className="text-yellow-400 fill-yellow-400" />

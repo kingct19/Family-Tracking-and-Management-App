@@ -74,7 +74,7 @@ export const LoginForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 w-full max-w-md mx-auto">
             <TextField
                 type="email"
                 label="Email"
@@ -102,21 +102,21 @@ export const LoginForm = () => {
             />
 
             <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer touch-target min-h-[44px]">
                     <input
                         type="checkbox"
                         checked={formData.rememberMe}
                         onChange={handleChange('rememberMe')}
-                        className="w-5 h-5 rounded border-outline text-primary focus:ring-2 focus:ring-primary"
+                        className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-2 focus:ring-purple-500"
                         disabled={isLoggingIn}
                     />
-                    <span className="text-body-md text-on-surface">Remember me</span>
+                    <span className="text-body-sm text-gray-700">Remember for 30 days</span>
                 </label>
 
                 <button
                     type="button"
                     onClick={() => navigate('/forgot-password')}
-                    className="text-body-md text-primary hover:underline"
+                    className="text-body-sm text-purple-600 hover:text-purple-700 hover:underline touch-target min-h-[44px] px-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
                     disabled={isLoggingIn}
                 >
                     Forgot password?
@@ -134,12 +134,12 @@ export const LoginForm = () => {
                 Sign in
             </Button>
 
-            <div className="text-center">
-                <span className="text-body-md text-on-variant">Don&apos;t have an account? </span>
+            <div className="text-center pt-2">
+                <span className="text-body-sm sm:text-body-md text-on-variant">Don&apos;t have an account? </span>
                 <button
                     type="button"
                     onClick={() => navigate('/register')}
-                    className="text-body-md text-primary hover:underline font-semibold"
+                    className="text-body-sm sm:text-body-md text-primary hover:underline font-semibold touch-target min-h-[44px] px-2 -ml-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     disabled={isLoggingIn}
                 >
                     Sign up

@@ -46,6 +46,9 @@ export const CSP_DIRECTIVES = {
         'https://prod.spline.design',
         'https://*.spline.design',
         'https://app.spline.design',
+        'https://assets5.lottiefiles.com',
+        'https://*.lottiefiles.com',
+        'https://lottie.host',
         'ws://localhost:*', // For development
         'wss://*.firebaseapp.com',
     ],

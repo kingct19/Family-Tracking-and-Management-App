@@ -76,7 +76,7 @@ export const RegisterForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 w-full max-w-md mx-auto">
             <TextField
                 type="text"
                 label="Full name"
@@ -174,12 +174,12 @@ export const RegisterForm = () => {
                 Create account
             </Button>
 
-            <div className="text-center">
-                <span className="text-body-md text-on-variant">Already have an account? </span>
+            <div className="text-center pt-2">
+                <span className="text-body-sm sm:text-body-md text-on-variant">Already have an account? </span>
                 <button
                     type="button"
                     onClick={() => navigate('/login')}
-                    className="text-body-md text-primary hover:underline font-semibold"
+                    className="text-body-sm sm:text-body-md text-primary hover:underline font-semibold touch-target min-h-[44px] px-2 -ml-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     disabled={isRegistering}
                 >
                     Sign in
