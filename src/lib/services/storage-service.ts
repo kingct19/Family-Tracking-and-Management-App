@@ -1,5 +1,5 @@
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '@/config/firebase';
+import { storage, auth } from '@/config/firebase';
 
 /**
  * Upload a file to Firebase Storage
@@ -13,8 +13,14 @@ export const uploadFile = async (
         const snapshot = await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
         return downloadURL;
-    } catch (error) {
+    } catch (error: any) {
         console.error('Upload file error:', error);
+        // Preserve Firebase error codes for better error handling
+        if (error?.code) {
+            const firebaseError = new Error(error.message || 'Failed to upload file');
+            (firebaseError as any).code = error.code;
+            throw firebaseError;
+        }
         throw new Error('Failed to upload file');
     }
 };
@@ -61,6 +67,39 @@ export const uploadVaultDocument = async (
 
     const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
     const path = `vault/${userId}/${itemId}/${fileName}`;
+    return uploadFile(file, path);
+};
+
+/**
+ * Upload profile picture
+ */
+export const uploadProfilePicture = async (
+    file: File,
+    userId: string
+): Promise<string> => {
+    // Verify user is authenticated
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        throw new Error('User must be authenticated to upload files');
+    }
+
+    // Verify userId matches authenticated user
+    if (currentUser.uid !== userId) {
+        throw new Error('User ID mismatch. Cannot upload to another user\'s profile.');
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        throw new Error('File must be an image');
+    }
+
+    // Validate file size (2MB max to match storage rules)
+    if (file.size > 2 * 1024 * 1024) {
+        throw new Error('Image must be less than 2MB');
+    }
+
+    const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const path = `profiles/${userId}/${fileName}`;
     return uploadFile(file, path);
 };
 

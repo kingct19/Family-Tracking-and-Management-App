@@ -16,7 +16,7 @@ import { TextField } from '@/components/ui/TextField';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useUserProfile } from '@/features/auth/hooks/useAuth';
 import { updateUserProfile } from '@/features/auth/api/auth-api';
-import { uploadFile } from '@/lib/services/storage-service';
+import { uploadProfilePicture } from '@/lib/services/storage-service';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import {
     MdPerson,
@@ -102,23 +102,15 @@ const ProfilePage = () => {
     const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-            toast.error('Please select an image file');
-            return;
-        }
-
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error('Image must be less than 5MB');
+        
+        if (!user?.id) {
+            toast.error('Please log in to upload a photo');
             return;
         }
 
         setIsUploadingPhoto(true);
         try {
-            const path = `profiles/${user?.id}/${Date.now()}_${file.name}`;
-            const url = await uploadFile(file, path);
+            const url = await uploadProfilePicture(file, user.id);
             
             // Update local state immediately
             setPhotoURL(url);
@@ -135,9 +127,19 @@ const ProfilePage = () => {
                     toast.error('Photo uploaded but failed to save');
                 }
             }
-        } catch (error) {
-            toast.error('Failed to upload photo');
+        } catch (error: any) {
             console.error('Photo upload error:', error);
+            
+            // Provide more specific error messages
+            if (error?.code === 'storage/unauthorized') {
+                toast.error('Permission denied. Please ensure you are logged in and storage rules are deployed.');
+            } else if (error?.code === 'storage/quota-exceeded') {
+                toast.error('Storage quota exceeded. Please contact support.');
+            } else if (error?.message?.includes('size')) {
+                toast.error('File is too large. Maximum size is 2MB.');
+            } else {
+                toast.error(error?.message || 'Failed to upload photo. Please try again.');
+            }
         } finally {
             setIsUploadingPhoto(false);
             if (fileInputRef.current) {

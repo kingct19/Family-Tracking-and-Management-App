@@ -11,6 +11,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { NotificationInitializer } from '@/components/NotificationInitializer';
 import { PageLoaderBar } from '@/components/PageLoader';
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 
 // Lazy load pages for code splitting
 const HomePage = lazy(() => import('@/features/auth/pages/HomePage'));
@@ -112,6 +113,9 @@ function App() {
                 },
               }}
             />
+
+            {/* PWA Install Prompt */}
+            <PWAInstallPrompt />
           </div>
         </HelmetProvider>
 

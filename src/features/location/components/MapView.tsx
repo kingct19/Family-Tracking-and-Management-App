@@ -723,7 +723,7 @@ export const MapView = ({
 
             {/* Location count badge - only show if there are locations */}
             {locations.length > 0 && (
-                <div className="absolute top-6 left-6 bg-white rounded-xl shadow-md px-4 py-2.5 backdrop-blur-sm bg-white/95">
+                <div className="absolute top-20 left-6 bg-white rounded-xl shadow-md px-4 py-2.5 backdrop-blur-sm bg-white/95 z-10">
                     <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                         {locations.length} {locations.length === 1 ? 'member' : 'members'} online
