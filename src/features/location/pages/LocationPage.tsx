@@ -119,7 +119,7 @@ const LocationPage = () => {
     useEffect(() => {
         const fetchMissingAddresses = async () => {
             const locationsNeedingAddress = allLocations.filter(
-                (loc) => loc && !loc.address && !addressCache.has(`${loc.latitude},${loc.longitude}`)
+                (loc) => loc && !('address' in loc && loc.address) && !addressCache.has(`${loc.latitude},${loc.longitude}`)
             );
 
             if (locationsNeedingAddress.length === 0) return;
@@ -604,7 +604,7 @@ const LocationPage = () => {
                                                             <div className="flex items-center gap-1.5 mb-1.5">
                                                                 <MdLocationOn size={14} className="text-on-variant flex-shrink-0" />
                                                                 <p className="text-body-sm text-on-variant truncate">
-                                                                    {location.address || 
+                                                                    {('address' in location && location.address) || 
                                                                      addressCache.get(`${location.latitude},${location.longitude}`) || 
                                                                      'Fetching address...'}
                                                                 </p>

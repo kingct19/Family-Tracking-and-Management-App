@@ -407,7 +407,7 @@ export const deleteHub = async (
         // If not creator, verify user is admin
         if (!isCreator) {
             const membershipResponse = await getUserMembership(hubId, userId);
-            if (!membershipResponse.success || membershipResponse.data.role !== 'admin') {
+            if (!membershipResponse.success || !membershipResponse.data || membershipResponse.data.role !== 'admin') {
                 return {
                     success: false,
                     error: 'Only admins can delete hubs',

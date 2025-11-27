@@ -18,7 +18,7 @@ interface LeaveHubModalProps {
 
 export const LeaveHubModal = ({ isOpen, onClose }: LeaveHubModalProps) => {
     const { user } = useAuth();
-    const { currentHub, setCurrentHub } = useHubStore();
+    const { currentHub, clearCurrentHub } = useHubStore();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [confirmText, setConfirmText] = useState('');
@@ -34,7 +34,7 @@ export const LeaveHubModal = ({ isOpen, onClose }: LeaveHubModalProps) => {
                 queryClient.invalidateQueries({ queryKey: ['hubs', user?.id] });
                 
                 // Clear current hub
-                setCurrentHub(null, null);
+                clearCurrentHub();
                 
                 toast.success('Left hub successfully');
                 onClose();

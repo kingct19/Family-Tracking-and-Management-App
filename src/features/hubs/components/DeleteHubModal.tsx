@@ -18,7 +18,7 @@ interface DeleteHubModalProps {
 
 export const DeleteHubModal = ({ isOpen, onClose }: DeleteHubModalProps) => {
     const { user } = useAuth();
-    const { currentHub, setCurrentHub } = useHubStore();
+    const { currentHub, clearCurrentHub } = useHubStore();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [confirmText, setConfirmText] = useState('');
@@ -34,7 +34,7 @@ export const DeleteHubModal = ({ isOpen, onClose }: DeleteHubModalProps) => {
                 queryClient.invalidateQueries({ queryKey: ['hubs', user?.id] });
                 
                 // Clear current hub
-                setCurrentHub(null, null);
+                clearCurrentHub();
                 
                 toast.success('Hub deleted successfully');
                 onClose();
