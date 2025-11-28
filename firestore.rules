@@ -116,16 +116,20 @@ service cloud.firestore {
         // 1. User is creating their own membership AND they are the hub creator, OR
         // 2. User is already an admin of the hub, OR
         // 3. User is joining via invite (creating their own membership, not already a member, with valid data)
+        // Note: For invite-based joining, we allow reading the hub document to validate the invite
         allow create: if isAuthenticated() && (
-          (isUser(memberUserId) && get(/databases/$(database)/documents/hubs/$(hubId)).data.createdBy == request.auth.uid) ||
-          isHubAdmin(hubId) ||
-          // Allow invite-based joining
           (isUser(memberUserId) && 
            isJoiningViaInvite(hubId) &&
+           // Allow reading hub to validate invite (hub read rule allows isJoiningViaInvite)
+           exists(/databases/$(database)/documents/hubs/$(hubId)) &&
            request.resource.data.userId == request.auth.uid &&
            request.resource.data.hubId == hubId &&
            request.resource.data.status == 'active' &&
-           request.resource.data.role in ['admin', 'member', 'observer'])
+           request.resource.data.role in ['admin', 'member', 'observer']) ||
+          (isUser(memberUserId) && 
+           exists(/databases/$(database)/documents/hubs/$(hubId)) &&
+           get(/databases/$(database)/documents/hubs/$(hubId)).data.createdBy == request.auth.uid) ||
+          isHubAdmin(hubId)
         );
         
         // Admins can update memberships, users can update their own
