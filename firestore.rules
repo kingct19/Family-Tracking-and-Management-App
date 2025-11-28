@@ -76,18 +76,23 @@ service cloud.firestore {
     // Hubs collection
     match /hubs/{hubId} {
       // Hub members can read hub details
-      allow read: if isHubMember(hubId) && isMembershipActive(hubId);
+      // Also allow authenticated users to read hub when joining via invite
+      allow read: if isAuthenticated() && (
+        (isHubMember(hubId) && isMembershipActive(hubId)) ||
+        // Allow reading hub document when joining via invite (to check members array and create membership)
+        isJoiningViaInvite(hubId)
+      );
       
       // Admins can update hub details, or users can add themselves to members array when joining via invite
       allow update: if (
         (isHubAdmin(hubId) && isMembershipActive(hubId)) ||
         // Allow authenticated users to add themselves to members array (for invite-based joining)
-        // This checks: user is being added, only members field changes, user wasn't already a member
+        // Relaxed: user is being added, only members field changes, user wasn't already a member
+        // Don't require membership document to exist yet (it may be created in same transaction)
         (isAuthenticated() &&
          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members']) &&
          request.auth.uid in request.resource.data.members &&
-         !(request.auth.uid in resource.data.members) &&
-         exists(/databases/$(database)/documents/hubs/$(hubId)/memberships/$(request.auth.uid)))
+         !(request.auth.uid in resource.data.members))
       );
       
       // Hub creation is allowed for authenticated users

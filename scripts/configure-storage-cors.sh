@@ -6,7 +6,13 @@
 set -e
 
 PROJECT_ID="group-safety-app"
-BUCKET_NAME="${PROJECT_ID}.appspot.com"
+# Try firebasestorage.app first (default for newer Firebase projects)
+BUCKET_NAME="${PROJECT_ID}.firebasestorage.app"
+
+# Check if bucket exists, if not try appspot.com
+if ! gsutil ls "gs://${BUCKET_NAME}" &>/dev/null; then
+  BUCKET_NAME="${PROJECT_ID}.appspot.com"
+fi
 
 echo "🔧 Configuring CORS for Firebase Storage..."
 echo "📦 Bucket: ${BUCKET_NAME}"
@@ -47,7 +53,9 @@ CORS_CONFIG=$(cat <<'EOF'
       "http://127.0.0.1:3000",
       "http://127.0.0.1:3001",
       "http://127.0.0.1:5173",
-      "http://127.0.0.1:5174"
+      "http://127.0.0.1:5174",
+      "https://halohub-sage.vercel.app",
+      "https://*.vercel.app"
     ],
     "method": ["GET", "HEAD", "PUT", "POST", "DELETE"],
     "responseHeader": ["Content-Type", "Authorization", "Content-Length"],
