@@ -6,6 +6,7 @@
  */
 
 import { renderMentions } from '../utils/mention-parser';
+import type { BroadcastPriority } from '../api/broadcast-api';
 
 class MessageNotificationService {
     private isNotificationPermissionGranted = false;
@@ -139,7 +140,7 @@ class MessageNotificationService {
         senderName: string,
         title: string,
         message: string,
-        priority: 'normal' | 'high' | 'urgent'
+        priority: BroadcastPriority
     ): void {
         if (!this.isNotificationPermissionGranted) {
             return;
@@ -170,8 +171,11 @@ class MessageNotificationService {
             window.location.href = '/messages';
         };
 
-        // Urgent broadcasts stay longer
-        const duration = priority === 'urgent' ? 15000 : priority === 'high' ? 10000 : 7000;
+        // Duration based on priority: urgent > high > normal > low
+        const duration = priority === 'urgent' ? 15000 
+            : priority === 'high' ? 10000 
+            : priority === 'normal' ? 7000 
+            : 5000; // low priority
         setTimeout(() => {
             notification.close();
         }, duration);
