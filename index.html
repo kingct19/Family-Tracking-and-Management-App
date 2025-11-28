@@ -13,7 +13,7 @@
 
   <!-- Security Headers -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; 
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' 
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic' 
       https://www.gstatic.com 
       https://*.gstatic.com
       https://www.google.com 
@@ -24,7 +24,9 @@
       https://*.firebase.google.com
       https://vercel.live
       https://*.vercel.live
-      https://www.googletagmanager.com; 
+      https://www.googletagmanager.com
+      https://halohub-sage.vercel.app
+      https://*.vercel.app; 
     style-src 'self' 'unsafe-inline' 
       https://fonts.googleapis.com; 
     font-src 'self' 
@@ -47,9 +49,13 @@
       https://*.firebase.google.com
       https://firebase.googleapis.com
       https://apis.google.com
+      https://www.google-analytics.com
+      https://*.google-analytics.com
       https://vercel.live
       https://*.vercel.live
       https://www.googletagmanager.com
+      https://halohub-sage.vercel.app
+      https://*.vercel.app
       https://www.gstatic.com
       https://*.gstatic.com
       https://prod.spline.design

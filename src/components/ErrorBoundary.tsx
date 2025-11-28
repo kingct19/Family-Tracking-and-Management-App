@@ -32,7 +32,29 @@ export class ErrorBoundary extends Component<Props, State> {
         }
     }
 
-    handleRetry = () => {
+    handleRetry = async () => {
+        // Clear service worker cache if it's a module import error
+        const isModuleError = this.state.error?.message?.includes('module script') || 
+                             this.state.error?.message?.includes('Importing a module script failed');
+        
+        if (isModuleError && 'serviceWorker' in navigator) {
+            try {
+                // Unregister all service workers to clear stale caches
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                await Promise.all(registrations.map(reg => reg.unregister()));
+                
+                // Clear all caches
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+                
+                console.log('Cleared service worker caches, reloading...');
+                window.location.reload();
+                return;
+            } catch (error) {
+                console.error('Failed to clear service worker:', error);
+            }
+        }
+        
         this.setState({ hasError: false, error: undefined, errorInfo: undefined });
     };
 
