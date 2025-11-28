@@ -1,23 +1,31 @@
+import { useState, useEffect, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
     createBroadcast, 
     getHubBroadcasts, 
+    subscribeToHubBroadcasts,
     acknowledgeBroadcast,
     getUnreadBroadcastsCount,
     type BroadcastPriority,
-    type BroadcastType
+    type BroadcastType,
+    type BroadcastAlert
 } from '../api/broadcast-api';
 import { useHubStore } from '@/lib/store/hub-store';
 import { useAuthStore } from '@/lib/store/auth-store';
+import { messageNotificationService } from '../services/message-notification-service';
 import toast from 'react-hot-toast';
 
 /**
- * Hook to fetch broadcasts for current hub
+ * Hook to fetch broadcasts for current hub (real-time)
  */
 export const useHubBroadcasts = () => {
     const { currentHub } = useHubStore();
+    const { user } = useAuthStore();
+    const [broadcasts, setBroadcasts] = useState<BroadcastAlert[]>([]);
+    const previousBroadcastsRef = useRef<Set<string>>(new Set());
 
-    return useQuery({
+    // Query for initial load
+    const { isLoading, error } = useQuery({
         queryKey: ['broadcasts', currentHub?.id],
         queryFn: async () => {
             if (!currentHub) {
@@ -27,9 +35,52 @@ export const useHubBroadcasts = () => {
             return response.success ? response.data || [] : [];
         },
         enabled: !!currentHub,
-        staleTime: 1000 * 30, // 30 seconds
-        refetchInterval: 1000 * 60, // Refetch every minute
+        staleTime: 0, // Always refetch, we use real-time subscription
     });
+
+    // Subscribe to real-time updates
+    useEffect(() => {
+        if (!currentHub) return;
+
+        const unsubscribe = subscribeToHubBroadcasts(
+            currentHub.id,
+            (updatedBroadcasts) => {
+                // Detect new broadcasts (not in previous set)
+                const previousIds = previousBroadcastsRef.current;
+                const newBroadcasts = updatedBroadcasts.filter(
+                    b => !previousIds.has(b.id)
+                );
+
+                // Show notifications for new broadcasts (not sent by current user)
+                newBroadcasts.forEach(broadcast => {
+                    if (broadcast.senderId !== user?.id) {
+                        messageNotificationService.showBroadcastNotification(
+                            currentHub.id,
+                            broadcast.senderName,
+                            broadcast.title,
+                            broadcast.message,
+                            broadcast.priority
+                        );
+                    }
+                });
+
+                // Update previous set
+                previousBroadcastsRef.current = new Set(updatedBroadcasts.map(b => b.id));
+                setBroadcasts(updatedBroadcasts);
+            },
+            (error) => {
+                console.error('Broadcast subscription error:', error);
+            }
+        );
+
+        return unsubscribe;
+    }, [currentHub?.id, user?.id]);
+
+    return {
+        data: broadcasts,
+        isLoading,
+        error,
+    };
 };
 
 /**

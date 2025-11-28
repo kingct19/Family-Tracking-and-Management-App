@@ -118,6 +118,7 @@ export interface Message {
     mediaURL?: string;
     timestamp: Date;
     readBy: string[]; // Array of user IDs
+    mentionedUsers?: string[]; // Array of user IDs who are @ mentioned in this message
 }
 
 export interface Broadcast {

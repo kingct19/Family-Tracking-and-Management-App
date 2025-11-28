@@ -5,6 +5,7 @@ import {
     where, 
     orderBy, 
     getDocs, 
+    onSnapshot,
     Timestamp,
     doc,
     updateDoc
@@ -231,3 +232,69 @@ export const getUnreadBroadcastsCount = async (
         };
     }
 };
+
+/**
+ * Subscribe to real-time broadcasts for a hub
+ */
+export function subscribeToHubBroadcasts(
+    hubId: string,
+    onUpdate: (broadcasts: BroadcastAlert[]) => void,
+    onError?: (error: Error) => void,
+    limit: number = 50
+): () => void {
+    try {
+        const broadcastsRef = collection(db, 'hubs', hubId, 'broadcasts');
+        const broadcastsQuery = query(
+            broadcastsRef,
+            orderBy('timestamp', 'desc')
+        );
+
+        const unsubscribe = onSnapshot(
+            broadcastsQuery,
+            (snapshot) => {
+                const now = new Date();
+                const broadcasts: BroadcastAlert[] = [];
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    
+                    // Skip expired broadcasts
+                    if (data.expiresAt && data.expiresAt.toDate() < now) {
+                        return;
+                    }
+
+                    broadcasts.push({
+                        id: doc.id,
+                        hubId: data.hubId,
+                        senderId: data.senderId,
+                        senderName: data.senderName,
+                        title: data.title,
+                        message: data.message,
+                        priority: data.priority,
+                        type: data.type,
+                        timestamp: data.timestamp.toDate(),
+                        readBy: data.readBy || [],
+                        expiresAt: data.expiresAt ? data.expiresAt.toDate() : undefined,
+                    });
+                });
+
+                // Limit and keep newest first
+                onUpdate(broadcasts.slice(0, limit));
+            },
+            (error) => {
+                console.error('Broadcast subscription error:', error);
+                if (onError) {
+                    onError(error);
+                }
+            }
+        );
+
+        return unsubscribe;
+    } catch (error) {
+        console.error('Failed to subscribe to broadcasts:', error);
+        if (onError) {
+            onError(error instanceof Error ? error : new Error('Unknown error'));
+        }
+        return () => {}; // Return no-op unsubscribe
+    }
+}

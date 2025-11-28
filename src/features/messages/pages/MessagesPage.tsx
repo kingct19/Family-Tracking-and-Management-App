@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { MessageList } from '../components/MessageList';
-import { MessageInput } from '../components/MessageInput';
+import { MessageInputWithMentions } from '../components/MessageInputWithMentions';
 import { BroadcastPanel } from '../components/BroadcastPanel';
 import { BroadcastHistory } from '../components/BroadcastHistory';
 import { BroadcastAlert } from '../components/BroadcastAlert';
@@ -18,6 +18,7 @@ import { useHubBroadcasts } from '../hooks/useBroadcasts';
 import { useTyping } from '../hooks/useTyping';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useHubStore } from '@/lib/store/hub-store';
+import { messageNotificationService } from '../services/message-notification-service';
 import { MdPeople, MdRadio, MdHistory } from 'react-icons/md';
 import toast from 'react-hot-toast';
 
@@ -33,6 +34,15 @@ const MessagesPage = () => {
     const [showBroadcastPanel, setShowBroadcastPanel] = useState(false);
     const [showBroadcastHistory, setShowBroadcastHistory] = useState(false);
     const [dismissedBroadcasts, setDismissedBroadcasts] = useState<string[]>([]);
+
+    // Set notification service context
+    useEffect(() => {
+        messageNotificationService.setCurrentHub(currentHub?.id || null);
+        messageNotificationService.setIsOnMessagesPage(true);
+        return () => {
+            messageNotificationService.setIsOnMessagesPage(false);
+        };
+    }, [currentHub?.id]);
 
     // Mark messages as read when viewing
     useEffect(() => {
@@ -57,9 +67,9 @@ const MessagesPage = () => {
         }
     }, [sendError]);
 
-    const handleSend = async (text: string) => {
+    const handleSend = async (text: string, mentionedUserIds: string[] = []) => {
         try {
-            await sendMessageAsync(text);
+            await sendMessageAsync({ text, mentionedUserIds });
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to send message');
         }
@@ -168,13 +178,14 @@ const MessagesPage = () => {
 
                 {/* Message Input */}
                 <div className="flex-shrink-0">
-                    <MessageInput
+                    <MessageInputWithMentions
                         onSend={handleSend}
                         isSending={isSending}
                         placeholder={`Message ${currentHub.name}...`}
                         disabled={!user}
                         onTyping={setTyping}
                         onStopTyping={clearTyping}
+                        currentUserId={user?.id}
                     />
                 </div>
             </div>

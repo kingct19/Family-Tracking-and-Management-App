@@ -34,6 +34,7 @@ export interface CreateMessageRequest {
     text: string;
     type?: MessageType;
     mediaURL?: string;
+    mentionedUsers?: string[]; // Array of user IDs who are @ mentioned
 }
 
 export interface MessageDocument extends Omit<Message, 'timestamp'> {
@@ -56,6 +57,7 @@ export async function sendMessage(
             type: data.type || 'text',
             mediaURL: data.mediaURL || null,
             readBy: [data.senderId], // Sender has read their own message
+            mentionedUsers: data.mentionedUsers || [],
             timestamp: serverTimestamp(),
         };
 
@@ -81,6 +83,7 @@ export async function sendMessage(
                 mediaURL: data.mediaURL,
                 timestamp: messageDataReturned.timestamp?.toDate() || new Date(),
                 readBy: messageDataReturned.readBy || [data.senderId],
+                mentionedUsers: messageDataReturned.mentionedUsers || [],
             },
         };
     } catch (error) {
@@ -176,6 +179,7 @@ export function subscribeToHubMessages(
                         mediaURL: data.mediaURL,
                         timestamp: data.timestamp?.toDate() || new Date(),
                         readBy: data.readBy || [],
+                        mentionedUsers: data.mentionedUsers || [],
                     });
                 });
 

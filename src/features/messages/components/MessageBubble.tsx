@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { MdMoreVert, MdDelete, MdCheck, MdCheckCircle } from 'react-icons/md';
 import type { Message } from '@/types';
+import { MentionText } from './MentionText';
 
 interface MessageBubbleProps {
     message: Message;
@@ -92,7 +93,7 @@ export const MessageBubble = ({
                 >
                     {/* Message Text */}
                     <p className="text-body-md sm:text-body-md whitespace-pre-wrap break-words select-text">
-                        {message.text}
+                        <MentionText text={message.text} isOwnMessage={isOwnMessage} />
                     </p>
 
                     {/* Media (if any) */}

@@ -4,7 +4,7 @@
  * React hooks for real-time messaging
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
     sendMessage,
@@ -16,6 +16,7 @@ import {
 } from '../api/message-api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useHubStore } from '@/lib/store/hub-store';
+import { messageNotificationService } from '../services/message-notification-service';
 import type { Message } from '@/types';
 
 /**
@@ -23,6 +24,8 @@ import type { Message } from '@/types';
  */
 export const useHubMessages = (hubId: string | undefined) => {
     const [messages, setMessages] = useState<Message[]>([]);
+    const previousMessagesRef = useRef<Message[]>([]);
+    const { user } = useAuth();
 
     // Query for initial load
     const { isLoading, error } = useQuery({
@@ -44,6 +47,25 @@ export const useHubMessages = (hubId: string | undefined) => {
         const unsubscribe = subscribeToHubMessages(
             hubId,
             (updatedMessages) => {
+                // Detect new messages (messages that weren't in previous list)
+                const previousMessageIds = new Set(previousMessagesRef.current.map(m => m.id));
+                const newMessages = updatedMessages.filter(m => !previousMessageIds.has(m.id));
+                
+                // Show notifications for new messages
+                newMessages.forEach(message => {
+                    // Don't notify if user sent the message themselves
+                    if (message.senderId !== user?.id) {
+                        messageNotificationService.showMessageNotification(
+                            hubId,
+                            message.senderName,
+                            message.text,
+                            message.mentionedUsers || [],
+                            user?.id
+                        );
+                    }
+                });
+
+                previousMessagesRef.current = updatedMessages;
                 setMessages(updatedMessages);
             },
             (error) => {
@@ -52,7 +74,7 @@ export const useHubMessages = (hubId: string | undefined) => {
         );
 
         return unsubscribe;
-    }, [hubId]);
+    }, [hubId, user?.id]);
 
     // Use real-time messages if available, otherwise fallback to query data
     const finalMessages = messages.length > 0 ? messages : [];
@@ -72,7 +94,7 @@ export const useSendMessage = () => {
     const { currentHub } = useHubStore();
 
     const mutation = useMutation({
-        mutationFn: async (text: string) => {
+        mutationFn: async ({ text, mentionedUserIds }: { text: string; mentionedUserIds?: string[] }) => {
             if (!user || !currentHub) {
                 throw new Error('User or hub not available');
             }
@@ -80,9 +102,10 @@ export const useSendMessage = () => {
             const request: CreateMessageRequest = {
                 hubId: currentHub.id,
                 senderId: user.id,
-                senderName: user.email?.split('@')[0] || 'User',
+                senderName: user.displayName || user.email?.split('@')[0] || 'User',
                 text: text.trim(),
                 type: 'text',
+                mentionedUsers: mentionedUserIds || [],
             };
 
             const response = await sendMessage(request);
