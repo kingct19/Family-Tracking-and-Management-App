@@ -454,7 +454,12 @@ const LocationPage = () => {
                                         {currentHub?.name || 'Family Members'}
                                 </h2>
                                     <p className="text-body-sm text-on-variant mt-0.5">
-                                        {allLocations.length} {allLocations.length === 1 ? 'member' : 'members'} online
+                                        {members.length} {members.length === 1 ? 'member' : 'members'}
+                                        {allLocations.length > 0 && (
+                                            <span className="ml-1">
+                                                • {allLocations.length} {allLocations.length === 1 ? 'sharing' : 'sharing'} location
+                                            </span>
+                                        )}
                                     </p>
                                 </div>
                                 <button
@@ -471,25 +476,25 @@ const LocationPage = () => {
                     {/* Member List - Vertical scrollable (Life360 style) */}
                     {showMemberList && (
                         <div className="overflow-y-auto pb-safe" style={{ maxHeight: 'calc(80vh - 120px)' }}>
-                            {allLocations.length > 0 ? (
+                            {members.length > 0 ? (
                                 <div className="divide-y divide-outline-variant">
-                                    {allLocations
-                                        .filter((location) => location && location.userId)
-                                        .map((location) => {
+                                    {members.map((member) => {
+                                        // Find location for this member
+                                        const location = allLocations.find(loc => loc.userId === member.userId);
+                                        const hasLocation = !!location;
                                             // Get device status for this user
-                                            const isCurrentUser = location.userId === user?.id;
+                                            const isCurrentUser = member.userId === user?.id;
                                             const deviceStatus = isCurrentUser
                                                 ? currentUserDeviceStatus
-                                                : getDeviceStatus(location.userId);
+                                                : getDeviceStatus(member.userId);
                                             
                                             // Get member info and photo
-                                            const member = members.find(m => m.userId === location.userId);
                                             const userPhoto = isCurrentUser 
                                                 ? (currentUserProfile?.photoURL || user?.photoURL)
                                                 : member?.photoURL;
                                             const userName = isCurrentUser
                                                 ? (currentUserProfile?.displayName || user?.displayName || `${user?.email?.split('@')[0] || 'You'} (You)`)
-                                                : (member?.displayName || `User ${location.userId.slice(0, 8)}`);
+                                                : (member?.displayName || `User ${member.userId.slice(0, 8)}`);
                                             
                                             // Format timestamp
                                             const formatTime = (date: Date | number | any) => {
@@ -568,7 +573,7 @@ const LocationPage = () => {
                                             
                                             return (
                                                 <div
-                                                    key={location.userId}
+                                                    key={member.userId}
                                                     className="px-4 sm:px-6 py-4 hover:bg-surface-variant/50 transition-colors cursor-pointer active:bg-surface-variant"
                                                 >
                                                     <div className="flex items-center gap-3">
@@ -581,9 +586,13 @@ const LocationPage = () => {
                                                                     userName.charAt(0).toUpperCase()
                                                                 )}
                                                             </div>
-                                                            {/* Online status indicator */}
-                                                            {deviceStatus?.isOnline && (
+                                                            {/* Online status indicator - show if has location or is online */}
+                                                            {(hasLocation && deviceStatus?.isOnline) && (
                                                                 <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full border-2 border-surface"></div>
+                                                            )}
+                                                            {/* Offline indicator if member exists but no location */}
+                                                            {!hasLocation && (
+                                                                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-on-variant/40 rounded-full border-2 border-surface"></div>
                                                             )}
                                                         </div>
 
@@ -598,53 +607,68 @@ const LocationPage = () => {
                                                                         You
                                                                     </span>
                                                                 )}
+                                                                {member.role === 'admin' && (
+                                                                    <span className="px-2 py-0.5 bg-secondary-container text-secondary text-label-sm font-medium rounded-full">
+                                                                        Admin
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                             
-                                                            {/* Location Address */}
-                                                            <div className="flex items-center gap-1.5 mb-1.5">
-                                                                <MdLocationOn size={14} className="text-on-variant flex-shrink-0" />
-                                                                <p className="text-body-sm text-on-variant truncate">
-                                                                    {('address' in location && location.address) || 
-                                                                     addressCache.get(`${location.latitude},${location.longitude}`) || 
-                                                                     'Fetching address...'}
-                                                                </p>
-                                                            </div>
+                                                            {/* Location Address or Status */}
+                                                            {hasLocation && location ? (
+                                                                <>
+                                                                    <div className="flex items-center gap-1.5 mb-1.5">
+                                                                        <MdLocationOn size={14} className="text-on-variant flex-shrink-0" />
+                                                                        <p className="text-body-sm text-on-variant truncate">
+                                                                            {('address' in location && location.address) || 
+                                                                             addressCache.get(`${location.latitude},${location.longitude}`) || 
+                                                                             'Fetching address...'}
+                                                                        </p>
+                                                                    </div>
 
-                                                            {/* Time & Battery Row */}
-                                                            <div className="flex items-center gap-4">
-                                                                <div className="flex items-center gap-1 text-body-sm text-on-variant">
-                                                                    <MdAccessTime size={12} />
-                                                                    <span>{formatTime(location.timestamp)}</span>
-                                                                </div>
-                                                                <div className={`flex items-center gap-1 text-body-sm ${getBatteryColor(deviceStatus?.batteryLevel)}`}>
-                                                                    <MdBatteryFull size={12} />
-                                                                    <span>
-                                                                        {deviceStatus?.batteryLevel !== null && deviceStatus?.batteryLevel !== undefined
-                                                                            ? `${deviceStatus.batteryLevel}%` 
-                                                                            : 'N/A'}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
+                                                                    {/* Time & Battery Row */}
+                                                                    <div className="flex items-center gap-4">
+                                                                        <div className="flex items-center gap-1 text-body-sm text-on-variant">
+                                                                            <MdAccessTime size={12} />
+                                                                            <span>{formatTime(location.timestamp)}</span>
+                                                                        </div>
+                                                                        <div className={`flex items-center gap-1 text-body-sm ${getBatteryColor(deviceStatus?.batteryLevel)}`}>
+                                                                            <MdBatteryFull size={12} />
+                                                                            <span>
+                                                                                {deviceStatus?.batteryLevel !== null && deviceStatus?.batteryLevel !== undefined
+                                                                                    ? `${deviceStatus.batteryLevel}%` 
+                                                                                    : 'N/A'}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <p className="text-body-sm text-on-variant">
+                                                                    Location not shared
+                                                                </p>
+                                                            )}
                                                         </div>
 
                                                         {/* Quick Actions */}
-                                                        <div className="flex items-center gap-2 flex-shrink-0">
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    // TODO: Center map on member when MapView exposes map instance
-                                                                    toast.success(`Viewing ${userName} on map`);
-                                                                }}
-                                                                className="p-2 text-primary hover:bg-primary-container rounded-full transition-colors touch-target"
-                                                                aria-label={`View ${userName} on map`}
-                                                            >
-                                                                <MdNavigation size={20} />
-                                                            </button>
-                                                        </div>
+                                                        {hasLocation && (
+                                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        // TODO: Center map on member when MapView exposes map instance
+                                                                        toast.success(`Viewing ${userName} on map`);
+                                                                    }}
+                                                                    className="p-2 text-primary hover:bg-primary-container rounded-full transition-colors touch-target"
+                                                                    aria-label={`View ${userName} on map`}
+                                                                >
+                                                                    <MdNavigation size={20} />
+                                                                </button>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             );
-                                        })}
+                                    })}
                                 </div>
                             ) : (
                                 <div className="text-center py-12 sm:py-16 px-4">

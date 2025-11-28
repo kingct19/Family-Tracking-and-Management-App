@@ -9,6 +9,7 @@ import {
     serverTimestamp,
     arrayRemove,
     deleteDoc,
+    onSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import type {
@@ -252,17 +253,71 @@ export const getHubMembers = async (hubId: string): Promise<ApiResponse<Membersh
 };
 
 /**
+ * Subscribe to real-time hub membership updates
+ */
+export const subscribeToHubMembers = (
+    hubId: string,
+    onUpdate: (memberships: Membership[]) => void,
+    onError?: (error: Error) => void
+): (() => void) => {
+    try {
+        const membershipsQuery = query(collection(db, 'hubs', hubId, 'memberships'));
+
+        const unsubscribe = onSnapshot(
+            membershipsQuery,
+            (snapshot) => {
+                const memberships: Membership[] = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data) {
+                        memberships.push({
+                            userId: data.userId as string,
+                            hubId: data.hubId as string,
+                            role: data.role as UserRole,
+                            status: data.status as MembershipStatus,
+                            joinedAt: data.joinedAt?.toDate() || new Date(),
+                            invitedBy: data.invitedBy as string | undefined,
+                        });
+                    }
+                });
+                onUpdate(memberships);
+            },
+            (error) => {
+                console.error('Error in hub members subscription:', error);
+                onError?.(error);
+            }
+        );
+
+        return unsubscribe;
+    } catch (error) {
+        console.error('Failed to subscribe to hub members:', error);
+        onError?.(error instanceof Error ? error : new Error('Unknown error'));
+        return () => {}; // Return no-op unsubscribe
+    }
+};
+
+/**
  * Update hub details
+ * Only allows updating name and description - other fields are protected
  */
 export const updateHub = async (
     hubId: string,
-    updates: Partial<Hub>
+    updates: Partial<Pick<Hub, 'name' | 'description'>>
 ): Promise<ApiResponse<void>> => {
     try {
-        await updateDoc(doc(db, 'hubs', hubId), {
-            ...updates,
+        // Only allow updating specific fields (name, description)
+        const allowedUpdates: any = {
             updatedAt: serverTimestamp(),
-        });
+        };
+
+        if (updates.name !== undefined) {
+            allowedUpdates.name = updates.name;
+        }
+        if (updates.description !== undefined) {
+            allowedUpdates.description = updates.description;
+        }
+
+        await updateDoc(doc(db, 'hubs', hubId), allowedUpdates);
 
         return { success: true };
     } catch (error: any) {

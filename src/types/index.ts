@@ -249,6 +249,7 @@ export interface Reward {
     title: string;
     description: string;
     icon: string; // emoji
+    imageURL?: string; // Optional photo/image URL for the reward
     type: RewardType;
     threshold: number; // XP amount, task count, or streak days
     createdBy: string; // admin userId

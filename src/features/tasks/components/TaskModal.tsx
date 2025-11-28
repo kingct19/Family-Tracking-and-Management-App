@@ -84,8 +84,16 @@ export const TaskModal = ({ isOpen, onClose, onSave, task, isLoading = false }: 
             newErrors.weight = 'Weight must be between 1 and 10';
         }
 
-        if (formData.deadline && new Date(formData.deadline) < new Date()) {
-            newErrors.deadline = 'Deadline cannot be in the past';
+        if (formData.deadline) {
+            // Compare dates at start of day (midnight) to allow same-day deadlines
+            const deadlineDate = new Date(formData.deadline);
+            deadlineDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (deadlineDate < today) {
+                newErrors.deadline = 'Deadline cannot be in the past';
+            }
         }
 
         setErrors(newErrors);

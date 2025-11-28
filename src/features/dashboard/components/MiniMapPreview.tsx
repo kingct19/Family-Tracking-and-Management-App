@@ -537,6 +537,7 @@ export const MiniMapPreview = ({ className = '' }: MiniMapPreviewProps) => {
     );
 
     const onlineCount = membersWithStatus.filter(m => m.hasLocation).length;
+    const totalMembers = membersWithStatus.length;
 
     return (
         <div className={`relative overflow-hidden ${className}`} style={{ minHeight: '100%' }}>
@@ -565,7 +566,10 @@ export const MiniMapPreview = ({ className = '' }: MiniMapPreviewProps) => {
                 <div className="flex items-center gap-2 bg-slate-900/60 backdrop-blur-sm px-2.5 py-1.5 rounded-full">
                     <div className={`w-2 h-2 rounded-full ${onlineCount > 0 ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
                     <span className="text-white text-label-sm font-medium">
-                        {onlineCount} online
+                        {totalMembers} {totalMembers === 1 ? 'member' : 'members'}
+                        {onlineCount > 0 && (
+                            <span className="ml-1 opacity-75">• {onlineCount} online</span>
+                        )}
                     </span>
                 </div>
                 <div className="flex items-center gap-1.5">

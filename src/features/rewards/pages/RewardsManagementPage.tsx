@@ -24,6 +24,7 @@ import {
 } from '../hooks/useRewards';
 import { RewardCard } from '../components/RewardCard';
 import { RewardModal } from '../components/RewardModal';
+import { uploadRewardImage } from '@/lib/services/storage-service';
 import type { Reward, RewardType } from '@/types';
 import toast from 'react-hot-toast';
 
@@ -85,22 +86,67 @@ const RewardsManagementPage = () => {
         }
     };
 
-    const handleSubmit = async (data: {
-        title: string;
-        description: string;
-        icon: string;
-        type: RewardType;
-        threshold: number;
-    }) => {
+    const handleSubmit = async (
+        data: {
+            title: string;
+            description: string;
+            icon: string;
+            imageURL?: string | null;
+            type: RewardType;
+            threshold: number;
+        },
+        imageFile?: File | null
+    ) => {
         try {
             if (editingReward) {
+                // For editing, update the reward
                 await updateRewardMutation.mutateAsync({
                     rewardId: editingReward.id,
                     updates: data,
                 });
+                
+                // If new image file was selected, upload it
+                if (imageFile && currentHub && editingReward) {
+                    try {
+                        const uploadedURL = await uploadRewardImage(imageFile, currentHub.id, editingReward.id);
+                        await updateRewardMutation.mutateAsync({
+                            rewardId: editingReward.id,
+                            updates: { imageURL: uploadedURL },
+                        });
+                    } catch (uploadError: any) {
+                        console.error('Image upload error:', uploadError);
+                        toast.error('Reward updated but image upload failed');
+                    }
+                }
+                
+                // If imageURL is null, it means user removed the image - update to clear it
+                if (data.imageURL === null) {
+                    await updateRewardMutation.mutateAsync({
+                        rewardId: editingReward.id,
+                        updates: { imageURL: null },
+                    });
+                }
+                
                 toast.success('Reward updated');
             } else {
-                await createRewardMutation.mutateAsync(data);
+                // For creating, create reward first, then upload image if provided
+                const createdReward = await createRewardMutation.mutateAsync(data);
+                
+                // Upload image after reward is created (so we have the rewardId)
+                if (imageFile && createdReward && currentHub) {
+                    try {
+                        const uploadedURL = await uploadRewardImage(imageFile, currentHub.id, createdReward.id);
+                        // Update the reward with the image URL
+                        await updateRewardMutation.mutateAsync({
+                            rewardId: createdReward.id,
+                            updates: { imageURL: uploadedURL },
+                        });
+                    } catch (uploadError: any) {
+                        console.error('Image upload error:', uploadError);
+                        toast.error('Reward created but image upload failed');
+                    }
+                }
+                
                 toast.success('Reward created');
             }
             setIsModalOpen(false);

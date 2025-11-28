@@ -46,6 +46,17 @@ service firebase.storage {
       allow read: if isAuthenticated();
     }
     
+    // Reward images
+    match /rewards/{hubId}/{rewardId}/{fileName} {
+      // Allow authenticated users to upload reward images (admins will manage via app logic)
+      allow write: if isAuthenticated()
+        && request.resource.size < 5 * 1024 * 1024  // Max 5MB
+        && request.resource.contentType.matches('image/.*');
+      
+      // Allow authenticated users to read reward images
+      allow read: if isAuthenticated();
+    }
+    
     // Deny all other access
     match /{allPaths=**} {
       allow read, write: if false;

@@ -2,7 +2,7 @@
  * RewardModal - Create/Edit reward modal for admins
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
     MdClose, 
     MdStar, 
@@ -10,8 +10,15 @@ import {
     MdLocalFireDepartment,
     MdSave,
     MdAdd,
+    MdImage,
+    MdDelete,
+    MdCloudUpload,
 } from 'react-icons/md';
 import type { Reward, RewardType } from '@/types';
+import { uploadRewardImage } from '@/lib/services/storage-service';
+import { useHubStore } from '@/lib/store/hub-store';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import toast from 'react-hot-toast';
 
 interface RewardModalProps {
     isOpen: boolean;
@@ -20,9 +27,10 @@ interface RewardModalProps {
         title: string;
         description: string;
         icon: string;
+        imageURL?: string | null;
         type: RewardType;
         threshold: number;
-    }) => void;
+    }, imageFile?: File | null) => void;
     reward?: Reward | null;
     isLoading?: boolean;
 }
@@ -42,12 +50,19 @@ export const RewardModal = ({
     reward,
     isLoading = false,
 }: RewardModalProps) => {
+    const { currentHub } = useHubStore();
+    const { user } = useAuth();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [icon, setIcon] = useState('🏆');
+    const [imageURL, setImageURL] = useState<string | undefined>(undefined);
     const [type, setType] = useState<RewardType>('xp');
     const [threshold, setThreshold] = useState<number>(100);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Load reward data when editing
     useEffect(() => {
@@ -55,6 +70,8 @@ export const RewardModal = ({
             setTitle(reward.title);
             setDescription(reward.description);
             setIcon(reward.icon);
+            setImageURL(reward.imageURL);
+            setImagePreview(reward.imageURL || null);
             setType(reward.type);
             setThreshold(reward.threshold);
         } else {
@@ -62,22 +79,94 @@ export const RewardModal = ({
             setTitle('');
             setDescription('');
             setIcon('🏆');
+            setImageURL(undefined);
+            setImagePreview(null);
+            setSelectedFile(null);
             setType('xp');
             setThreshold(100);
         }
     }, [reward, isOpen]);
 
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            toast.error('Please select an image file');
+            return;
+        }
+
+        // Validate file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('Image must be less than 5MB');
+            return;
+        }
+
+        // Store file for upload
+        setSelectedFile(file);
+
+        // Create preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        // If editing existing reward, upload immediately
+        if (reward?.id && currentHub) {
+            handleImageUpload(file);
+        }
+    };
+
+    const handleImageUpload = async (file?: File) => {
+        const fileToUpload = file || selectedFile;
+        if (!fileToUpload || !currentHub || !user || !reward?.id) {
+            return;
+        }
+
+        setIsUploading(true);
+        try {
+            const uploadedURL = await uploadRewardImage(fileToUpload, currentHub.id, reward.id);
+            setImageURL(uploadedURL);
+            setSelectedFile(null); // Clear file after successful upload
+            toast.success('Image uploaded successfully');
+        } catch (error: any) {
+            console.error('Image upload error:', error);
+            toast.error(error.message || 'Failed to upload image');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setImageURL(undefined);
+        setImagePreview(null);
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!title.trim()) return;
+
+        // Determine final imageURL value:
+        // - If there's a preview/file selected: use existing imageURL or will upload after
+        // - If image was removed (had URL before, now removed): pass null to clear it
+        const hadImageBefore = reward?.imageURL;
+        const hasImageNow = imagePreview || imageURL;
+        const imageWasRemoved = hadImageBefore && !hasImageNow && !selectedFile;
 
         onSubmit({
             title: title.trim(),
             description: description.trim(),
             icon,
+            imageURL: imageWasRemoved ? null : (imageURL || undefined),
             type,
             threshold,
-        });
+        }, selectedFile); // Pass file for upload after creation
     };
 
     if (!isOpen) return null;
@@ -107,37 +196,57 @@ export const RewardModal = ({
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                    {/* Icon + Title row */}
+                    {/* Icon/Image + Title row */}
                     <div className="flex gap-4">
-                        {/* Icon picker */}
+                        {/* Icon/Image picker */}
                         <div className="relative flex-shrink-0">
-                            <button
-                                type="button"
-                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                className="w-16 h-16 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-amber-200 flex items-center justify-center text-3xl hover:border-amber-400 transition-colors"
-                            >
-                                {icon}
-                            </button>
-                            
-                            {/* Emoji picker dropdown */}
-                            {showEmojiPicker && (
-                                <div className="absolute top-full left-0 mt-2 p-3 bg-white rounded-xl shadow-xl border border-outline-variant z-10 grid grid-cols-8 gap-1 w-72">
-                                    {EMOJI_OPTIONS.map((emoji) => (
-                                        <button
-                                            key={emoji}
-                                            type="button"
-                                            onClick={() => {
-                                                setIcon(emoji);
-                                                setShowEmojiPicker(false);
-                                            }}
-                                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-xl hover:bg-surface-variant transition-colors ${
-                                                icon === emoji ? 'bg-primary/10 ring-2 ring-primary' : ''
-                                            }`}
-                                        >
-                                            {emoji}
-                                        </button>
-                                    ))}
+                            {imagePreview || imageURL ? (
+                                <div className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-amber-200">
+                                    <img 
+                                        src={imagePreview || imageURL} 
+                                        alt="Reward preview" 
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveImage}
+                                        className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-bl-lg hover:bg-red-600 transition-colors"
+                                        aria-label="Remove image"
+                                    >
+                                        <MdDelete size={14} />
+                                    </button>
                                 </div>
+                            ) : (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                        className="w-16 h-16 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-amber-200 flex items-center justify-center text-3xl hover:border-amber-400 transition-colors"
+                                    >
+                                        {icon}
+                                    </button>
+                                    
+                                    {/* Emoji picker dropdown */}
+                                    {showEmojiPicker && (
+                                        <div className="absolute top-full left-0 mt-2 p-3 bg-white rounded-xl shadow-xl border border-outline-variant z-10 grid grid-cols-8 gap-1 w-72">
+                                            {EMOJI_OPTIONS.map((emoji) => (
+                                                <button
+                                                    key={emoji}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setIcon(emoji);
+                                                        setShowEmojiPicker(false);
+                                                    }}
+                                                    className={`w-8 h-8 rounded-lg flex items-center justify-center text-xl hover:bg-surface-variant transition-colors ${
+                                                        icon === emoji ? 'bg-primary/10 ring-2 ring-primary' : ''
+                                                    }`}
+                                                >
+                                                    {emoji}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
 
@@ -154,6 +263,81 @@ export const RewardModal = ({
                                 className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-white text-on-surface placeholder:text-on-variant/50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                                 required
                             />
+                        </div>
+                    </div>
+
+                    {/* Image Upload Section */}
+                    <div>
+                        <label className="block text-label-md font-medium text-on-surface mb-1.5">
+                            Reward Image (Optional)
+                        </label>
+                        <div className="space-y-2">
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageSelect}
+                                className="hidden"
+                            />
+                            {!imagePreview && !imageURL && (
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="w-full px-4 py-3 rounded-xl border-2 border-dashed border-outline-variant hover:border-primary/50 bg-surface-variant/30 hover:bg-surface-variant transition-colors flex items-center justify-center gap-2 text-on-variant"
+                                >
+                                    <MdCloudUpload size={20} />
+                                    <span className="font-medium">Upload Image</span>
+                                </button>
+                            )}
+                            {imagePreview && (
+                                <div className="relative">
+                                    <div className="relative w-full h-32 rounded-xl overflow-hidden border-2 border-outline-variant">
+                                        <img 
+                                            src={imagePreview} 
+                                            alt="Reward preview" 
+                                            className="w-full h-full object-cover"
+                                        />
+                                        {reward && !imageURL && (
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => selectedFile && handleImageUpload(selectedFile)}
+                                                    disabled={isUploading || !selectedFile}
+                                                    className="px-4 py-2 rounded-lg bg-primary text-on-primary font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                                >
+                                                    {isUploading ? (
+                                                        <>
+                                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                            Uploading...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <MdCloudUpload size={18} />
+                                                            Upload Now
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={handleRemoveImage}
+                                            className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                            aria-label="Remove image"
+                                        >
+                                            <MdDelete size={18} />
+                                        </button>
+                                    </div>
+                                    {!reward && selectedFile && (
+                                        <p className="mt-2 text-label-sm text-on-variant">
+                                            Image will be uploaded after reward is created
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                            <p className="text-label-sm text-on-variant">
+                                Upload a custom image for this reward, or use an emoji icon above. Image will replace emoji when set.
+                            </p>
                         </div>
                     </div>
 

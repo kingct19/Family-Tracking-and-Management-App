@@ -16,10 +16,13 @@ export const ensureUserHasHub = async (userId: string, userName?: string): Promi
         const hubsResponse = await getUserHubs(userId);
 
         if (hubsResponse.success && hubsResponse.data && hubsResponse.data.length > 0) {
-            // User has hubs, set the first one as current
-            const firstHub = hubsResponse.data[0];
+            // User has hubs - only set first one if no hub is currently selected
+            // This prevents overwriting user's hub selection
             const hubStore = useHubStore.getState();
-            hubStore.setCurrentHub(firstHub, 'admin'); // Assuming user is admin of their first hub
+            if (!hubStore.currentHub) {
+                const firstHub = hubsResponse.data[0];
+                // Don't set hub here - let useAuth hook handle it properly with role fetching
+            }
             return;
         }
 

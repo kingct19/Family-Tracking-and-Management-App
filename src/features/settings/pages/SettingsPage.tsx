@@ -8,6 +8,8 @@ import { useHubStore } from '@/lib/store/hub-store';
 import { FeatureTogglesSettings } from '../components/FeatureTogglesSettings';
 import { NotificationSettings } from '@/features/notifications/components/NotificationSettings';
 import { InviteManagement } from '@/features/hubs/components/InviteManagement';
+import { HubSettingsModal } from '@/features/hubs/components/HubSettingsModal';
+import { MemberManagement } from '@/features/hubs/components/MemberManagement';
 import {
     MdSecurity,
     MdPerson,
@@ -26,6 +28,8 @@ const SettingsPage = () => {
     const { currentHub, currentRole } = useHubStore();
     const navigate = useNavigate();
     const [showInviteManagement, setShowInviteManagement] = useState(false);
+    const [showHubSettings, setShowHubSettings] = useState(false);
+    const [showMemberManagement, setShowMemberManagement] = useState(false);
 
     return (
         <>
@@ -160,6 +164,22 @@ const SettingsPage = () => {
                                         <div className="pt-2 border-t border-outline-variant space-y-2">
                                             <Button
                                                 variant="filled"
+                                                onClick={() => setShowHubSettings(true)}
+                                                startIcon={<MdEdit size={18} />}
+                                                fullWidth
+                                            >
+                                                Edit Hub Name
+                                            </Button>
+                                            <Button
+                                                variant="tonal"
+                                                onClick={() => setShowMemberManagement(true)}
+                                                startIcon={<MdPeople size={18} />}
+                                                fullWidth
+                                            >
+                                                Manage Members
+                                            </Button>
+                                            <Button
+                                                variant="tonal"
                                                 onClick={() => setShowInviteManagement(true)}
                                                 startIcon={<MdKey size={18} />}
                                                 fullWidth
@@ -188,12 +208,22 @@ const SettingsPage = () => {
                 {/* Notification Settings */}
                 <NotificationSettings />
 
-                {/* Invite Management Modal */}
+                {/* Admin Modals */}
                 {currentRole === 'admin' && (
-                    <InviteManagement
-                        isOpen={showInviteManagement}
-                        onClose={() => setShowInviteManagement(false)}
-                    />
+                    <>
+                        <HubSettingsModal
+                            isOpen={showHubSettings}
+                            onClose={() => setShowHubSettings(false)}
+                        />
+                        <MemberManagement
+                            isOpen={showMemberManagement}
+                            onClose={() => setShowMemberManagement(false)}
+                        />
+                        <InviteManagement
+                            isOpen={showInviteManagement}
+                            onClose={() => setShowInviteManagement(false)}
+                        />
+                    </>
                 )}
             </div>
         </>

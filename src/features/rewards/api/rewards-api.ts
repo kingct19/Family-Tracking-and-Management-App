@@ -17,6 +17,7 @@ import {
     orderBy,
     serverTimestamp,
     Timestamp,
+    deleteField,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import type { Reward, UserReward, ApiResponse, RewardType } from '@/types';
@@ -34,13 +35,14 @@ export const createReward = async (
         title: string;
         description: string;
         icon: string;
+        imageURL?: string;
         type: RewardType;
         threshold: number;
         createdBy: string;
     }
 ): Promise<ApiResponse<Reward>> => {
     try {
-        const rewardData = {
+        const rewardData: any = {
             hubId,
             title: data.title,
             description: data.description,
@@ -52,6 +54,11 @@ export const createReward = async (
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         };
+        
+        // Only include imageURL if provided
+        if (data.imageURL) {
+            rewardData.imageURL = data.imageURL;
+        }
 
         const docRef = await addDoc(collection(db, 'rewards'), rewardData);
         
@@ -95,6 +102,7 @@ export const getHubRewards = async (hubId: string): Promise<ApiResponse<Reward[]
                 title: data.title,
                 description: data.description,
                 icon: data.icon,
+                imageURL: data.imageURL,
                 type: data.type,
                 threshold: data.threshold,
                 createdBy: data.createdBy,
@@ -157,14 +165,26 @@ export const getReward = async (rewardId: string): Promise<ApiResponse<Reward>> 
  */
 export const updateReward = async (
     rewardId: string,
-    updates: Partial<Pick<Reward, 'title' | 'description' | 'icon' | 'type' | 'threshold' | 'isActive'>>
+    updates: Partial<Pick<Reward, 'title' | 'description' | 'icon' | 'imageURL' | 'type' | 'threshold' | 'isActive'>>
 ): Promise<ApiResponse<void>> => {
     try {
         const docRef = doc(db, 'rewards', rewardId);
-        await updateDoc(docRef, {
+        
+        // Prepare update data - handle null imageURL by using deleteField
+        const updateData: any = {
             ...updates,
             updatedAt: serverTimestamp(),
-        });
+        };
+        
+        // If imageURL is explicitly null, use deleteField to remove it
+        if ('imageURL' in updates && updates.imageURL === null) {
+            updateData.imageURL = deleteField();
+        } else if (updates.imageURL === undefined) {
+            // Don't include imageURL if undefined (no change)
+            delete updateData.imageURL;
+        }
+        
+        await updateDoc(docRef, updateData);
 
         return { success: true };
     } catch (error: any) {

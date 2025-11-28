@@ -168,6 +168,51 @@ export const useCompleteTask = () => {
                     toast.success(`🎉 +${xpAmount} XP for completing the task!`, {
                         duration: 3000,
                     });
+
+                    // Check and unlock rewards after awarding XP
+                    try {
+                        const { getUserTotalXP } = await import('@/features/xp/api/xp-api');
+                        const { calculateStreak } = await import('@/features/xp/api/xp-api');
+                        const { checkAndUnlockRewards } = await import('@/features/rewards/api/rewards-api');
+                        const { getHubTasks } = await import('@/features/tasks/api/task-api');
+                        
+                        // Calculate user stats for reward checking
+                        const [xpTotalResponse, streakResponse, tasksResponse] = await Promise.all([
+                            getUserTotalXP(user.id, currentHub.id),
+                            calculateStreak(user.id),
+                            getHubTasks(currentHub.id),
+                        ]);
+                        
+                        const xpTotal = xpTotalResponse.success ? xpTotalResponse.data || 0 : 0;
+                        const currentStreak = streakResponse.success ? streakResponse.data || 0 : 0;
+                        
+                        // Count completed tasks
+                        const tasksCompleted = tasksResponse.success && tasksResponse.data
+                            ? tasksResponse.data.filter(
+                                t => t.assignedTo === user.id && 
+                                     (t.status === 'done' || t.status === 'approved')
+                              ).length
+                            : 0;
+                        
+                        // Check and unlock rewards
+                        const unlockResponse = await checkAndUnlockRewards(currentHub.id, user.id, {
+                            xpTotal,
+                            tasksCompleted,
+                            currentStreak,
+                        });
+                        
+                        // Show notification if any rewards were unlocked
+                        if (unlockResponse.success && unlockResponse.data && unlockResponse.data.length > 0) {
+                            unlockResponse.data.forEach(reward => {
+                                toast.success(`🎁 Reward unlocked: ${reward.title}!`, {
+                                    duration: 5000,
+                                });
+                            });
+                        }
+                    } catch (rewardError) {
+                        console.error('Failed to check rewards:', rewardError);
+                        // Don't fail the entire operation if reward checking fails
+                    }
                 }
             }
         },
@@ -175,6 +220,7 @@ export const useCompleteTask = () => {
             queryClient.invalidateQueries({ queryKey: ['tasks', 'hub', currentHub?.id] });
             queryClient.invalidateQueries({ queryKey: ['xpRecords'] });
             queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+            queryClient.invalidateQueries({ queryKey: ['userRewards'] });
         },
     });
 };
@@ -220,16 +266,64 @@ export const useApproveTaskProof = () => {
             if (taskResponse.success && taskResponse.data) {
                 const task = taskResponse.data.find(t => t.id === taskId);
                 if (task) {
-                    const xpAmount = task.weight * 10; // 10 XP per weight point
+                    // Fetch user profile to get actual display name
+                    const { getUserProfile } = await import('@/features/auth/api/auth-api');
+                    const userProfileResponse = await getUserProfile(assignedToUserId);
+                    const userName = userProfileResponse.success && userProfileResponse.data
+                        ? (userProfileResponse.data.displayName || userProfileResponse.data.email.split('@')[0])
+                        : `User ${assignedToUserId.slice(0, 8)}`;
+                    
+                    const xpAmount = task.weight; // Weight directly represents XP value
                     await awardXP({
                         userId: assignedToUserId,
-                        userName: `User ${assignedToUserId.slice(0, 8)}`, // TODO: Get actual user name
+                        userName: userName,
                         amount: xpAmount,
                         source: 'task_completion',
                         sourceId: taskId,
                         description: `Completed task: ${task.title}`,
                         hubId: currentHub.id,
                     });
+
+                    // Check and unlock rewards after awarding XP
+                    try {
+                        const { getUserTotalXP } = await import('@/features/xp/api/xp-api');
+                        const { calculateStreak } = await import('@/features/xp/api/xp-api');
+                        const { checkAndUnlockRewards } = await import('@/features/rewards/api/rewards-api');
+                        
+                        // Calculate user stats for reward checking
+                        const [xpResponse, streakResponse] = await Promise.all([
+                            getUserTotalXP(assignedToUserId, currentHub.id),
+                            calculateStreak(assignedToUserId),
+                        ]);
+                        
+                        const xpTotal = xpResponse.success ? xpResponse.data || 0 : 0;
+                        const currentStreak = streakResponse.success ? streakResponse.data || 0 : 0;
+                        
+                        // Count completed tasks
+                        const completedTasks = taskResponse.data.filter(
+                            t => t.assignedTo === assignedToUserId && 
+                                 (t.status === 'done' || t.status === 'approved')
+                        ).length;
+                        
+                        // Check and unlock rewards
+                        const unlockResponse = await checkAndUnlockRewards(currentHub.id, assignedToUserId, {
+                            xpTotal,
+                            tasksCompleted: completedTasks,
+                            currentStreak,
+                        });
+                        
+                        // Show notification if any rewards were unlocked
+                        if (unlockResponse.success && unlockResponse.data && unlockResponse.data.length > 0) {
+                            unlockResponse.data.forEach(reward => {
+                                toast.success(`🎁 Reward unlocked: ${reward.title}!`, {
+                                    duration: 5000,
+                                });
+                            });
+                        }
+                    } catch (rewardError) {
+                        console.error('Failed to check rewards:', rewardError);
+                        // Don't fail the entire operation if reward checking fails
+                    }
                 }
             }
         },
@@ -237,6 +331,7 @@ export const useApproveTaskProof = () => {
             queryClient.invalidateQueries({ queryKey: ['tasks', 'hub', currentHub?.id] });
             queryClient.invalidateQueries({ queryKey: ['xpRecords'] });
             queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+            queryClient.invalidateQueries({ queryKey: ['userRewards'] });
             toast.success('Task approved and XP awarded!');
         },
     });

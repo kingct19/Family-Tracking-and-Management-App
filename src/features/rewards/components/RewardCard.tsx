@@ -94,15 +94,25 @@ export const RewardCard = ({
             <div className="relative p-4">
                 {/* Header */}
                 <div className="flex items-start gap-3">
-                    {/* Icon */}
-                    <div className={`relative flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center text-3xl ${
+                    {/* Icon/Image */}
+                    <div className={`relative flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden ${
                         isUnlocked
                             ? `bg-gradient-to-br ${getTypeColor(reward.type)} shadow-lg`
                             : 'bg-slate-100'
                     }`}>
-                        <span className={isUnlocked ? 'drop-shadow-md' : 'grayscale opacity-60'}>
-                            {reward.icon}
-                        </span>
+                        {reward.imageURL ? (
+                            <img 
+                                src={reward.imageURL} 
+                                alt={reward.title}
+                                className={`w-full h-full object-cover ${isUnlocked ? '' : 'grayscale opacity-60'}`}
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-3xl">
+                                <span className={isUnlocked ? 'drop-shadow-md' : 'grayscale opacity-60'}>
+                                    {reward.icon}
+                                </span>
+                            </div>
+                        )}
                         
                         {/* Lock/Unlock badge */}
                         <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center shadow-md ${

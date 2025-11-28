@@ -45,8 +45,49 @@
                     "order": "DESCENDING"
                 }
             ]
+        },
+        {
+            "collectionGroup": "invites",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "hubId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "expiresAt",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "xpRecords",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "hubId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "timestamp",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "rewards",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "hubId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "threshold",
+                    "order": "ASCENDING"
+                }
+            ]
         }
     ],
     "fieldOverrides": []
 }
-

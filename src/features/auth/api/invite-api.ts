@@ -9,6 +9,7 @@ import {
   query,
   where,
   getDocs,
+  Timestamp,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import type { Invite, Membership, ApiResponse, UserRole } from '@/types';
@@ -51,11 +52,32 @@ export const createInviteCode = async (
       usedBy: [],
     };
 
-    await setDoc(doc(db, 'invites', code), {
-      ...invite,
-      expiresAt: expiresAt,
+    // Build document data, excluding undefined maxUses
+    const inviteData: {
+      code: string;
+      hubId: string;
+      createdBy: string;
+      role: UserRole;
+      expiresAt: Timestamp;
+      usedBy: string[];
+      createdAt: ReturnType<typeof serverTimestamp>;
+      maxUses?: number;
+    } = {
+      code,
+      hubId,
+      createdBy,
+      role,
+      expiresAt: Timestamp.fromDate(expiresAt),
+      usedBy: [],
       createdAt: serverTimestamp(),
-    });
+    };
+
+    // Only include maxUses if it's defined
+    if (maxUses !== undefined) {
+      inviteData.maxUses = maxUses;
+    }
+
+    await setDoc(doc(db, 'invites', code), inviteData);
 
     return {
       success: true,
@@ -126,14 +148,15 @@ export const getInviteByCode = async (code: string): Promise<ApiResponse<Invite>
 };
 
 /**
- * Join a hub using an invite code
+ * Join an existing hub using an invite code
+ * This function uses the hubId from the invite to join the existing hub, NOT create a new one
  */
 export const joinHubWithInvite = async (
   userId: string,
   inviteCode: string
 ): Promise<ApiResponse<{ hubId: string; role: UserRole }>> => {
   try {
-    // Get and validate invite
+    // Get and validate invite - this contains the hubId of the existing hub
     const inviteResponse = await getInviteByCode(inviteCode);
     if (!inviteResponse.success || !inviteResponse.data) {
       return {
@@ -143,10 +166,20 @@ export const joinHubWithInvite = async (
     }
 
     const invite = inviteResponse.data;
+    const hubId = invite.hubId; // Use the hubId from the invite (existing hub)
+
+    // Verify the hub exists before trying to join it
+    const hubDoc = await getDoc(doc(db, 'hubs', hubId));
+    if (!hubDoc.exists()) {
+      return {
+        success: false,
+        error: 'The hub associated with this invite no longer exists',
+      };
+    }
 
     // Check if user is already a member
     const membershipDoc = await getDoc(
-      doc(db, 'hubs', invite.hubId, 'memberships', userId)
+      doc(db, 'hubs', hubId, 'memberships', userId)
     );
 
     if (membershipDoc.exists()) {
@@ -156,29 +189,47 @@ export const joinHubWithInvite = async (
       };
     }
 
-    // Create membership
+    // Create membership in the existing hub
     const membership: Omit<Membership, 'joinedAt'> = {
       userId,
-      hubId: invite.hubId,
+      hubId,
       role: invite.role,
       status: 'active', // Auto-approve with invite code
       invitedBy: invite.createdBy,
     };
 
-    await setDoc(doc(db, 'hubs', invite.hubId, 'memberships', userId), {
+    await setDoc(doc(db, 'hubs', hubId, 'memberships', userId), {
       ...membership,
       joinedAt: serverTimestamp(),
     });
 
-    // Update hub members array
-    await updateDoc(doc(db, 'hubs', invite.hubId), {
+    // Update existing hub's members array
+    await updateDoc(doc(db, 'hubs', hubId), {
       members: arrayUnion(userId),
     });
 
-    // Update user's hubs array
-    await updateDoc(doc(db, 'users', userId), {
-      hubs: arrayUnion(invite.hubId),
-    });
+    // Update user's hubs array (use setDoc with merge to handle case where user doc doesn't exist)
+    const userRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userRef);
+    
+    if (userDoc.exists()) {
+      // User document exists, update it
+      await updateDoc(userRef, {
+        hubs: arrayUnion(hubId),
+      });
+    } else {
+      // User document doesn't exist, create it with the hub
+      // This can happen if user joined via invite before completing profile setup
+      await setDoc(userRef, {
+        id: userId,
+        email: '', // Will be updated when user completes profile
+        displayName: '', // Will be updated when user completes profile
+        hubs: [hubId],
+        xpTotal: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+    }
 
     // Mark invite as used
     await updateDoc(doc(db, 'invites', inviteCode), {
@@ -188,7 +239,7 @@ export const joinHubWithInvite = async (
     return {
       success: true,
       data: {
-        hubId: invite.hubId,
+        hubId,
         role: invite.role,
       },
     };
@@ -196,7 +247,7 @@ export const joinHubWithInvite = async (
     console.error('Join hub error:', error);
     return {
       success: false,
-      error: 'Failed to join hub',
+      error: error.message || 'Failed to join hub',
     };
   }
 };
@@ -209,7 +260,7 @@ export const getHubInvites = async (hubId: string): Promise<ApiResponse<Invite[]
     const invitesQuery = query(
       collection(db, 'invites'),
       where('hubId', '==', hubId),
-      where('expiresAt', '>', new Date())
+      where('expiresAt', '>', Timestamp.now())
     );
 
     const snapshot = await getDocs(invitesQuery);

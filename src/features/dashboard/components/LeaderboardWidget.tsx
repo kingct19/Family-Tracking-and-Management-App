@@ -3,11 +3,12 @@
  * Shows top 5 members with their XP and ranking
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useHubStore } from '@/lib/store/hub-store';
 import { getLeaderboard } from '@/features/xp/api/xp-api';
+import { getUserProfile } from '@/features/auth/api/auth-api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { MdEmojiEvents, MdArrowOutward, MdLocalFireDepartment } from 'react-icons/md';
 
@@ -24,23 +25,79 @@ export const LeaderboardWidget = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
 
-    const { data: leaderboard = [], isLoading } = useQuery({
+    // Fetch leaderboard data (with XP totals)
+    const { data: leaderboardData, isLoading: isLoadingLeaderboard } = useQuery({
         queryKey: ['leaderboard', currentHub?.id],
         queryFn: async () => {
             if (!currentHub) throw new Error('No hub selected');
             const response = await getLeaderboard(currentHub.id);
             if (!response.success) throw new Error(response.error);
-            return (response.data || []).map((entry) => ({
-                userId: entry.userId,
-                displayName: entry.userName,
-                xpTotal: entry.totalXP,
-                rank: entry.rank,
-                photoURL: (entry as any).photoURL,
-            })) as LeaderboardEntry[];
+            return response.data || [];
         },
         enabled: !!currentHub,
         staleTime: 2 * 60 * 1000, // 2 minutes
     });
+
+    // Get unique user IDs from leaderboard
+    const userIds = useMemo(() => {
+        if (!leaderboardData) return [];
+        return Array.from(new Set(leaderboardData.map(entry => entry.userId)));
+    }, [leaderboardData]);
+
+    // Fetch user profiles for all leaderboard users
+    const { data: userProfilesMap, isLoading: isLoadingProfiles } = useQuery({
+        queryKey: ['leaderboard-profiles', userIds],
+        queryFn: async () => {
+            const profilesMap: Record<string, { displayName: string; photoURL?: string }> = {};
+            
+            // Fetch all user profiles in parallel
+            await Promise.all(
+                userIds.map(async (userId) => {
+                    try {
+                        const response = await getUserProfile(userId);
+                        if (response.success && response.data) {
+                            profilesMap[userId] = {
+                                displayName: response.data.displayName || response.data.email.split('@')[0],
+                                photoURL: response.data.photoURL,
+                            };
+                        } else {
+                            // Fallback if profile fetch fails
+                            profilesMap[userId] = {
+                                displayName: `User ${userId.slice(0, 8)}`,
+                            };
+                        }
+                    } catch (error) {
+                        console.error(`Failed to fetch profile for user ${userId}:`, error);
+                        profilesMap[userId] = {
+                            displayName: `User ${userId.slice(0, 8)}`,
+                        };
+                    }
+                })
+            );
+            
+            return profilesMap;
+        },
+        enabled: userIds.length > 0,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+
+    // Combine leaderboard data with user profiles
+    const leaderboard = useMemo(() => {
+        if (!leaderboardData || !userProfilesMap) return [];
+        
+        return leaderboardData.map((entry) => {
+            const profile = userProfilesMap[entry.userId];
+            return {
+                userId: entry.userId,
+                displayName: profile?.displayName || entry.userName || `User ${entry.userId.slice(0, 8)}`,
+                xpTotal: entry.totalXP,
+                rank: entry.rank,
+                photoURL: profile?.photoURL,
+            } as LeaderboardEntry;
+        });
+    }, [leaderboardData, userProfilesMap]);
+
+    const isLoading = isLoadingLeaderboard || isLoadingProfiles;
 
     // Get medal color based on rank
     const getMedalColor = (rank: number) => {

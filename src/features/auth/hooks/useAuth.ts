@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { auth } from '@/config/firebase';
@@ -24,6 +24,8 @@ export const useAuth = () => {
   const { setCurrentHub, clearCurrentHub } = useHubStore();
 
   // Listen to Firebase auth state changes
+  const hubInitializedRef = useRef(false); // Track if hub has been initialized in this session
+  
   useEffect(() => {
     let isMounted = true;
     
@@ -43,21 +45,52 @@ export const useAuth = () => {
             }
 
             // Try to load user's hubs (optional - don't fail if no hubs exist)
-            try {
-              const hubsResponse = await getUserHubs(firebaseUser.uid);
-              if (isMounted && hubsResponse.success && hubsResponse.data && hubsResponse.data.length > 0) {
-                // Set first hub as current if none selected
-                const firstHub = hubsResponse.data[0];
-                const membershipResponse = await getUserMembership(firstHub.id, firebaseUser.uid);
+            // Only initialize hub once per session to prevent flickering
+            if (!hubInitializedRef.current) {
+              try {
+                const hubsResponse = await getUserHubs(firebaseUser.uid);
+                if (isMounted && hubsResponse.success && hubsResponse.data && hubsResponse.data.length > 0) {
+                  const hubStore = useHubStore.getState();
+                  
+                  // Only set first hub if no hub is currently selected
+                  // This preserves the user's hub selection across navigations
+                  if (!hubStore.currentHub) {
+                    const firstHub = hubsResponse.data[0];
+                    const membershipResponse = await getUserMembership(firstHub.id, firebaseUser.uid);
 
-                if (isMounted && membershipResponse.success && membershipResponse.data) {
-                  setCurrentHub(firstHub, membershipResponse.data.role);
+                    if (isMounted && membershipResponse.success && membershipResponse.data) {
+                      setCurrentHub(firstHub, membershipResponse.data.role);
+                    }
+                  } else {
+                    // Hub already selected - just verify it still exists in user's hub list
+                    // Don't update anything unless hub is missing (which means user was removed)
+                    const currentHubId = hubStore.currentHub.id;
+                    const currentHubInList = hubsResponse.data.find(h => h.id === currentHubId);
+                    
+                    if (!currentHubInList) {
+                      // Current hub no longer exists - switch to first available
+                      const firstHub = hubsResponse.data[0];
+                      const membershipResponse = await getUserMembership(firstHub.id, firebaseUser.uid);
+                      
+                      if (isMounted && membershipResponse.success && membershipResponse.data) {
+                        setCurrentHub(firstHub, membershipResponse.data.role);
+                      }
+                    }
+                    // If hub exists, do nothing - preserve the current selection
+                  }
+                  hubInitializedRef.current = true; // Mark as initialized to prevent future checks
+                } else {
+                  // No hubs found - mark as initialized to prevent retries
+                  hubInitializedRef.current = true;
                 }
+              } catch (hubError) {
+                // Hub loading failed - this is OK for new users
+                console.log('No hubs found for user or hub loading failed:', hubError);
+                hubInitializedRef.current = true; // Mark as done to prevent retries
               }
-            } catch (hubError) {
-              // Hub loading failed - this is OK for new users
-              console.log('No hubs found for user or hub loading failed:', hubError);
             }
+            // Once initialized, we skip all hub loading on subsequent auth state changes
+            // This prevents flickering when navigating - trust the persisted hub store
           } catch (error) {
             console.error('Error mapping Firebase user:', error);
             if (isMounted) {
@@ -68,6 +101,7 @@ export const useAuth = () => {
           if (isMounted) {
             setUser(null);
             clearCurrentHub();
+            hubInitializedRef.current = false; // Reset when user logs out
           }
         }
 
@@ -134,6 +168,7 @@ export const useAuth = () => {
           const newHub = hubsResponse.data.find(h => h.id === hubId);
           if (newHub) {
             setCurrentHub(newHub, role);
+            // Don't reset hubInitializedRef - the hub is now set, keep it stable
           }
         }
       }

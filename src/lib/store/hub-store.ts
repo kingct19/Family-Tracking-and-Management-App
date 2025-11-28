@@ -32,12 +32,35 @@ export const useHubStore = create<HubState>()(
       currentRole: null,
       featureToggles: null,
 
-      setCurrentHub: (hub, role) =>
-        set({
-          currentHub: hub,
-          currentRole: role,
-          featureToggles: hub.featureToggles || defaultFeatureToggles,
-        }),
+      setCurrentHub: (hub, role) => {
+        const current = get();
+        // Only update if hub or role actually changed to prevent unnecessary re-renders
+        if (
+          current.currentHub?.id !== hub.id ||
+          current.currentRole !== role
+        ) {
+          set({
+            currentHub: hub,
+            currentRole: role,
+            featureToggles: hub.featureToggles || defaultFeatureToggles,
+          });
+        } else {
+          // Hub ID and role are the same, but update hub data in case name/description changed
+          // Only update if data actually changed
+          const hubDataChanged = 
+            current.currentHub?.name !== hub.name ||
+            current.currentHub?.description !== hub.description ||
+            JSON.stringify(current.currentHub?.featureToggles) !== JSON.stringify(hub.featureToggles);
+          
+          if (hubDataChanged) {
+            set({
+              currentHub: hub,
+              currentRole: role,
+              featureToggles: hub.featureToggles || defaultFeatureToggles,
+            });
+          }
+        }
+      },
 
       updateFeatureToggles: (toggles) =>
         set((state) => ({

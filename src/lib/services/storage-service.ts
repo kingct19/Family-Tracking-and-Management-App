@@ -103,3 +103,32 @@ export const uploadProfilePicture = async (
     return uploadFile(file, path);
 };
 
+/**
+ * Upload reward image
+ */
+export const uploadRewardImage = async (
+    file: File,
+    hubId: string,
+    rewardId: string
+): Promise<string> => {
+    // Verify user is authenticated
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        throw new Error('User must be authenticated to upload files');
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        throw new Error('File must be an image');
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        throw new Error('Image must be less than 5MB');
+    }
+
+    const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const path = `rewards/${hubId}/${rewardId}/${fileName}`;
+    return uploadFile(file, path);
+};
+

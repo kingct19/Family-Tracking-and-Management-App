@@ -7,9 +7,11 @@ import { useHubStore } from '@/lib/store/hub-store';
 import { useApproveTaskProof } from '@/features/tasks/hooks/useTasks';
 import { getHubTasks } from '@/features/tasks/api/task-api';
 import { updateTask } from '@/features/tasks/api/task-api';
+import { getUserProfile } from '@/features/auth/api/auth-api';
 import { MdCheck, MdClose, MdImage, MdAccessTime, MdPerson } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import type { Task } from '@/types';
+import { useMemo } from 'react';
 
 const PendingApprovalsPage = () => {
     const { currentHub } = useHubStore();
@@ -29,6 +31,58 @@ const PendingApprovalsPage = () => {
         },
         enabled: !!currentHub,
     });
+
+    // Get unique user IDs from tasks
+    const userIds = useMemo(() => {
+        if (!tasks) return [];
+        return Array.from(new Set(tasks.map(task => task.assignedTo).filter(Boolean) as string[]));
+    }, [tasks]);
+
+    // Fetch user profiles for all assigned users
+    const { data: userProfilesMap, isLoading: isLoadingProfiles } = useQuery({
+        queryKey: ['user-profiles', userIds],
+        queryFn: async () => {
+            const profilesMap: Record<string, { displayName: string; email: string }> = {};
+            
+            // Fetch all user profiles in parallel
+            await Promise.all(
+                userIds.map(async (userId) => {
+                    try {
+                        const response = await getUserProfile(userId);
+                        if (response.success && response.data) {
+                            profilesMap[userId] = {
+                                displayName: response.data.displayName || response.data.email.split('@')[0],
+                                email: response.data.email,
+                            };
+                        } else {
+                            // Fallback to userId if profile fetch fails
+                            profilesMap[userId] = {
+                                displayName: `User ${userId.slice(0, 8)}`,
+                                email: '',
+                            };
+                        }
+                    } catch (error) {
+                        console.error(`Failed to fetch profile for user ${userId}:`, error);
+                        // Fallback to userId if profile fetch fails
+                        profilesMap[userId] = {
+                            displayName: `User ${userId.slice(0, 8)}`,
+                            email: '',
+                        };
+                    }
+                })
+            );
+            
+            return profilesMap;
+        },
+        enabled: userIds.length > 0,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+
+    // Helper function to get user display name
+    const getUserDisplayName = (userId: string | undefined): string => {
+        if (!userId) return 'Unknown';
+        return userProfilesMap?.[userId]?.displayName || `User ${userId.slice(0, 8)}`;
+    };
 
     const handleApprove = async (task: Task) => {
         if (!task.assignedTo) {
@@ -62,7 +116,7 @@ const PendingApprovalsPage = () => {
         }
     };
 
-    if (isLoading) {
+    if (isLoading || isLoadingProfiles) {
         return (
             <>
                 <Helmet>
@@ -137,7 +191,7 @@ const PendingApprovalsPage = () => {
                                             <div className="flex items-center gap-2 text-body-sm text-on-variant">
                                                 <MdPerson size={16} />
                                                 <span>
-                                                    Assigned to: User {task.assignedTo?.slice(0, 8)}
+                                                    Assigned to: {getUserDisplayName(task.assignedTo)}
                                                 </span>
                                             </div>
                                             {task.proofSubmittedAt && (

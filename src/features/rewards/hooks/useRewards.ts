@@ -108,6 +108,7 @@ export const useCreateReward = () => {
             title: string;
             description: string;
             icon: string;
+            imageURL?: string;
             type: RewardType;
             threshold: number;
         }) => {
@@ -138,7 +139,7 @@ export const useUpdateReward = () => {
             updates,
         }: {
             rewardId: string;
-            updates: Partial<Pick<Reward, 'title' | 'description' | 'icon' | 'type' | 'threshold' | 'isActive'>>;
+            updates: Partial<Pick<Reward, 'title' | 'description' | 'icon' | 'imageURL' | 'type' | 'threshold' | 'isActive'>>;
         }) => {
             const response = await updateReward(rewardId, updates);
             if (!response.success) throw new Error(response.error);

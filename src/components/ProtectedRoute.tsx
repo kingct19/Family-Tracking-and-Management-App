@@ -24,19 +24,24 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }, []);
 
     // Ensure user has a hub after authentication (non-blocking)
+    // Only run once on initial authentication, not on every navigation
+    const [hubCheckDone, setHubCheckDone] = useState(false);
     useEffect(() => {
-        if (isAuthenticated && user) {
+        if (isAuthenticated && user && !hubCheckDone) {
             // Run hub check in background - don't block rendering
+            // This only runs once per auth session
             ensureUserHasHub(user.id, user.displayName || undefined)
                 .then(() => {
                     console.log('Hub check completed');
+                    setHubCheckDone(true);
                 })
                 .catch((error) => {
                     console.error('ProtectedRoute: Hub check error:', error);
+                    setHubCheckDone(true); // Mark as done even on error to prevent retries
                     // Continue anyway - hub creation is optional
                 });
         }
-    }, [isAuthenticated, user]);
+    }, [isAuthenticated, user, hubCheckDone]);
 
     // Show loading only if auth is loading AND we haven't timed out
     if (isLoading && !forceStopLoading) {

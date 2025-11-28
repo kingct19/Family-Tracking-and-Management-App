@@ -250,3 +250,35 @@ export const getUserRank = async (userId: string, hubId?: string): Promise<ApiRe
     }
 };
 
+/**
+ * Get user's total XP for a specific hub
+ */
+export const getUserTotalXP = async (userId: string, hubId: string): Promise<ApiResponse<number>> => {
+    try {
+        const q = query(
+            collection(db, 'xpRecords'),
+            where('userId', '==', userId),
+            where('hubId', '==', hubId)
+        );
+
+        const snapshot = await getDocs(q);
+        let totalXP = 0;
+
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            totalXP += data.amount || 0;
+        });
+
+        return {
+            success: true,
+            data: totalXP,
+        };
+    } catch (error) {
+        console.error('Get user total XP error:', error);
+        return {
+            success: true,
+            data: 0,
+        };
+    }
+};
+
