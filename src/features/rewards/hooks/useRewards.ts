@@ -139,7 +139,9 @@ export const useUpdateReward = () => {
             updates,
         }: {
             rewardId: string;
-            updates: Partial<Pick<Reward, 'title' | 'description' | 'icon' | 'imageURL' | 'type' | 'threshold' | 'isActive'>>;
+            updates: Partial<Pick<Reward, 'title' | 'description' | 'icon' | 'type' | 'threshold' | 'isActive'>> & {
+                imageURL?: string | null;
+            };
         }) => {
             const response = await updateReward(rewardId, updates);
             if (!response.success) throw new Error(response.error);

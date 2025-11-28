@@ -99,10 +99,11 @@ const RewardsManagementPage = () => {
     ) => {
         try {
             if (editingReward) {
-                // For editing, update the reward
+                // For editing, update the reward (excluding imageURL, we'll handle that separately)
+                const { imageURL: _imageURL, ...updateData } = data;
                 await updateRewardMutation.mutateAsync({
                     rewardId: editingReward.id,
-                    updates: data,
+                    updates: updateData,
                 });
                 
                 // If new image file was selected, upload it
@@ -130,7 +131,9 @@ const RewardsManagementPage = () => {
                 toast.success('Reward updated');
             } else {
                 // For creating, create reward first, then upload image if provided
-                const createdReward = await createRewardMutation.mutateAsync(data);
+                // Exclude imageURL from initial creation since we'll upload it after
+                const { imageURL: _imageURL, ...createData } = data;
+                const createdReward = await createRewardMutation.mutateAsync(createData);
                 
                 // Upload image after reward is created (so we have the rewardId)
                 if (imageFile && createdReward && currentHub) {

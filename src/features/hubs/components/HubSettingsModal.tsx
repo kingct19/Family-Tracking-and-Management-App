@@ -103,16 +103,20 @@ export const HubSettingsModal = ({ isOpen, onClose }: HubSettingsModalProps) => 
                         }
                     />
 
-                    <TextField
-                        label="Description"
-                        value={formData.description || ''}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Enter hub description (optional)"
-                        multiline
-                        rows={3}
-                        disabled={updateHubMutation.isPending}
-                        maxLength={200}
-                    />
+                    <div>
+                        <label className="block text-label-md font-medium text-on-surface mb-1.5">
+                            Description
+                        </label>
+                        <textarea
+                            value={formData.description || ''}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            placeholder="Enter hub description (optional)"
+                            rows={3}
+                            disabled={updateHubMutation.isPending}
+                            maxLength={200}
+                            className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-white text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:opacity-50 disabled:bg-surface-variant"
+                        />
+                    </div>
 
                     {/* Actions */}
                     <div className="flex gap-3 pt-4">

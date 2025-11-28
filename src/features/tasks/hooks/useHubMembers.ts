@@ -31,25 +31,25 @@ const enrichMemberships = async (memberships: Membership[]): Promise<HubMember[]
             try {
                 const userResponse = await getUserProfile(membership.userId);
                 if (userResponse.success && userResponse.data) {
-                    members.push({
-                        userId: membership.userId,
-                        displayName: userResponse.data.displayName || userResponse.data.email.split('@')[0],
-                        email: userResponse.data.email,
-                        photoURL: userResponse.data.photoURL,
-                        role: membership.role,
-                        status: membership.status,
-                    });
+                        members.push({
+                            userId: membership.userId,
+                            displayName: userResponse.data.displayName || userResponse.data.email.split('@')[0],
+                            email: userResponse.data.email,
+                            photoURL: userResponse.data.photoURL,
+                            role: membership.role,
+                            status: membership.status === 'active' ? 'active' : 'inactive',
+                        });
                 }
             } catch (error) {
                 console.error(`Failed to fetch profile for user ${membership.userId}:`, error);
                 // Add member with minimal info if profile fetch fails
-                members.push({
-                    userId: membership.userId,
-                    displayName: `User ${membership.userId.slice(0, 8)}`,
-                    email: '',
-                    role: membership.role,
-                    status: membership.status,
-                });
+                        members.push({
+                            userId: membership.userId,
+                            displayName: `User ${membership.userId.slice(0, 8)}`,
+                            email: '',
+                            role: membership.role,
+                            status: membership.status === 'active' ? 'active' : 'inactive',
+                        });
             }
         })
     );

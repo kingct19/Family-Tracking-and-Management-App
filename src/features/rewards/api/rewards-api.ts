@@ -165,7 +165,9 @@ export const getReward = async (rewardId: string): Promise<ApiResponse<Reward>> 
  */
 export const updateReward = async (
     rewardId: string,
-    updates: Partial<Pick<Reward, 'title' | 'description' | 'icon' | 'imageURL' | 'type' | 'threshold' | 'isActive'>>
+    updates: Partial<Pick<Reward, 'title' | 'description' | 'icon' | 'type' | 'threshold' | 'isActive'>> & {
+        imageURL?: string | null;
+    }
 ): Promise<ApiResponse<void>> => {
     try {
         const docRef = doc(db, 'rewards', rewardId);
