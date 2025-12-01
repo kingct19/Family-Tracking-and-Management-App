@@ -70,6 +70,12 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
     disconnect: vi.fn()
 }));
 
+// Mock scrollIntoView (not available in jsdom)
+Element.prototype.scrollIntoView = vi.fn();
+
+// Mock scrollIntoView (not available in jsdom)
+Element.prototype.scrollIntoView = vi.fn();
+
 // Suppress console warnings in tests
 const originalError = console.error;
 beforeAll(() => {
